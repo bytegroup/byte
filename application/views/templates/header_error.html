@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>BE School - <?=$pageTitle?></title>
+
+<link rel='stylesheet' type='text/css' media='all' href='<?=$base_url.ASSETS_FOLDER?>style.css' />
+<?=$css?>
+
+<?php 
+foreach($css_files as $file): ?>
+	<link type="text/css" rel="stylesheet" href="<?php echo $file; ?>" />
+<?php endforeach; ?>
+
+<script type="text/javascript" src="<?=$base_url.ASSETS_FOLDER?>js/jquery.js"></script>
+
+<?=$js?>
+<?php foreach($js_files as $file): ?>
+	<script src="<?php echo $file; ?>"></script>
+<?php endforeach; ?>
+
+<meta http-equiv='expires' content='-1' />
+<meta http-equiv= 'pragma' content='no-cache' />
+<meta name='robots' content='all' />
+<meta name='author' content='Binary Elites' />
+<meta name='description' content='Binary Elites School Management System' />
+
+
+</head>
+<body>
+<table cellpadding="0" cellspacing="0" border="0" style="width:100%">       
+    <tr>
+        <td align="center">
+            <img src="<?=$base_url.ASSETS_FOLDER?>images/logo.png" width="100px"/>            
+        </td>
+    </tr>
+</table>

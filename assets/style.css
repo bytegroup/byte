@@ -1,0 +1,19 @@
+.xhrresult{
+    display: none;
+    font-weight: bold;
+    background: #FBE6F2;
+    border: 1px solid #D893A1;
+    color: #333;
+    margin: 10px 0 5px 0;
+    padding: 10px;
+}
+
+.loading
+{
+    background: url('images/small-loading.gif') no-repeat;
+    height:15px;
+    padding-left:25px;
+    padding-top:1px;
+    display: none;
+    float: right;
+}
