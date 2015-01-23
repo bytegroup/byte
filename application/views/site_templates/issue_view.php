@@ -36,11 +36,12 @@
         var stockItems= '<?php echo $issuedItems; ?>';
         var remStockItems= '<?php echo $toBeIssuedItems;?>';
 
+        $("form#crudForm #form-button-save").hide();
+        if(state==='add')$("form#crudForm #save-and-go-back-button").val('Save');
+        else $("form#crudForm #save-and-go-back-button").val('Update Changes');
+
         stockItems= $.parseJSON(stockItems);
         remStockItems= $.parseJSON(remStockItems);
-        console.log(stockItems);
-        console.log(remStockItems);
-        console.log($.merge( $.merge( [], stockItems ), remStockItems ));
         var stockQty=0;
         stockQty= parseInt($("#stockQuantity_input_box").text());
 
@@ -49,6 +50,7 @@
         $("#field-issueQuantity").spinner( "option", "incremental", true );*/
 
         var issueQty= $("#field-issueQuantity").val()?parseInt($("#field-issueQuantity").val()):0;
+        if(state==='read')issueQty= $("#field-issueQuantity").text()?parseInt($("#field-issueQuantity").text()):0;
         $("#items_input_box").html(items(stockItems, issueQty));
         issueQty = $('#field-issueQuantity').val()?parseInt($('#field-issueQuantity').val()):0;
         $("#field-issueQuantity").on('input', function() {
@@ -72,10 +74,14 @@
         var employeeURL  = '<?php echo base_url(IT_MODULE_FOLDER);?>/issue/ajax_get_employee/'+stockId+'/';
         var currentDpt= $('#field-departmentId').val();
         var currentEmp= $('#field-issueUserId').val();
-        filterOptions('', 'departmentId', departmentURL, currentDpt);
-        filterOptions('', 'issueUserId', employeeURL, currentEmp);
+        if(state==='add' || state==='edit'){
+            filterOptions('', 'departmentId', departmentURL, currentDpt);
+            filterOptions('', 'issueUserId', employeeURL, currentEmp);
+        }
 
-        toggleField($("#issueTo_input_box input[type='radio']:checked").val());
+        if(state==='read') toggleField($("#field-issueTo").text());
+        else toggleField($("#issueTo_input_box input[type='radio']:checked").val());
+
         $("#issueTo_input_box input[type='radio']").change(function(){
             toggleField($(this).val());
         });

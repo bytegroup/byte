@@ -52,6 +52,7 @@ class Issue extends MX_Controller {
 
             $crud->add_fields('stockId', 'company', 'issueTo', 'departmentId', 'issueUserId', 'issueDate',  'issueDescription', 'stockQuantity', 'issueQuantity', 'items', 'creatorId', 'createDate');
             $crud->edit_fields('stockId', 'company', 'issueTo', 'departmentId', 'issueUserId', 'issueDate',  'issueDescription', 'stockQuantity', 'issueQuantity', 'items', 'editorId', 'editDate');
+            $crud->set_read_fields('company', 'issueTo', 'departmentId', 'issueUserId', 'issueDate',  'issueDescription', 'stockQuantity', 'issueQuantity', 'items');
             $crud->required_fields(array('issueTo', 'issueDate', 'issueQuantity'));
             $crud->unset_texteditor('issueDescription');
             $crud->field_type('stockId', 'hidden', $stockId);
@@ -60,26 +61,29 @@ class Issue extends MX_Controller {
             $crud->field_type('editorId', 'hidden', $this->my_session->userId);
             $crud->field_type('editDate', 'hidden', $time);
             $crud->callback_field('company', array($this, 'callback_field_company'));
+            $crud->callback_read_field('company', array($this, 'callback_read_field_company'));
             $crud->callback_field('issueTo', array($this, 'callback_field_issueTo'));
             $crud->callback_field('stockQuantity', array($this, 'callback_field_stockQuantity'));
+            $crud->callback_read_field('stockQuantity', array($this, 'callback_read_field_stockQuantity'));
             $crud->callback_field('items', array($this, 'callback_field_items'));
             $crud->callback_after_insert(array($this, 'callback_after_insert_issue'));
             $crud->callback_after_update(array($this, 'callback_after_update_issue'));
             $crud->callback_after_delete(array($this, 'callback_after_delete_issue'));
+
+            if($this->is_stock_empty($stockId))$crud->unset_add();
 
             $output = $crud->render();
 
             $currentIssueId= isset($crud->getStateInfo()->primary_key)? $crud->getStateInfo()->primary_key: 0;
             $output->issuedItems=json_encode($this->get_issue_items_by_stock_id($stockId, $currentIssueId));
             $output->toBeIssuedItems=json_encode($this->get_issue_items_by_stock_id($stockId));
-
             $output->state = $crud->getState();
             $output->css = "";
             $output->js = "";
             $output->stockId=$stockId;
             $output->issueHeader= $this->get_issue_item_header($stockId);
 
-            $output->pageTitle = "Issue List";
+            $output->pageTitle = "Issue";
             $output->base_url = base_url();
             $output->backToStockList= base_url(IT_MODULE_FOLDER.'stock');
             $msg=null;
@@ -98,6 +102,9 @@ class Issue extends MX_Controller {
     function callback_field_company($row, $key){
         return $this->get_company_name_by_stock_id($this->stockId);
     }
+    function callback_read_field_company($row, $key){
+        return $this->get_company_name_by_stock_id($this->stockId);
+    }
     function callback_field_issueTo($value, $key){
         if(!$value)$value='';
         $checkComp= $value==='Company'?'checked':'';
@@ -112,17 +119,11 @@ class Issue extends MX_Controller {
     function callback_field_stockQuantity($row, $key){
         return $this->get_stock_quantity($this->stockId);
     }
+    function callback_read_field_stockQuantity($row, $key){
+        return $this->get_stock_quantity($this->stockId);
+    }
     function callback_field_items($row, $key){
-        $itemsToBeIssued= '';
         $html = '';
-        /*$html .= '<ul>';
-        $html .= '<li>';
-        $html .= '<ul class="items-table-header">';
-        $html .= '<li>Product Code</li><li>Warranty</li><li>Vendor</li>';
-        $html .= '</ul>';
-        $html .= '</li>';
-
-        $html .= '</ul>';*/
         return $html;
     }
     function callback_after_insert_issue($post, $key){
@@ -258,6 +259,11 @@ class Issue extends MX_Controller {
             $array[]= array('issuedId'=>$row->receiveDetailId ,'vendor'=>$row->vendorsName, 'productCode'=>$row->productCode, 'warranty'=>$row->warrantyEndDate);
         endforeach;
         return $array;
+    }
+    function is_stock_empty($stockId=0){
+        if(!$stockId)return false;
+        if(!$this->get_stock_quantity($stockId))return true;
+        else return false;
     }
 }
 ?>
