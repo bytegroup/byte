@@ -11,8 +11,10 @@
     input[type='radio']:first-child{margin-left: 0;}
     #items_input_box ul{width: 100%;list-style: none; margin: 0;}
     #items_input_box ul li ul.items-table-header{background-color: #a9dba9;}
+    #items_input_box ul li ul li:first-child{width: 20px;}
     #items_input_box ul li ul li:last-child{width: 250px;}
     #items_input_box ul li ul li{display: inline-block;padding: 0 4px; width: 150px;text-align: left;}
+    #items_input_box ul li li input[type="checkbox"]{margin-bottom: 3px;}
     #items_input_box ul li ul{border-bottom: 1px #9acc9a solid;}
 </style>
 <div class="" style="width: auto; height: auto; border: 0px #999 solid; float: right">
@@ -40,34 +42,25 @@
         if(state==='add')$("form#crudForm #save-and-go-back-button").val('Save');
         else $("form#crudForm #save-and-go-back-button").val('Update Changes');
 
+        $("#field-issueQuantity").prop("readonly",true);
+
         stockItems= $.parseJSON(stockItems);
         remStockItems= $.parseJSON(remStockItems);
-        var stockQty=0;
-        stockQty= parseInt($("#stockQuantity_input_box").text());
 
-        /*$('#field-issueQuantity').spinner({incremental: true, min: 0, max:stockQty});
-        var incremental = $( "#field-issueQuantity" ).spinner( "option", "incremental" );
-        $("#field-issueQuantity").spinner( "option", "incremental", true );*/
-
-        var issueQty= $("#field-issueQuantity").val()?parseInt($("#field-issueQuantity").val()):0;
-        if(state==='read')issueQty= $("#field-issueQuantity").text()?parseInt($("#field-issueQuantity").text()):0;
-        $("#items_input_box").html(items(stockItems, issueQty));
-        issueQty = $('#field-issueQuantity').val()?parseInt($('#field-issueQuantity').val()):0;
-        $("#field-issueQuantity").on('input', function() {
-            if(state==='add'){
-                issueQty = parseInt($(this).val());
-                if (issueQty > stockQty)$(this).val('');
-                if(issueQty ==0)$(this).val('');
-                $("#items_input_box").html(items(stockItems, $(this).val() ? parseInt($(this).val()) : 0));
+        var issueQty= stockItems.length;
+        if(state==='read')$("#items_input_box").html(items(stockItems, issueQty));
+        else if(state==='add')$("#items_input_box").html(items(remStockItems, issueQty));
+        else if(state==='edit'){
+            $("#items_input_box").html(items($.merge($.merge([], stockItems), remStockItems), 0));
+            for(var i=0; i< issueQty; i++){
+                $('#items_input_box input#items-'+stockItems[i].issuedId).attr('checked', true);
             }
-            else{
-                if ((stockQty + issueQty) < parseInt($(this).val()))$(this).val(issueQty);
-                if(issueQty < $(this).val())
-                    $("#items_input_box").html(items($.merge($.merge([],stockItems),remStockItems), $(this).val() ? parseInt($(this).val()) : 0));
-                else
-                    $("#items_input_box").html(items(stockItems, $(this).val() ? parseInt($(this).val()) : 0));
+        }
+        else{}
 
-            }
+        $('#items_input_box input[type="checkbox"]').change(function(){
+            issueQty= $("#items_input_box input[type='checkbox']:checked").length;
+            $('#field-issueQuantity').val(issueQty);
         });
 
         var departmentURL= '<?php echo base_url(IT_MODULE_FOLDER);?>/issue/ajax_get_department/'+stockId+'/';
@@ -139,13 +132,15 @@
         $html += '<ul>';
         $html += '<li>';
         $html += '<ul class="items-table-header">';
-        $html += '<li>Product Code</li><li>Warranty</li><li>Vendor</li>';
+        $html += '<li>&nbsp;</li><li>Product Code</li><li>Warranty</li><li>Vendor</li>';
         $html += '</ul>';
         $html += '</li>';
-        if(items.length>0)
+        numOfItems= items.length;
+        if(numOfItems>0)
         for(var i=0; i<numOfItems; i++){
             $html += '<li>';
             $html += '<ul>';
+            $html += '<li><input type="checkbox" id="items-'+items[i].issuedId+'" name="selectedItems[]" value="'+items[i].issuedId+'"/></li>';
             $html += '<li>'+items[i].productCode +'</li>';
             $html += '<li>'+items[i].warranty +'</li>';
             $html += '<li>'+items[i].vendor +'</li>';

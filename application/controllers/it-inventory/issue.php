@@ -127,7 +127,7 @@ class Issue extends MX_Controller {
         return $html;
     }
     function callback_after_insert_issue($post, $key){
-        $issuedItems= $post['issuedIds'];
+        $issuedItems= $post['selectedItems'];
 
         foreach($issuedItems as $id):
             $this->db->update(TBL_RECEIVES_DETAIL, array('issueId'=>$key), array('receiveDetailId'=>$id));
@@ -139,7 +139,7 @@ class Issue extends MX_Controller {
         $this->db->update(TBL_STOCK);
     }
     function callback_after_update_issue($post, $key){
-        $issuedItems= $post['issuedIds'];
+        $issuedItems= $post['selectedItems'];
 
         $this->db->update(TBL_RECEIVES_DETAIL, array('issueId'=>0), array('issueId'=>$key));
         $preIssueQty= $this->db->affected_rows();

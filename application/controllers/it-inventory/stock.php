@@ -37,13 +37,14 @@ class Stock extends MX_Controller {
             $crud->display_as('itemMasterId', 'Item');
             $crud->display_as('stockQuantity', 'Stock Quantity');
             $crud->display_as('issueQuantity', 'Issued Quantity');
+            $crud->display_as('damageQuantity', 'Damage Quantity');
 
-            $crud->columns('stockNumber', 'itemMasterId', 'stockQuantity', 'issueQuantity');
+            $crud->columns('stockNumber', 'itemMasterId', 'stockQuantity', 'issueQuantity', 'damageQuantity');
 
             $crud->unset_add()->unset_edit()->unset_delete()->unset_read();
 
             $crud->add_action('Issue', "", IT_MODULE_FOLDER.'issue/index', 'ui-icon-person');
-            $crud->add_action('Damage', "", IT_MODULE_FOLDER.'damage/index', 'ui-icon-tag');
+            $crud->add_action('Damage', "", IT_MODULE_FOLDER.'damage/index/stock', 'ui-icon-tag');
 
             $output = $crud->render();
 

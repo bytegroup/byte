@@ -63,6 +63,8 @@ class Issue_List extends MX_Controller{
 
             $crud->unset_add()->unset_edit()->unset_delete();
 
+            $crud->add_action('Damage', '', base_url(IT_MODULE_FOLDER.'damage/index'), 'ui-icon-trash');
+
             $output = $crud->render();
             $output->state = $crud->getState();
             $output->css = "";

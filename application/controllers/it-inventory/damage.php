@@ -18,8 +18,8 @@ class Damage extends MX_Controller {
         }
     }
 
-   function index($stockId){
-       if(!$stockId){
+   function index($damageFrom, $stockId){
+       if(!$stockId && ($damageFrom!=='stock' || $damageFrom!=='issue')){
            redirect(base_url().IT_MODULE_FOLDER.'stock');
            die();
        }
