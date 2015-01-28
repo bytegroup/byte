@@ -955,8 +955,30 @@ class CI_Form_validation {
 		
 		return $query->num_rows() === 0;
     }
+    // --------------------------------------------------------------------
 
-	// --------------------------------------------------------------------
+    /********** Custom code start *****************************************************************/
+    /*TODO: have to replace in helper validation class*/
+    /**
+     * @param $str
+     * @param $fields
+     * @return bool
+     */
+    public function is_unique_in_group($str, $fields)
+    {
+        list($primary_key, $table, $uniqueField, $groupByField) = explode(',', str_replace(' ', '', $fields));
+
+        $query = $this->CI->db->limit(1)->get_where($table, array($uniqueField => $str, $groupByField=>$_POST[$groupByField]));
+        //$test= $query->result();
+        if(!$query->num_rows()){return true;}
+        else {
+            //if($str===$query->result()[0]->$uniqueField)return true;
+            $this->set_message('is_unique_in_group', 'The %s field should be unique');
+            return false;
+        }
+    }
+    /********** Custom code end *****************************************************************/
+
 
 	/**
 	 * Minimum Length
