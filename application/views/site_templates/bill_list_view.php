@@ -2,14 +2,11 @@
 /**
  * Created by PhpStorm.
  * User: mizanur
- * Date: 12/29/14
- * Time: 12:09 PM
+ * Date: 1/30/15
+ * Time: 3:32 PM
  */
 ?>
-<style type="text/css">
-    .ui-datepicker-calendar {  display: none;  }​
-    .ui-datepicker-title span.ui-datepicker-month{display: none;}
-</style>
+
 <h3><?=$pageTitle?></h3>
 <?=$output?>
 

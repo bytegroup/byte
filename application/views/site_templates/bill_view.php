@@ -16,5 +16,13 @@
 <script language="JavaScript">
     $(document).ready(function(e){
         $("#collapseIT-Inventory").removeClass("in").addClass("in");
+        $(".form-content form div.buttons-box").prepend(
+            '<div class="form-button-box">'
+            + '<input type="button" value="Back to Receive" class="ui-input-button" id="cancel-bill">'
+            + '</div>'
+        );
+        $("input#cancel-bill").click(function(){
+            window.location = "<?php echo $cancelURL;?>";
+        });
     });
 </script>

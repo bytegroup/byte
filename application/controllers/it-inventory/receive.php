@@ -101,7 +101,7 @@ class Receive extends MX_Controller{
 
             if ($this->isAllProductReceived($this->requisitionId, $quotationId)) $crud->unset_add();
 
-            $crud->add_action('Bill', '', base_url(IT_MODULE_FOLDER . 'bill') . '/index/', 'ui-icon-calculator');
+            $crud->add_action('Bill', '', '', 'ui-icon-calculator', array($this, 'callback_action_bill'));
 
             $output = $crud->render();
 
@@ -202,6 +202,12 @@ class Receive extends MX_Controller{
         }
         $html .= '</ul>';
         return $html;
+    }
+
+    function callback_action_bill($key, $row){
+        $billId= $this->is_bill_exist($key);
+        if(!$billId)return base_url(IT_MODULE_FOLDER. 'bill/index').'/'.$key.'/add';
+        else return base_url(IT_MODULE_FOLDER. 'bill/index').'/'.$key.'/edit/'.$billId;
     }
 
     function callback_after_insert_receive($post, $key){
@@ -306,6 +312,7 @@ class Receive extends MX_Controller{
     function callback_delete_receive($key){
         return $this->db->update(TBL_RECEIVES, array('deleted' => '1'), array('receiveId' => $key));
     }
+
 
     /*******************************************************************************/
     function get_requisitionId($quotId){
@@ -450,6 +457,15 @@ class Receive extends MX_Controller{
             $this->db->update(TBL_STOCK);
         }
         return false;
+    }
+    function is_bill_exist($recId){
+        if(!$recId)return 0;
+        $this->db->select('billId');
+        $this->db->from(TBL_BILL);
+        $this->db->where('receiveId', $recId);
+        $db= $this->db->get();
+        if(!$db->num_rows())return 0;
+        return $db->result()[0]->billId;
     }
 }
 ?>

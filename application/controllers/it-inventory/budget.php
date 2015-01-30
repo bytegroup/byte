@@ -34,6 +34,7 @@ class Budget extends MX_Controller
             $dateString = "%d-%m-%y :: %h:%i %a";
             $time = time();
             $time = mdate($dateString, $time);
+            $years=$this->year_generator(2010, 20);
 
             $crud->set_theme(TABLE_THEME);
             $crud->set_table(TBL_BUDGET);
@@ -51,24 +52,14 @@ class Budget extends MX_Controller
                 ->display_as('budgetDescription', 'Budget Purpose')
                 ->display_as('budgetUtilization', 'Utilization');
 
-            //var_dump($crud->get_primary_key());
-
             $crud->add_fields('companyId', 'budgetTitle', 'budgetHead', 'budgetYear', 'budgetType', 'budgetQuantity', 'budgetAmount', 'budgetDescription', 'creatorId', 'createDate');
             $crud->edit_fields('companyId', 'budgetTitle', 'budgetHead', 'budgetYear', 'budgetType', 'budgetQuantity', 'budgetAmount', 'budgetDescription', 'editorId', 'editDate');
             $crud->set_read_fields('companyId', 'budgetTitle', 'budgetHead', 'budgetYear', 'budgetType', 'budgetQuantity', 'budgetAmount', 'budgetDescription');
             $crud->required_fields(array('companyId', 'budgetTitle', 'budgetHead', 'budgetYear', 'budgetType', 'budgetAmount'));
-
-            //$crud->unique_fields('budgetHead');
-            //$crud->get_primary_key();
-
-            //$crud->set_rules('budgetHead', 'Budget Head', 'is_unique_in_group['. TBL_BUDGET . ',budgetHead,companyId]');
-            //$crud->set_rules('budgetHead','Budget Head','callback_unique_head_check['.$this->uri->segment(4).']');
-
             $crud->unique_field_in_group('budgetHead/companyId');
-
-            //$crud->set_rules('budgetHead', 'Username','is_unique[ocl_budget.budgetHead]');
-
             $crud->unset_texteditor('budgetDescription');
+            $crud->field_type('budgetYear', 'dropdown', $years);
+            $crud->field_type('budgetType', 'dropdown', array('Capital'=>'Capital', 'Revenue'=>'Revenue'));
             $crud->field_type('creatorId', 'hidden', $this->my_session->userId);
             $crud->field_type('createDate', 'hidden', $time);
             $crud->field_type('editorId', 'hidden', $this->my_session->userId);
@@ -91,7 +82,6 @@ class Budget extends MX_Controller
 
             $output->state = $crud->getState();
             $output->css = "";
-
             $output->js = "";
             $output->pageTitle = "Budget List";
             $output->base_url = base_url();
@@ -109,15 +99,15 @@ class Budget extends MX_Controller
     /*****************************/
 
     /*********************************************************************************/
-    function unique_head_check($str, $edited_id)
-    {
-        $var= false;
-        if ($var == FALSE) {
-            $s = 'You already have an equipment item of this type with this name.';
-            $this->form_validation->set_message('unique_equip_item_check', $s);
-            return FALSE;
-        }
-        return TRUE;
+    /**
+     * @param $start
+     * @param $noOfYear
+     * @return array
+     */
+    function year_generator($start, $noOfYear){
+        $year= array();
+        for($i=0; $i<=$noOfYear; $i++){$year[$start + $i]=$start+$i;}
+        return $year;
     }
 }
 ?>
