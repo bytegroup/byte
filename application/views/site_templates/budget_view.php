@@ -16,5 +16,11 @@
 <script language="JavaScript">
     $(document).ready(function(e){
         $("#collapseIT-Inventory").removeClass("in").addClass("in");
+        $("#field-budgetYear").datepicker({
+            changeMonth: true,
+            changeYear: true,
+            showButtonPanel: true,
+            dateFormat: 'MM yy'
+        });
     });
 </script>

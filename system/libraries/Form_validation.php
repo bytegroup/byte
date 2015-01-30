@@ -966,13 +966,11 @@ class CI_Form_validation {
      */
     public function is_unique_in_group($str, $fields)
     {
-        list($primary_key, $table, $uniqueField, $groupByField) = explode(',', str_replace(' ', '', $fields));
-
+        list($table, $uniqueField, $groupByField) = explode(',', str_replace(' ', '', $fields));
         $query = $this->CI->db->limit(1)->get_where($table, array($uniqueField => $str, $groupByField=>$_POST[$groupByField]));
-        //$test= $query->result();
+
         if(!$query->num_rows()){return true;}
         else {
-            //if($str===$query->result()[0]->$uniqueField)return true;
             $this->set_message('is_unique_in_group', 'The %s field should be unique');
             return false;
         }

@@ -25,10 +25,10 @@ class Budget extends MX_Controller
     {
         try {
             $this->load->library('grocery_CRUD');
-            //$this->load->helper('form');
-            //$this->load->library('form_validation');
+            $this->load->library('gc_extended_unique_validation');
 
-            $crud = new grocery_CRUD($this);
+            //$crud = new grocery_CRUD($this);
+            $crud = new GC_Extended_unique_validation($this);
             $crud->unset_jquery();
 
             $dateString = "%d-%m-%y :: %h:%i %a";
@@ -51,15 +51,20 @@ class Budget extends MX_Controller
                 ->display_as('budgetDescription', 'Budget Purpose')
                 ->display_as('budgetUtilization', 'Utilization');
 
-            var_dump($crud->getStateInfo());
+            //var_dump($crud->get_primary_key());
 
             $crud->add_fields('companyId', 'budgetTitle', 'budgetHead', 'budgetYear', 'budgetType', 'budgetQuantity', 'budgetAmount', 'budgetDescription', 'creatorId', 'createDate');
             $crud->edit_fields('companyId', 'budgetTitle', 'budgetHead', 'budgetYear', 'budgetType', 'budgetQuantity', 'budgetAmount', 'budgetDescription', 'editorId', 'editDate');
             $crud->set_read_fields('companyId', 'budgetTitle', 'budgetHead', 'budgetYear', 'budgetType', 'budgetQuantity', 'budgetAmount', 'budgetDescription');
             $crud->required_fields(array('companyId', 'budgetTitle', 'budgetHead', 'budgetYear', 'budgetType', 'budgetAmount'));
+
             //$crud->unique_fields('budgetHead');
-            $crud->set_rules('budgetHead', 'Budget Head', 'is_unique_in_group['.$crud->getStateInfo()->primary_key.','. TBL_BUDGET . ',budgetHead,companyId]');
-            //$crud->is_unique_in_group('companyId', 'budgetHead');
+            //$crud->get_primary_key();
+
+            //$crud->set_rules('budgetHead', 'Budget Head', 'is_unique_in_group['. TBL_BUDGET . ',budgetHead,companyId]');
+            //$crud->set_rules('budgetHead','Budget Head','callback_unique_head_check['.$this->uri->segment(4).']');
+
+            $crud->unique_field_in_group('budgetHead/companyId');
 
             //$crud->set_rules('budgetHead', 'Username','is_unique[ocl_budget.budgetHead]');
 
@@ -104,6 +109,15 @@ class Budget extends MX_Controller
     /*****************************/
 
     /*********************************************************************************/
-
+    function unique_head_check($str, $edited_id)
+    {
+        $var= false;
+        if ($var == FALSE) {
+            $s = 'You already have an equipment item of this type with this name.';
+            $this->form_validation->set_message('unique_equip_item_check', $s);
+            return FALSE;
+        }
+        return TRUE;
+    }
 }
 ?>
