@@ -46,7 +46,7 @@ class Organizations extends MX_Controller {
             $crud->required_fields(array('organizationName','organizationEmail','organizationAddress','organizationPhone','organizationCode'));
             $crud->unique_fields('organizationCode', 'organizationName', 'organizationEmail');
             $crud->set_rules("organizationEmail", "Email", "trim|valid_email");
-            $crud->set_rules('organizationPhone', 'Phone No.', 'numeric');
+            //$crud->set_rules('organizationPhone', 'Phone No.', 'numeric');
 
             $crud->display_as('organizationAddress','Address')
                 ->display_as('organizationFax','Fax')

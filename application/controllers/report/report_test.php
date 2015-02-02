@@ -39,7 +39,6 @@ class Report_Test extends MX_Controller {
             $crud->set_theme('flexigrid');
             $crud->set_table(TBL_STOCK);
             $crud->set_relation('itemMasterId', TBL_ITEMS_MASTER, '{itemName}');
-            $crud->set_relation('vendorsId', TBL_VENDORS, '{vendorsName}');
             $crud->set_subject('Stock Info');
 
             $crud->columns('itemMasterId', 'vendorsId', 'warrantyEndDate', 'stockQuantity');
@@ -48,7 +47,7 @@ class Report_Test extends MX_Controller {
                 ->display_as('warrantyEndDate', 'Warranty')
                 ->display_as('stockQuantity', 'Stock Quantity');
 
-            //$crud->unset_add()->unset_edit()->unset_read()->unset_delete();
+            $crud->unset_add()->unset_edit()->unset_read()->unset_delete();
 
             $output = $crud->render();
              //var_dump($output);

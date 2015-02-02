@@ -62,11 +62,11 @@ class Departments extends MX_Controller {
             $crud->add_fields('organizationId','companyId','departmentName','HODUserId','departmentCode', 'sectionName','departmentPhone', 'departmentEmail','departmentDescription', 'active', 'creatorId', 'createDate');
             $crud->edit_fields('organizationId','companyId','departmentName','HODUserId','departmentCode', 'sectionName','departmentPhone', 'departmentEmail', 'departmentDescription', 'active', 'editorId', 'editDate');
             $crud->required_fields(array('organizationId','departmentName','companyId','departmentEmail','departmentCode','departmentPhone'));
-            $crud->unique_fields('departmentName', 'departmentEmail','departmentCode');
+            $crud->unique_fields('departmentName', 'departmentEmail', 'departmentCode');
             $crud->set_rules("departmentEmail", "Email", "trim|valid_email");
-            $crud->set_rules('departmentPhone','Phone','trim|xss_clean|numeric');
+            //$crud->set_rules('departmentPhone','Phone','trim|xss_clean|numeric');
             $crud->unset_texteditor('departmentDescription');
-            $crud->field_type('HODUserId', 'dropdown',  $HOD_array);
+            $crud->field_type('HODUserId', 'dropdown',  !count($HOD_array)? array(''=>''):$HOD_array);
             $crud->field_type('creatorId', 'hidden', $this->my_session->userId);
             $crud->field_type('createDate', 'hidden', $time);
             $crud->field_type('editorId', 'hidden', $this->my_session->userId);
@@ -86,7 +86,7 @@ class Departments extends MX_Controller {
             if(!isset($this->my_session->permissions['canAdminView'])){
                 $crud->unset_read();
             }
-            
+            //var_dump("teste");
             $output = $crud->render();
 
             $dependency=array(
@@ -104,7 +104,7 @@ class Departments extends MX_Controller {
             $output->js = "";
             $output->pageTitle = "Departments";
             $output->base_url = base_url();
-            
+
             $output->body_template = "departments_view.php";
             $this->load->view(MAIN_TEMPLATE_FILE,$output);            
 

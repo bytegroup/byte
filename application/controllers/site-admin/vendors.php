@@ -46,7 +46,7 @@ class Vendors extends MX_Controller {
             $crud->required_fields(array('vendorsName', 'vendorsEmail', 'vendorsPhone', 'vendorsBusinessType'));
             $crud->unique_fields('vendorsName', 'vendorsEmail');
             $crud->set_rules("vendorsEmail", "Email", "trim|valid_email");
-            $crud->set_rules('vendorsPhone','Phone No.','trim|numeric');
+            //$crud->set_rules('vendorsPhone','Phone No.','trim|numeric');
             $crud->unset_texteditor('vendorsAddress');
             $crud->field_type('creatorId', 'hidden', $this->my_session->userId);
             $crud->field_type('createDate', 'hidden', $time);

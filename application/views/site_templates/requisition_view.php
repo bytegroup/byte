@@ -157,6 +157,7 @@
             url + ID,
             {},
             function(data){
+                console.log(data);
                 $el.append('<option value=""></option>');
                 if(data != null){
                     $.each(data, function(key, val) {

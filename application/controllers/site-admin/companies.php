@@ -53,7 +53,7 @@ class Companies extends MX_Controller {
             $crud->required_fields(array('companyName','organizationId','companyEmail'));
             $crud->unique_fields('CompanyName', 'companyEmail', 'companyCode');
             $crud->set_rules("companyEmail", "Email", "trim|valid_email");
-            $crud->set_rules('companyPhone','Phone No.','trim|xss_clean|numeric');
+            //$crud->set_rules('companyPhone','Phone No.','trim|xss_clean|numeric');
             $crud->unset_texteditor('companyAddress')->unset_texteditor('companyDescription');
             $crud->field_type('creatorId', 'hidden', $this->my_session->userId);
             $crud->field_type('createDate', 'hidden', $time);

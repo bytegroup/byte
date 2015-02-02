@@ -1,10 +1,8 @@
 <?php if ( ! defined('BASEPATH')) exit('No direct script access allowed');
 
-class Requisition extends MX_Controller
-{
+class Requisition extends MX_Controller{
 
-    function __construct()
-    {
+    function __construct(){
         parent::__construct();
 
         /* Standard Libraries */
@@ -23,8 +21,7 @@ class Requisition extends MX_Controller
         }
     }
 
-    function index()
-    {
+    function index(){
         try {
             $this->load->library('grocery_CRUD');
             $crud = new grocery_CRUD($this);
@@ -285,11 +282,11 @@ class Requisition extends MX_Controller
         exit;
     }
 
-    function ajax_get_items($itemId=0){
+    function ajax_get_items($catId=0){
         $this->db->select("itemMasterId, itemName");
         $this->db->from(TBL_ITEMS_MASTER);
-        if($itemId)
-            $this->db->where('itemMasterId', $itemId);
+        if($catId)
+            $this->db->where('categoryId', $catId);
         $db = $this->db->get();
         $array = array();
         if(!$db->num_rows()) {echo json_encode($array); exit;}

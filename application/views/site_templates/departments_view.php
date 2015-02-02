@@ -18,6 +18,7 @@
 <!-- Code to handle the server response (see test.php) -->
 <script language="JavaScript">
     $(document).ready(function(e){
+        //console.log(state);
         $("#collapseAdmin").removeClass("in").addClass("in");
 
         var state= '<?php echo $state;?>';
@@ -27,7 +28,7 @@
                     get_dependency_data('<?php echo $dependent['URL'];?>', '<?php echo $dependent['sourceId'];?>', '<?php echo $dependent['targetId'];?>');
         <?php } ?>
 
-        //console.log(state);
+
         function get_dependency_data(url, sourceId, targetId){
             var source= $('select[name="'+sourceId+'"]');
             var target= $('select[name="'+targetId+'"]');

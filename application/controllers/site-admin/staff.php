@@ -112,9 +112,9 @@ class Staff extends MX_Controller {
             $crud->set_rules('userName','User Name','trim|min_length[3]|xss_clean');
             $crud->set_rules('email','Email','trim|valid_email');
             $crud->set_rules('mobile', 'Mobile no','numeric');
-            $crud->set_rules('phone','TNT no','numeric');
+            //$crud->set_rules('phone','TNT no','numeric');
 
-            $crud->callback_before_insert(array($this,'convertPassword'));
+            //$crud->callback_before_insert(array($this,'convertPassword'));
 
             if(!isset($this->my_session->permissions['canStaffAdd'])){
                 $crud->unset_add();

@@ -34,14 +34,13 @@ class Budget extends MX_Controller
             $dateString = "%d-%m-%y :: %h:%i %a";
             $time = time();
             $time = mdate($dateString, $time);
-            $years=$this->year_generator(2010, 20);
 
             $crud->set_theme(TABLE_THEME);
             $crud->set_table(TBL_BUDGET);
             $crud->set_relation("companyId", TBL_COMPANIES, '{companyName}');
             $crud->set_subject('Budget');
 
-            $crud->columns('budgetTitle', 'budgetHead', 'budgetAmount', 'budgetYear', 'budgetUtilization');
+            $crud->columns('budgetHead', 'budgetAmount', 'budgetYear', 'budgetUtilization');
             $crud->display_as('budgetTitle', 'Budget Title')
                 ->display_as('companyId', 'Budget For')
                 ->display_as('budgetType', 'Budget Type')
@@ -52,13 +51,13 @@ class Budget extends MX_Controller
                 ->display_as('budgetDescription', 'Budget Purpose')
                 ->display_as('budgetUtilization', 'Utilization');
 
-            $crud->add_fields('companyId', 'budgetTitle', 'budgetHead', 'budgetYear', 'budgetType', 'budgetQuantity', 'budgetAmount', 'budgetDescription', 'creatorId', 'createDate');
-            $crud->edit_fields('companyId', 'budgetTitle', 'budgetHead', 'budgetYear', 'budgetType', 'budgetQuantity', 'budgetAmount', 'budgetDescription', 'editorId', 'editDate');
-            $crud->set_read_fields('companyId', 'budgetTitle', 'budgetHead', 'budgetYear', 'budgetType', 'budgetQuantity', 'budgetAmount', 'budgetDescription');
-            $crud->required_fields(array('companyId', 'budgetTitle', 'budgetHead', 'budgetYear', 'budgetType', 'budgetAmount'));
+            $crud->add_fields('companyId', 'budgetHead', 'budgetYear', 'budgetType', 'budgetQuantity', 'budgetAmount', 'budgetDescription', 'creatorId', 'createDate');
+            $crud->edit_fields('companyId', 'budgetHead', 'budgetYear', 'budgetType', 'budgetQuantity', 'budgetAmount', 'budgetDescription', 'editorId', 'editDate');
+            $crud->set_read_fields('companyId', 'budgetHead', 'budgetYear', 'budgetType', 'budgetQuantity', 'budgetAmount', 'budgetDescription');
+            $crud->required_fields(array('companyId', 'budgetHead', 'budgetYear', 'budgetType', 'budgetAmount'));
             $crud->unique_field_in_group('budgetHead/companyId');
             $crud->unset_texteditor('budgetDescription');
-            $crud->field_type('budgetYear', 'dropdown', $years);
+            $crud->field_type('budgetYear', 'dropdown', $this->year_generator(2010, 20));
             $crud->field_type('budgetType', 'dropdown', array('Capital'=>'Capital', 'Revenue'=>'Revenue'));
             $crud->field_type('creatorId', 'hidden', $this->my_session->userId);
             $crud->field_type('createDate', 'hidden', $time);

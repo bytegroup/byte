@@ -71,7 +71,7 @@ class Designations extends MX_Controller {
             $output->pageTitle = "Designations";
             $output->base_url = base_url();
             
-            $output->body_template = "gc_admin_setup_index.php";
+            $output->body_template = "designations_view.php";
             $this->load->view(MAIN_TEMPLATE_FILE,$output);            
 
         }catch(Exception $e){
