@@ -165,7 +165,7 @@ class Receive extends MX_Controller{
             $warranty = isset($receiveDetails[$item['itemId']]) ? $receiveDetails[$item['itemId']]['warranty'] : '';
             $id += 1;
             $html .= '<li><ul id="rowNum-' . $id . '">';
-            $html .= '<li class="item">' . $item['item'] . '</li>';
+            $html .= '<li class="item">' . $item['item'] . '<small>('.$item['unit'].')</small></li>';
             $html .= '<li class="category">' . $item['category'] . '</li>';
             $html .= '<li class="ordQuantity">' . $item['quantity'] . '</li>';
             $html .= '<li class="recQuantity"><input type="number" id="item-' . $id . '-recQuantity" name="recQty[]" min="0" max="' . ($remQty + $currentRecQty) . '" value="' . $currentRecQty . '"/><span class="already-received">+' . abs($totalRecQty-$currentRecQty) . '</span></li>';
@@ -193,7 +193,7 @@ class Receive extends MX_Controller{
             $warranty = isset($receiveDetails[$item['itemId']]) ? $receiveDetails[$item['itemId']]['warranty'] : '';
             $id += 1;
             $html .= '<li><ul id="rowNum-' . $id . '">';
-            $html .= '<li class="item">' . $item['item'] . '</li>';
+            $html .= '<li class="item">' . $item['item'] . '<small>('.$item['unit'].')</small></li>';
             $html .= '<li class="category">' . $item['category'] . '</li>';
             $html .= '<li class="ordQuantity">' . $item['quantity'] . '</li>';
             $html .= '<li class="recQuantity">' . $currentRecQty . '</li>';
@@ -360,22 +360,24 @@ class Receive extends MX_Controller{
 
     function get_quotation_items($quotationId = 0){
         if (!$quotationId) return array();
-        $this->db->select("qd.*, i.itemName, c.categoryName")
+        $this->db->select("qd.*, i.itemName, c.categoryName, u.unitName")
             ->from(TBL_QUOTATIONS_DETAIL . ' as qd ')
             ->join(TBL_ITEMS_MASTER . ' as i', 'qd.itemMasterId=i.itemMasterId')
             ->join(TBL_CATEGORIES . ' as c', 'i.categoryId=c.categoryId')
+            ->join(TBL_UNITS.' as u ', 'u.unitId=i.unitId')
             ->where('quotationId', $quotationId);
         $db = $this->db->get();
         if (!$db->num_rows()) return array();
         $array = array();
         foreach ($db->result() as $row):
             $array[] = array(
-                "itemId" => $row->itemMasterId,
-                "item" => $row->itemName,
-                "category" => $row->categoryName,
-                "quantity" => $row->orderedQuantity,
+                "itemId"    => $row->itemMasterId,
+                "item"      => $row->itemName,
+                "unit"      => $row->unitName,
+                "category"  => $row->categoryName,
+                "quantity"  => $row->orderedQuantity,
                 "unitPrice" => $row->unitPrice,
-                "totalPrice" => $row->quotationPrice
+                "totalPrice"=> $row->quotationPrice
             );
         endforeach;
         return $array;

@@ -9,12 +9,16 @@
 <style type="text/css">
     #items_input_box ul{width: 100%;list-style: none; margin: 0;}
     #items_input_box ul li ul li{display: inline-block;padding: 0 4px; width: 100px; }
-    #items_input_box ul li ul li:first-child{width: 200px;}
-    #items_input_box ul li:last-child{font-weight: bold; text-align: right;}
+    #items_input_box ul li ul li:first-child{width: 180px;}
+    #items_input_box ul li:last-child{font-weight: bold; text-align: right; color: #356635;}
     #items_input_box ul li ul{border-bottom: 1px #9acc9a solid;}
     #items_input_box ul li ul.items-table-header{text-align: center;}
+
     #items_input_box ul ul li input[type="number"]{width: 90px; margin-top: 8px;}
     td span{display: inline-block!important;}
+    #items_input_box ul.read li ul.items-table-header{text-align: left; background-color: #9acc9a;}
+    #items_input_box ul.read li ul li:nth-child(2){width: 220px;}
+    #items_input_box ul.read li span{border-bottom: 3px #356635 double; }
 </style>
 <div class="" style="width: auto; height: auto; border: 0px #999 solid; float: right">
     <div class="form-button-box">

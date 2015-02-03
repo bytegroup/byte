@@ -48,7 +48,12 @@
         remStockItems= $.parseJSON(remStockItems);
 
         var issueQty= stockItems.length;
-        if(state==='read')$("#items_input_box").html(items(stockItems, issueQty));
+        if(state==='read'){
+            $("#items_input_box").html(items(stockItems, issueQty));
+            $("#items_input_box input[type='checkbox']").each(function(){
+                $(this).remove();
+            })
+        }
         else if(state==='add')$("#items_input_box").html(items(remStockItems, issueQty));
         else if(state==='edit'){
             $("#items_input_box").html(items($.merge($.merge([], stockItems), remStockItems), 0));

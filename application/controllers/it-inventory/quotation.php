@@ -63,6 +63,7 @@ class Quotation extends MX_Controller {
 
             $crud->add_fields('requisitionId', 'quotationTitle', 'quotationDescription', 'vendorsId', 'quotationDate', 'quotationFile', 'items', 'creatorId', 'createDate');
             $crud->edit_fields('requisitionId', 'quotationNumber', 'quotationTitle', 'quotationDescription', 'vendorsId', 'quotationDate', 'quotationFile', 'items', 'editorId', 'editDate');
+            $crud->set_read_fields('requisitionId', 'quotationNumber', 'quotationTitle', 'quotationDescription', 'vendorsId', 'quotationDate', 'quotationFile', 'items');
             $crud->required_fields(array('requisitionId','quotationTitle', 'vendorsId', 'quotationDate'));
             $crud->unique_fields('quotationTitle');
             $crud->unset_texteditor('quotationDescription');
@@ -75,12 +76,32 @@ class Quotation extends MX_Controller {
             $crud->field_type('editorId', 'hidden', $this->my_session->userId);
             $crud->field_type('editDate', 'hidden', $time);
             $crud->callback_field('items', array($this, 'callback_field_items'));
+            $crud->callback_read_field('items', array($this, 'callback_read_field_items'));
             $crud->callback_after_insert(array($this, 'callback_after_insert_quotation'));
             $crud->callback_after_update(array($this, 'callback_after_update_quotation'));
 
             $this->approvedQuotationId= $this->get_approved_quotation_id($id);
             $crud->add_action('Approve', '', '', 'ui-icon-check', array($this,'setApproveQuotationURL'));
             $crud->add_action('Receive', '', '', 'ui-icon-transferthick-e-w', array($this,'setReceiveURL'));
+
+            $crud->set_lang_string(
+                'insert_success_message',
+                'Data stored successfully.'
+                .'Please wait while you are redirecting to the list page.'
+                .'<script type="text/javascript">'
+                .'window.location = "'.base_url(IT_MODULE_FOLDER.'quotation/index/'.$id).'";'
+                .'</script>'
+                .'<div style="display:none">'
+            );
+            $crud->set_lang_string(
+                'update_success_message',
+                'Data updated successfully.'
+                .'Please wait while you are redirecting to the list page.'
+                .'<script type="text/javascript">'
+                .'window.location = "'.base_url(IT_MODULE_FOLDER.'quotation/index/'.$id).'";'
+                .'</script>'
+                .'<div style="display:none">'
+            );
 
             $output = $crud->render();
             $output->quotationFor= $this->get_requisition_title($id);
@@ -239,6 +260,37 @@ class Quotation extends MX_Controller {
         $productsCheckbox.='<li>Grand Total = <span id="items-grand-total">'.$total.'</span></li></ul>';
         return $productsCheckbox;
     }
+    function callback_read_field_items($row, $key){
+        $items= $this->get_quotation_items($key);
+        $total= 0.0;
+        $html='';
+
+        $html .= '<ul class="read">';
+
+        $html .= '<li>';
+        $html .= '<ul class="items-table-header">';
+        $html .= '<li>Category</li><li>Item</li><li>Quantity</li><li>Unit Price</li><li>Total Price</li>';
+        $html .= '</ul>';
+        $html .= '</li>';
+
+        foreach($items as $id=>$item):
+            $total += $item['totalPrice'];
+            $html .= '<li>';
+            $html .= '<ul>';
+            $html .= '<li>'.$item['cat'].'</li>';
+            $html .= '<li>'.$item['item'].' <small>('.$item['unit'].')</small></li>';
+            $html .= '<li>'.$item['quantity'].'</li>';
+            $html .= '<li>'.$item['unitPrice'].'</li>';
+            $html .= '<li>'.$item['totalPrice'].'</li>';
+            $html .= '</ul>';
+            $html .= '</li>';
+        endforeach;
+
+        $html .= '<li>Grand Total = <span id="items-grand-total">'.$total.'</span></li>';
+        $html .= '</ul>';
+
+        return $html;
+    }
 
     function get_requisition_items($requisitionId){
         $this->db->select("i.itemMasterId, i.itemName, r.orderedQuantity")
@@ -283,6 +335,29 @@ class Quotation extends MX_Controller {
         if(!$db->num_rows()) return 0;
         $row=$db->result();
         return $row[0]->approveQuotationId;
+    }
+    function get_quotation_items($quotId){
+        if(!$quotId){return array();}
+        $this->db->select("qd.*, c.categoryName, i.itemName, u.unitName")
+            ->from(TBL_QUOTATIONS_DETAIL.' as qd ')
+            ->join(TBL_ITEMS_MASTER.' as i ', 'i.itemMasterId=qd.itemMasterId')
+            ->join(TBL_CATEGORIES.' as c ', 'c.categoryId=i.categoryId')
+            ->join(TBL_UNITS.' as u ', 'u.unitId=i.unitId')
+            ->where('quotationId', $quotId);
+        $db = $this->db->get();
+        if(!$db->num_rows()){return array();}
+        $array = array();
+        foreach ($db->result() as $row):
+            $array[] = array(
+                "cat"       => $row->categoryName,
+                "item"      => $row->itemName,
+                "unit"      => $row->unitName,
+                "quantity"  => $row->orderedQuantity,
+                "unitPrice" => $row->unitPrice,
+                "totalPrice"=> $row->quotationPrice
+            );
+        endforeach;
+        return $array;
     }
 }
 ?>

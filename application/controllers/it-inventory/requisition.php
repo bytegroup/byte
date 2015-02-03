@@ -56,7 +56,7 @@ class Requisition extends MX_Controller{
 
             $crud->add_fields('requisitionTitle', 'requisitionFor', 'companyId', 'departmentId', 'userId', 'requisitionCreateDate', 'requisitionDescription', 'requisitionItems', 'creatorId', 'createDate');
             $crud->edit_fields('requisitionNumber', 'requisitionTitle', 'requisitionFor', 'companyId', 'departmentId', 'userId', 'requisitionCreateDate', 'requisitionDescription', 'requisitionItems', 'editorId', 'editDate');
-            $crud->set_read_fields('requisitionTitle', 'requisitionFor', 'companyId', 'departmentId', 'userId', 'requisitionCreateDate', 'requisitionDescription');
+            $crud->set_read_fields('requisitionTitle', 'requisitionFor', 'companyId', 'departmentId', 'userId', 'requisitionCreateDate', 'requisitionDescription', 'requisitionItems');
             $crud->required_fields(array('requisitionTitle', 'companyId', 'requisitionFor'));
             $crud->unset_texteditor('requisitionDescription');
             $crud->field_type('requisitionNumber', 'readonly');
@@ -66,6 +66,7 @@ class Requisition extends MX_Controller{
             $crud->field_type('editDate', 'hidden', $time);
             $crud->callback_field('requisitionFor', array($this, 'field_callback_requisitionFor'));
             $crud->callback_field('requisitionItems', array($this, 'field_callback_requisitionItems'));
+            $crud->callback_read_field('requisitionItems', array($this, 'callback_read_field_requisitionItems'));
             $crud->callback_after_insert(array($this, 'callback_to_insert_requisitionNumberAndDetails'));
             $crud->callback_after_update(array($this, 'callback_to_update_requisitionDetails'));
 
@@ -174,6 +175,32 @@ class Requisition extends MX_Controller{
                 <span class="ui-button-text">Add More Item</span>
             </a>
                     ';
+        return $html;
+    }
+    function callback_read_field_requisitionItems($row, $key){
+        $items= $this->get_requisition_items($key);
+
+        $html = '';
+        $html .= '<ul class="read_requisitionItems">';
+
+        $html .= '<li>';
+        $html .= '<ul class="items-table-header">';
+        $html .= '<li>Category</li><li>Item</li><li>Quantity</li>';
+        $html .= '</ul>';
+        $html .= '</li>';
+
+        foreach($items as $item):
+        $html .= '<li>';
+        $html .= '<ul>';
+        $html .= '<li>'.$item['cat'].'</li>';
+        $html .= '<li>'.$item['item'].' <small>('.$item['unit'].')</small></li>';
+        $html .= '<li>'.$item['quantity'].'</li>';
+        $html .= '</ul>';
+        $html .= '</li>';
+        endforeach;
+
+        $html .= '</ul>';
+
         return $html;
     }
 
@@ -313,6 +340,27 @@ class Requisition extends MX_Controller{
             );
         endforeach;
         return json_encode($array);
+    }
+    function get_requisition_items($reqId){
+        if(!$reqId){return array();}
+        $this->db->select("rd.orderedQuantity, c.categoryName, i.itemName, u.unitName")
+            ->from(TBL_REQUISITIONS_DETAIL.' as rd ')
+            ->join(TBL_ITEMS_MASTER.' as i ', 'i.itemMasterId=rd.itemMasterId')
+            ->join(TBL_CATEGORIES.' as c ', 'c.categoryId=i.categoryId')
+            ->join(TBL_UNITS.' as u ', 'u.unitId=i.unitId')
+            ->where('requisitionId', $reqId);
+        $db = $this->db->get();
+        if(!$db->num_rows()){return array();}
+        $array = array();
+        foreach ($db->result() as $row):
+            $array[] = array(
+                "cat"       => $row->categoryName,
+                "item"      => $row->itemName,
+                "unit"      => $row->unitName,
+                "quantity"  => $row->orderedQuantity
+            );
+        endforeach;
+        return $array;
     }
 }
 ?>

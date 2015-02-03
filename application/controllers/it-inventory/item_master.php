@@ -94,19 +94,19 @@ class Item_Master extends MX_Controller {
     /*****************************/
     function add_field_callback_itemType(){
         return '<input type="radio" name="itemType" value="Countable"/> Countable
-        <input type="radio" name="itemType" value="NonCountable" /> NonCountable';
+        <input type="radio" name="itemType" value="Uncountable" /> Uncountable';
     }
     function edit_field_callback_itemType($itemType){
         if($itemType == 'NonCountable')
             return '<input type="radio" name="itemType" value="Countable"/> Countable
-                    <input type="radio" name="itemType" value="NonCountable" checked="true" /> NonCountable';
+                    <input type="radio" name="itemType" value="Uncountable" checked="true" /> Uncountable';
 
         else if($itemType == 'Countable')
             return '<input type="radio" name="itemType" value="Countable" checked="true"/> Countable
-                    <input type="radio" name="itemType" value="NonCountable" /> NonCountable';
+                    <input type="radio" name="itemType" value="Uncountable" /> Uncountable';
 
         else return '<input type="radio" name="itemType" value="Countable"/> Countable
-                    <input type="radio" name="itemType" value="NonCountable" /> NonCountable';
+                    <input type="radio" name="itemType" value="Uncountable" /> Uncountable';
     }
     function add_field_callback_active(){
         return ' <input type="radio" name="active" value="Active" checked="true"/> Active

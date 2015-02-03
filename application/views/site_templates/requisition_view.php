@@ -23,6 +23,11 @@
     #requisitionItems_input_box ul li ul.items-table-header{text-align: center;}
     #requisitionItems_input_box ul ul li input[type="number"]{width: 90px; margin-top: -10px;}
     #requisitionItems_input_box a.add_more_button{margin-top: 5px; color: #3b3b1f;}
+    #requisitionItems_input_box ul.read_requisitionItems li ul{text-align: left;}
+    #requisitionItems_input_box ul.read_requisitionItems li ul.items-table-header{background-color: #9acc9a;}
+    #requisitionItems_input_box ul.read_requisitionItems li ul li:first-child{width: 180px;}
+    #requisitionItems_input_box ul.read_requisitionItems li ul li:nth-child(2){width: 250px;}
+    #requisitionItems_input_box ul.read_requisitionItems li ul li:last-child{width: 80px;}
 </style>
 
 <h3><?=$pageTitle?></h3>

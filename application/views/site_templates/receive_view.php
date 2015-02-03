@@ -38,6 +38,8 @@
         var state= '<?php echo $state;?>';
         $("#collapseIT-Inventory").removeClass("in").addClass("in");
         $('#items_input_box input[type="text"]').datepicker({
+            changeMonth: true,
+            changeYear: true,
             dateFormat: "yy-mm-dd"
         });
         $('#items_input_box input[type="number"]').numeric();
