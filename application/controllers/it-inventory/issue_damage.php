@@ -2,13 +2,14 @@
 /**
  * Created by PhpStorm.
  * User: mizanur
- * Date: 2/3/15
- * Time: 3:26 PM
+ * Date: 2/4/15
+ * Time: 7:34 PM
  */
 ?>
+
 <?php if ( ! defined('BASEPATH')) exit('No direct script access allowed');
 
-class Stock_Damage extends MX_Controller {
+class Issue_Damage extends MX_Controller {
     var $stockId=0;
     function __construct(){
         parent::__construct();

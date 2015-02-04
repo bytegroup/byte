@@ -48,19 +48,22 @@ class Bill extends MX_Controller {
 
             $crud->columns('billNumber','budgetId');
             $crud->display_as('billNumber','Bill No.')
-                 ->display_as('budgetId','Budget Head')
-                 ->display_as('billingDate','Billing Date')
+                ->display_as('budgetType', 'Budget Type')
+                ->display_as('budgetId','Budget Head')
+                ->display_as('billingDate','Billing Date')
                 ->display_as('billReceiveDate', 'Bill Receive Date')
                 ->display_as('billType', 'Bill Type')
                 ->display_as('billAmount', 'Bill Amount')
                 ->display_as('billPaymentType', 'Payment Type')
                 ->display_as('billSubmittedById', 'Bill Submitted By')
                 ->display_as('billPaymentById', 'Bill Payment By')
-                ->display_as('billDescription', 'Particulars')
+                ->display_as('billParticulars', 'Particulars')
+                ->display_as('billDescription', 'Descriptions')
                 ->display_as('billCheckedById', 'Bill Checked By');
-            $crud->add_fields('receiveId', 'budgetId', 'billingDate', 'billReceiveDate', 'billType', 'billAmount', 'billPaymentType', 'billCheckedById', 'billSubmittedById', 'billDescription', 'creatorId', 'createDate');
-            $crud->edit_fields('receiveId', 'billNumber', 'budgetId', 'billingDate', 'billReceiveDate', 'billType', 'billAmount', 'billPaymentType', 'billCheckedById', 'billSubmittedById', 'billDescription', 'billPaymentById', 'editorId', 'editDate');
-            $crud->unset_texteditor('billDescription', 'Particulars');
+            $crud->add_fields('receiveId', 'budgetType', 'budgetId', 'billingDate', 'billReceiveDate', 'billType', 'billAmount', 'billPaymentType', 'billCheckedById', 'billSubmittedById', 'billParticulars', 'billDescription', 'creatorId', 'createDate');
+            $crud->edit_fields('receiveId', 'billNumber', 'budgetType', 'budgetId', 'billingDate', 'billReceiveDate', 'billType', 'billAmount', 'billPaymentType', 'billCheckedById', 'billSubmittedById', 'billParticulars', 'billDescription', 'billPaymentById', 'editorId', 'editDate');
+            $crud->required_fields('receiveId', 'budgetId', 'billingDate', 'billReceiveDate', 'billPaymentType', 'billCheckedById', 'billSubmittedById');
+            $crud->unset_texteditor('billDescription', 'billParticulars');
             $crud->field_type('billNumber', 'readonly');
             $crud->field_type('billPaymentById', 'readonly');
             $crud->field_type('receiveId', 'hidden', $receiveId);
@@ -68,6 +71,7 @@ class Bill extends MX_Controller {
             $crud->field_type('createDate', 'hidden', $time);
             $crud->field_type('editorId', 'hidden', $this->my_session->userId);
             $crud->field_type('editDate', 'hidden', $time);
+            $crud->field_type('budgetType', 'dropdown', array('Capital'=>'Capital', 'Revenue'=>'Revenue'));
             $crud->field_type('billPaymentType', 'dropdown', array('Cash'=>'Cash', 'Cheque'=>'Cheque'));
             $crud->callback_field('billAmount', array($this, 'callback_field_billAmount'));
             $crud->callback_field('billType', array($this, 'callback_field_billType'));
@@ -96,8 +100,8 @@ class Bill extends MX_Controller {
             );
             
             $output = $crud->render();
-            
             $output->state = $crud->getState();
+            $output->companyId= $this->companyId;
             $output->css = "";
             $output->js = "";
             $output->pageTitle = "Bill List";
@@ -152,6 +156,28 @@ class Bill extends MX_Controller {
             $this->db->update(TBL_BUDGET);
         }
         else{}*/
+    }
+
+    /*****************************/
+    /*** ajax call functions ***/
+    /*****************************/
+    /**
+     * @param $companyId
+     * @param string $budgetType
+     */
+    function ajax_get_budget_head($companyId=0, $budgetType=''){
+        $this->db->select('budgetId, budgetHead');
+        $this->db->from(TBL_BUDGET);
+        $this->db->where('companyId', $companyId);
+        if($budgetType !== '')$this->db->where('budgetType', $budgetType);
+        $db= $this->db->get();
+        $array = array();
+        if(!$db->num_rows()) {echo json_encode($array); exit;}
+        foreach ($db->result() as $row):
+            $array[] = array("value" => $row->budgetId, "property" => $row->budgetHead);
+        endforeach;
+        echo json_encode($array);
+        exit;
     }
 
     /******************************************************************************/

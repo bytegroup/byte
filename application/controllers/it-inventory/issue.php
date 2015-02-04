@@ -246,7 +246,7 @@ class Issue extends MX_Controller {
         if(!$stockId)return array();
         $this->db->select('rd.receiveDetailId, v.vendorsName, rd.productCode, rd.warrantyEndDate');
         $this->db->from(TBL_STOCK.' as s ');
-        $this->db->join(TBL_RECEIVES_DETAIL.' as rd ', 's.itemMasterId=rd.itemMasterId and rd.issueId='.$issueId);
+        $this->db->join(TBL_RECEIVES_DETAIL.' as rd ', 's.itemMasterId=rd.itemMasterId and rd.issueId='.$issueId.' and rd.damageId=0');
         $this->db->join(TBL_RECEIVES.' as r ', 'rd.receiveId=r.receiveId');
         $this->db->join(TBL_QUOTATIONS.' as q ', 'r.quotationId=q.quotationId');
         $this->db->join(TBL_VENDORS.' as v ', 'q.vendorsId=v.vendorsId');
