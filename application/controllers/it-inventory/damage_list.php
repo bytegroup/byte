@@ -38,7 +38,6 @@ class Damage_List extends MX_Controller {
 
             $crud->set_theme(TABLE_THEME);
             $crud->set_table(TBL_DAMAGE);
-            $crud->set_relation("itemMasterId", TBL_ITEMS_MASTER, '{itemName}');
             $crud->set_subject('Damage');
 
             $crud->field_type('creatorId', 'hidden');
@@ -46,7 +45,7 @@ class Damage_List extends MX_Controller {
             $crud->field_type('editorId', 'hidden');
             $crud->field_type('editDate', 'hidden');
 
-            $crud->columns('itemMasterId','damageType','damageQuantity','damageDate');
+            $crud->columns('damageType','damageQuantity','damageDate');
             $crud->display_as('itemMasterId','Product')
                 ->display_as('damageType','Damage Type')
                 ->display_as('damageQuantity','Damage Quantity')

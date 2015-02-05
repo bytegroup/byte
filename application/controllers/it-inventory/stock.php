@@ -33,13 +33,13 @@ class Stock extends MX_Controller {
             $crud->set_relation("itemMasterId", TBL_ITEMS_MASTER, '{itemName}');
             $crud->set_subject('Stock');
 
+            $crud->columns('stockNumber', 'itemMasterId', 'stockQuantity', 'issueQuantity', 'damageQuantity', 'damageQuantityFromIssue');
             $crud->display_as('stockNumber', 'Stock No.');
             $crud->display_as('itemMasterId', 'Item');
             $crud->display_as('stockQuantity', 'Stock Quantity');
             $crud->display_as('issueQuantity', 'Issued Quantity');
-            $crud->display_as('damageQuantity', 'Damage Quantity');
-
-            $crud->columns('stockNumber', 'itemMasterId', 'stockQuantity', 'issueQuantity', 'damageQuantity');
+            $crud->display_as('damageQuantity', 'Stock Damage Qty');
+            $crud->display_as('damageQuantityFromIssue', 'Issued Damage Qty');
 
             $crud->unset_add()->unset_edit()->unset_delete()->unset_read();
 

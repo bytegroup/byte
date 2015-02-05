@@ -45,8 +45,8 @@ class Stock_Damage extends MX_Controller {
             $crud->set_theme(TABLE_THEME);
             $crud->set_table(TBL_DAMAGE);
             $crud->set_relation("checkedById", TBL_USERS, '{firstName} {middleName} {lastName}');
-            $crud->where('stockId', $stockId);
-            $crud->set_subject('Damage');
+            $crud->where(array('stockId'=>$stockId, 'issueId'=>0));
+            $crud->set_subject('Stock Damage');
 
             $crud->columns('itemMasterId','damageType','damageQuantity','damageDate');
             $crud->display_as('itemMasterId','Product')

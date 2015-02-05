@@ -28,7 +28,7 @@
 </style>
 <div class="" style="width: auto; height: auto; border: 0px #999 solid; float: right">
     <div class="form-button-box">
-        <input type="button" value="Back to Stock List" onclick="window.location='<?php echo $backToStockList; ?>'" class="ui-input-button" id="">
+        <input type="button" value="Back to Issue List" onclick="window.location='<?php echo $backToIssueList; ?>'" class="ui-input-button" id="">
     </div>
 </div>
 
@@ -36,7 +36,7 @@
 <h6><?php echo "Stock No.: " ?><i style="color: #005580;"><?php echo $stockInfo['stockNumber']; ?></i></h6>
 <h6><?php echo "Item: " ?><i style="color: #005580;"><?php echo $stockInfo['item']; ?></i></h6>
 <h6><?php echo "Category: " ?><i style="color: #005580;"><?php echo $stockInfo['category']; ?></i></h6>
-<h6><?php echo "Stock Quantity: " ?><i style="color: #005580;"><?php echo $stockInfo['qty']; ?></i></h6>
+<h6><?php echo "Issued Quantity: " ?><i style="color: #005580;"><?php echo $stockInfo['qty']; ?></i></h6>
 <?php echo $output; ?>
 
 <script language="JavaScript">

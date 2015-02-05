@@ -43,7 +43,9 @@ class Issue_List extends MX_Controller{
             $crud->set_relation("stockId", TBL_STOCK, '{stockNumber}');
             $crud->set_subject('Issue');
 
-            $crud->columns('issueTo', 'issueDate', 'issueQuantity');
+            $crud->columns('issueTo', 'company', 'departmentId', 'issueUserId', 'stockId', 'issueDate');
+            //$crud->callback_column('productCode', array($this, 'callback_column_productCode'));
+            $crud->callback_column('company', array($this, 'callback_column_company'));
             $crud->display_as('issueDate', 'Date')
                 ->display_as('issueTo', 'Issue To')
                 ->display_as('departmentId', 'Department')
@@ -52,6 +54,7 @@ class Issue_List extends MX_Controller{
                 ->display_as('stockQuantity', 'Stock Quantity')
                 ->display_as('stockId', 'Stock No.')
                 ->display_as('items', 'Issued Items')
+                ->display_as('productCode', 'Item Code')
                 ->display_as('issueQuantity', 'Issue Quantity');
 
             $crud->add_fields('stockId', 'company', 'issueTo', 'departmentId', 'issueUserId', 'issueDate',  'issueDescription', 'stockQuantity', 'issueQuantity', 'items', 'creatorId', 'createDate');
@@ -63,7 +66,7 @@ class Issue_List extends MX_Controller{
 
             $crud->unset_add()->unset_edit()->unset_delete();
 
-            $crud->add_action('Damage', '', base_url(IT_MODULE_FOLDER.'issue_damage/index'), 'ui-icon-trash');
+            $crud->add_action('Damage', '', base_url(IT_MODULE_FOLDER.'issue_damage/index').'/', 'ui-icon-trash');
 
             $output = $crud->render();
             $output->state = $crud->getState();
@@ -86,6 +89,17 @@ class Issue_List extends MX_Controller{
     /*****************************/
     /*** call back functions ***/
     /*****************************/
+    function callback_column_productCode($value, $row){
+        $items= $this->get_issue_items_by_issue_id($row->issueId);
+        $code='';
+        foreach($items as $item):
+            $code .= $item['productCode'].'</br>';
+        endforeach;
+        return $code;
+    }
+    function callback_column_company($value, $row){
+        return $this->get_company_name_by_issue_id($row->issueId);
+    }
     function callback_read_field_company($row, $key){
         return $this->get_company_name_by_issue_id($key);
     }
@@ -129,7 +143,7 @@ class Issue_List extends MX_Controller{
         if (!$issueId) return array();
         $this->db->select('rd.receiveDetailId, v.vendorsName, rd.productCode, rd.warrantyEndDate');
         $this->db->from(TBL_ISSUES.' as i ');
-        $this->db->join(TBL_RECEIVES_DETAIL . ' as rd ', 'rd.issueId=i.issueId');
+        $this->db->join(TBL_RECEIVES_DETAIL . ' as rd ', 'rd.issueId=i.issueId and rd.damageId=0');
         $this->db->join(TBL_RECEIVES . ' as r ', 'rd.receiveId=r.receiveId');
         $this->db->join(TBL_QUOTATIONS . ' as q ', 'r.quotationId=q.quotationId');
         $this->db->join(TBL_VENDORS . ' as v ', 'q.vendorsId=v.vendorsId');

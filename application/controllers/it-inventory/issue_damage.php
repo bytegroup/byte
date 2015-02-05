@@ -10,6 +10,7 @@
 <?php if ( ! defined('BASEPATH')) exit('No direct script access allowed');
 
 class Issue_Damage extends MX_Controller {
+    var $issueId=0;
     var $stockId=0;
     function __construct(){
         parent::__construct();
@@ -28,12 +29,13 @@ class Issue_Damage extends MX_Controller {
         }
     }
 
-    function index($stockId){
-        if(!$stockId){
-            redirect(base_url().IT_MODULE_FOLDER.'stock');
+    function index($issueId){
+        if(!$issueId){
+            redirect(base_url().IT_MODULE_FOLDER.'issue_list');
             die();
         }
-        $this->stockId= $stockId;
+        $this->issueId= $issueId;
+        $this->stockId= $this->get_stock_id_by_issue_id($issueId);
         try{
             $this->load->library('grocery_CRUD');
             $crud = new grocery_CRUD($this);
@@ -46,8 +48,8 @@ class Issue_Damage extends MX_Controller {
             $crud->set_theme(TABLE_THEME);
             $crud->set_table(TBL_DAMAGE);
             $crud->set_relation("checkedById", TBL_USERS, '{firstName} {middleName} {lastName}');
-            $crud->where('stockId', $stockId);
-            $crud->set_subject('Damage');
+            $crud->where('issueId', $issueId);
+            $crud->set_subject('Issue Damage');
 
             $crud->columns('itemMasterId','damageType','damageQuantity','damageDate');
             $crud->display_as('itemMasterId','Product')
@@ -59,12 +61,13 @@ class Issue_Damage extends MX_Controller {
                 ->display_as('damageDetails', 'Details')
                 ->display_as('damageRemarks', 'Remarks');
 
-            $crud->add_fields('stockId', 'damageType', 'damageDate', 'checkedById', 'damageDetails', 'damageRemarks', 'damageQuantity', 'items', 'creatorId', 'createDate');
+            $crud->add_fields('stockId', 'issueId', 'damageType', 'damageDate', 'checkedById', 'damageDetails', 'damageRemarks', 'damageQuantity', 'items', 'creatorId', 'createDate');
             $crud->edit_fields('stockId', 'damageType', 'damageDate', 'checkedById', 'damageDetails', 'damageRemarks', 'damageQuantity', 'items', 'editorId', 'editDate');
             $crud->set_read_fields('stockId', 'damageType', 'damageDate', 'checkedById', 'damageDetails', 'damageRemarks', 'damageQuantity', 'items');
             $crud->required_fields('stockId', 'damageType', 'damageDate', 'checkedById', 'damageQuantity');
             $crud->unset_texteditor('damageDetails', 'damageRemarks');
-            $crud->field_type('stockId', 'hidden', $stockId);
+            $crud->field_type('stockId', 'hidden', $this->stockId);
+            $crud->field_type('issueId', 'hidden', $issueId);
             $crud->field_type('damageType', 'enum', array('Repairable-Damage', 'Permanent-Damage'));
             $crud->field_type('creatorId', 'hidden', $this->my_session->userId);
             $crud->field_type('createDate', 'hidden', $time);
@@ -74,8 +77,8 @@ class Issue_Damage extends MX_Controller {
             $crud->callback_edit_field('items', array($this, 'callback_edit_field_items'));
             $crud->callback_read_field('items', array($this, 'callback_read_field_items'));
             $crud->callback_after_insert(array($this, 'callback_after_insert_damage'));
-            $crud->callback_after_update(array($this, 'callback_after_update_damage'));
             $crud->callback_after_delete(array($this, 'callback_after_delete_damage'));
+            $crud->callback_after_update(array($this, 'callback_after_update_damage'));
 
             if(!isset($this->my_session->permissions['canIT-InventoryAdd'])){
                 $crud->unset_add();
@@ -89,20 +92,21 @@ class Issue_Damage extends MX_Controller {
             if(!isset($this->my_session->permissions['canIT-InventoryView'])){
                 $crud->unset_read();
             }
-            $crud->add_action('Repair', "", IT_MODULE_FOLDER.'repair/index', 'ui-icon-wrench');
 
-            if($this->is_stock_empty($stockId))$crud->unset_add();
+            if($this->is_issue_empty($issueId))$crud->unset_add();
+
+            $crud->add_action('Repair', "", IT_MODULE_FOLDER.'repair/index', 'ui-icon-wrench');
 
             $output = $crud->render();
 
             $output->state = $crud->getState();
-            $output->stockInfo= $this->get_stock_info($stockId);
+            $output->stockInfo= $this->get_stock_info($this->stockId);
             $output->css = "";
             $output->js = "";
-            $output->pageTitle = "Damaged Products From Stock";
+            $output->pageTitle = "Damaged Products From Issue";
             $output->base_url = base_url();
-            $output->backToStockList= base_url(IT_MODULE_FOLDER.'stock');
-            $output->body_template = "stock_damage_view.php";
+            $output->backToIssueList= base_url(IT_MODULE_FOLDER.'issue_list');
+            $output->body_template = "issue_damage_view.php";
             $this->load->view(MAIN_TEMPLATE_FILE,$output);
 
         }catch(Exception $e){
@@ -114,7 +118,7 @@ class Issue_Damage extends MX_Controller {
     /***  callback functions  ***/
     /*****************************/
     function callback_add_field_items($row, $key){
-        $items= $this->get_stock_items($this->stockId);
+        $items= $this->get_issued_items($this->issueId);
         $html='';
 
         $html .= '<ul>';
@@ -142,7 +146,7 @@ class Issue_Damage extends MX_Controller {
         return $html;
     }
     function callback_edit_field_items($row, $key){
-        $items= $this->get_stock_items($this->stockId, $key);
+        $items= $this->get_issued_items($this->issueId, $key);
         $html='';
 
         $html .= '<ul>';
@@ -170,7 +174,7 @@ class Issue_Damage extends MX_Controller {
         return $html;
     }
     function callback_read_field_items($row, $key){
-        $items= $this->get_stock_items($this->stockId, $key);
+        $items= $this->get_issued_items($this->issueId, $key);
         $html='';
 
         $html .= '<ul>';
@@ -203,9 +207,13 @@ class Issue_Damage extends MX_Controller {
             $this->db->update(TBL_RECEIVES_DETAIL, array('damageId'=>$key), array('receiveDetailId'=>$id));
         endforeach;
         $this->db->where('stockId', $this->stockId);
-        $this->db->set('stockQuantity', 'stockQuantity - '.$post['damageQuantity'], FALSE);
-        $this->db->set('damageQuantity', 'damageQuantity + '.$post['damageQuantity'], FALSE);
+        $this->db->set('issueQuantity', 'issueQuantity - '.$post['damageQuantity'], FALSE);
+        $this->db->set('damageQuantityFromIssue', 'damageQuantityFromIssue + '.$post['damageQuantity'], FALSE);
         $this->db->update(TBL_STOCK);
+
+        $this->db->where('issueId', $this->issueId);
+        $this->db->set('issueQuantity', 'issueQuantity - '.$post['damageQuantity'], FALSE);
+        $this->db->update(TBL_ISSUES);
     }
     function callback_after_update_damage($post, $key){
         $damageItems= $post['selectedItems'];
@@ -221,15 +229,23 @@ class Issue_Damage extends MX_Controller {
         $qtyDeff=abs($preDamageQty-$currentDamageQty);
         if($preDamageQty > $currentDamageQty){
             $this->db->where('stockId', $this->stockId);
-            $this->db->set('stockQuantity', 'stockQuantity + '.$qtyDeff, FALSE);
-            $this->db->set('damageQuantity', 'damageQuantity - '.$qtyDeff, FALSE);
+            $this->db->set('issueQuantity', 'issueQuantity + '.$qtyDeff, FALSE);
+            $this->db->set('damageQuantityFromIssue', 'damageQuantityFromIssue - '.$qtyDeff, FALSE);
             $this->db->update(TBL_STOCK);
+
+            $this->db->where('stockId', $this->issueId);
+            $this->db->set('issueQuantity', 'issueQuantity + '.$qtyDeff, FALSE);
+            $this->db->update(TBL_ISSUES);
         }
         else if ($preDamageQty < $currentDamageQty){
             $this->db->where('stockId', $this->stockId);
-            $this->db->set('stockQuantity', 'stockQuantity - '.$qtyDeff, FALSE);
-            $this->db->set('damageQuantity', 'damageQuantity + '.$qtyDeff, FALSE);
+            $this->db->set('issueQuantity', 'issueQuantity - '.$qtyDeff, FALSE);
+            $this->db->set('damageQuantityFromIssue', 'damageQuantityFromIssue + '.$qtyDeff, FALSE);
             $this->db->update(TBL_STOCK);
+
+            $this->db->where('issueId', $this->issueId);
+            $this->db->set('issueQuantity', 'issueQuantity - '.$qtyDeff, FALSE);
+            $this->db->update(TBL_ISSUES);
         }
         else{}
     }
@@ -238,15 +254,32 @@ class Issue_Damage extends MX_Controller {
         $qty= $this->db->affected_rows();
 
         $this->db->where('stockId', $this->stockId);
-        $this->db->set('stockQuantity', 'stockQuantity + '.$qty, FALSE);
-        $this->db->set('damageQuantity', 'damageQuantity - '.$qty, FALSE);
+        $this->db->set('issueQuantity', 'issueQuantity + '.$qty, FALSE);
+        $this->db->set('damageQuantityFromIssue', 'damageQuantityFromIssue - '.$qty, FALSE);
         $this->db->update(TBL_STOCK);
+
+        $this->db->where('issueId', $this->issueId);
+        $this->db->set('issueQuantity', 'issueQuantity + '.$qty, FALSE);
+        $this->db->update(TBL_ISSUES);
     }
 
     /*************************************************************************/
+    /**
+     * @param $issueId
+     * @return int
+     */
+    function get_stock_id_by_issue_id($issueId){
+        if(!$issueId)return 0;
+        $this->db->select('stockId');
+        $this->db->from(TBL_ISSUES);
+        $this->db->where('issueId', $issueId);
+        $db= $this->db->get();
+        if(!$db->num_rows())return 0;
+        return $db->result()[0]->stockId;
+    }
     function get_stock_info($stockId){
         if(!$stockId) return array();
-        $this->db->select('s.stockNumber, s.stockQuantity, i.itemName, c.categoryName');
+        $this->db->select('s.stockNumber, s.issueQuantity, i.itemName, c.categoryName');
         $this->db->from(TBL_STOCK.' as s ');
         $this->db->join(TBL_ITEMS_MASTER.' as i ', 'i.itemMasterId=s.itemMasterId');
         $this->db->join(TBL_CATEGORIES.' as c ', 'c.categoryId=i.categoryId');
@@ -255,23 +288,23 @@ class Issue_Damage extends MX_Controller {
         if(!$db->num_rows()) return array();
         $array= array(
             'stockNumber' => $db->result()[0]->stockNumber,
-            'qty'=> $db->result()[0]->stockQuantity,
+            'qty'=> $db->result()[0]->issueQuantity,
             'item' => $db->result()[0]->itemName,
             'category'=>$db->result()[0]->categoryName
         );
 
         return $array;
     }
-    function get_stock_items($stockId, $damageId=0){
-        if(!$stockId) return array();
+    function get_issued_items($issueId, $damageId=0){
+        if(!$issueId) return array();
         $this->db->select('rd.receiveDetailId, rd.productCode, rd.warrantyEndDate, rd.damageId, v.vendorsName');
-        $this->db->from(TBL_STOCK.' as s ');
-        if(!$damageId)$this->db->join(TBL_RECEIVES_DETAIL.' as rd ', 'rd.itemMasterId=s.itemMasterId and rd.issueId=0');
-        else $this->db->join(TBL_RECEIVES_DETAIL.' as rd ', 'rd.itemMasterId=s.itemMasterId and rd.issueId=0 and (rd.damageId=0 or rd.damageId='.$damageId.')');
+        $this->db->from(TBL_ISSUES.' as i ');
+        if(!$damageId)$this->db->join(TBL_RECEIVES_DETAIL.' as rd ', 'rd.issueId=i.issueId and rd.damageId=0');
+        else $this->db->join(TBL_RECEIVES_DETAIL.' as rd ', 'rd.issueId=i.issueId and (damageId=0 or damageId='.$damageId.')');
         $this->db->join(TBL_RECEIVES.' as r ', 'r.receiveId=rd.receiveId');
         $this->db->join(TBL_QUOTATIONS.' as q ', 'q.quotationId=r.quotationId');
         $this->db->join(TBL_VENDORS.' as v ', 'v.vendorsId=q.vendorsId');
-        $this->db->where('stockId', $stockId);
+        $this->db->where('i.issueId', $issueId);
         $db= $this->db->get();
         if(!$db->num_rows())return array();
         $array= array();
@@ -280,18 +313,18 @@ class Issue_Damage extends MX_Controller {
         endforeach;
         return $array;
     }
-    function get_stock_quantity($stockId){
-        if(!$stockId)return array();
-        $this->db->select('stockQuantity');
-        $this->db->from(TBL_STOCK);
-        $this->db->where('stockId', $stockId);
+    function get_issue_quantity($issueId){
+        if(!$issueId)return array();
+        $this->db->select('issueQuantity');
+        $this->db->from(TBL_ISSUES);
+        $this->db->where('issueId', $issueId);
         $db= $this->db->get();
         if(!$db->num_rows()) return array();
-        return $db->result()[0]->stockQuantity;
+        return $db->result()[0]->issueQuantity;
     }
-    function is_stock_empty($stockId=0){
-        if(!$stockId)return false;
-        if(!$this->get_stock_quantity($stockId))return true;
+    function is_issue_empty($issueId=0){
+        if(!$issueId)return false;
+        if(!$this->get_issue_quantity($issueId))return true;
         else return false;
     }
 }
