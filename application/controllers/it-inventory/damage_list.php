@@ -38,6 +38,7 @@ class Damage_List extends MX_Controller {
 
             $crud->set_theme(TABLE_THEME);
             $crud->set_table(TBL_DAMAGE);
+            $crud->set_relation('stockId', TBL_STOCK, '{stockNumber}');
             $crud->set_subject('Damage');
 
             $crud->field_type('creatorId', 'hidden');
@@ -45,8 +46,10 @@ class Damage_List extends MX_Controller {
             $crud->field_type('editorId', 'hidden');
             $crud->field_type('editDate', 'hidden');
 
-            $crud->columns('damageType','damageQuantity','damageDate');
-            $crud->display_as('itemMasterId','Product')
+            $crud->columns('stockId', 'damageFrom', 'damageType','damageQuantity','damageDate');
+            $crud->callback_column('damageFrom', array($this, 'callback_column_damageFrom'));
+            $crud->display_as('stockId','Stock No.')
+                ->display_as('damageFrom', 'Damage From')
                 ->display_as('damageType','Damage Type')
                 ->display_as('damageQuantity','Damage Quantity')
                 ->display_as('damageDate','Damage Date')
@@ -68,9 +71,9 @@ class Damage_List extends MX_Controller {
             if(!isset($this->my_session->permissions['canIT-InventoryView'])){
                 $crud->unset_read();
             }
-            $crud->add_action('Repair', "", IT_MODULE_FOLDER.'repair/index', 'ui-icon-wrench');
-            $crud->add_action('Sell', '', IT_MODULE_FOLDER.'sell/index', 'ui-icon-calculator');
-            $crud->add_action('Garbage', '', IT_MODULE_FOLDER.'garbage/index', 'ui-icon-trash');
+            $crud->add_action('Repair', '', '', 'ui-icon-wrench', array($this, 'callback_action_repair'));
+            //$crud->add_action('Sell', '', IT_MODULE_FOLDER.'sell/index', 'ui-icon-calculator');
+            //$crud->add_action('Garbage', '', IT_MODULE_FOLDER.'garbage/index', 'ui-icon-trash');
 
             $output = $crud->render();
 
@@ -86,5 +89,40 @@ class Damage_List extends MX_Controller {
         }catch(Exception $e){
             show_error($e->getMessage().' --- '.$e->getTraceAsString());
         }
+    }
+
+    /*****************************/
+    /***  callback functions  ***/
+    /*****************************/
+    function callback_column_damageFrom($value, $row){
+        return $this->get_damage_from($row->damageId);
+    }
+    function callback_action_repair($key, $row){
+        if($this->is_repairable($key)){
+            return base_url(IT_MODULE_FOLDER.'repair/index').'/'.$key;
+        }
+        else return '#';
+    }
+
+    /*********************************************************************************************/
+    function get_damage_from($damageId){
+        if(!$damageId) return '';
+        $this->db->select('issueId');
+        $this->db->from(TBL_DAMAGE);
+        $this->db->where('damageId', $damageId);
+        $db= $this->db->get();
+        if(!$db->num_rows()) return '';
+        if(!$db->result()[0]->issueId) return 'Stock';
+        return 'Issue';
+    }
+    function is_repairable($damageId){
+        if(!$damageId) return false;
+        $this->db->select('damageType');
+        $this->db->from(TBL_DAMAGE);
+        $this->db->where('damageId', $damageId);
+        $db= $this->db->get();
+        if(!$db->num_rows()) return false;
+        if($db->result()[0]->damageType==='Repairable-Damage') return true;
+        return false;
     }
 }
