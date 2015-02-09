@@ -28,37 +28,18 @@ class Report_Test extends MX_Controller {
 
     function index(){
         try{
-            $this->load->library('grocery_CRUD');
-            $crud = new grocery_CRUD($this);
-            $crud->unset_jquery();
-
             $dateString = "%d-%m-%y :: %h:%i %a";
             $time = time();
             $time= mdate($dateString, $time);
 
-            $crud->set_theme('flexigrid');
-            $crud->set_table(TBL_STOCK);
-            $crud->set_relation('itemMasterId', TBL_ITEMS_MASTER, '{itemName}');
-            $crud->set_subject('Stock Info');
+            $output= array();
+            $output['css'] = "";
+            $output['js'] = "";
+            $output['pageTitle'] = "Stock Information";
+            $output['base_url'] = base_url();
+            $output['body_template'] = "report_test_view.php";
 
-            $crud->columns('itemMasterId', 'vendorsId', 'warrantyEndDate', 'stockQuantity');
-            $crud->display_as('itemMasterId', 'Item')
-                ->display_as('vendorsId', 'Vendor')
-                ->display_as('warrantyEndDate', 'Warranty')
-                ->display_as('stockQuantity', 'Stock Quantity');
-
-            $crud->unset_add()->unset_edit()->unset_read()->unset_delete();
-
-            $output = $crud->render();
-             //var_dump($output);
-
-            $output->state = $crud->getState();
-            $output->css = "";
-            $output->js = "";
-            $output->pageTitle = "Stock Information";
-            $output->base_url = base_url();
-            $output->body_template = REPORT_TEMPLATES."report_test_view.php";
-            $this->load->view(MAIN_TEMPLATE_FILE,$output);
+            $this->load->view(REPORT_LAYOUT, $output);
 
         }catch(Exception $e){
             show_error($e->getMessage().' --- '.$e->getTraceAsString());

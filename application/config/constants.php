@@ -44,14 +44,12 @@ define("SQL_LOG_FOLDER","_sqllog/");
 
 define('TEMPLATES_FOLDER', 'templates/');
 define('SITE_TEMPLATES', 'site_templates/');
-define('REPORT_TEMPLATES', 'report_templates/');
 define('MAIN_TEMPLATE_FILE', 'main_layout.php');
 
 define('USERGROUP_MENU_FOLDER', 'user_group_menu/');
 
 define('ADMIN_FOLDER', 'site-admin/');
 define('IT_MODULE_FOLDER', 'it-inventory/');
-define('REPORT_FOLDER', 'report/');
 define('ASSETS_FOLDER', 'assets/');
 define("DB_BACKUP_FOLDER","back_up_db_folder/");
 
@@ -123,6 +121,12 @@ define("TBL_APPROVE_QUOTATION", DB_PREFIX."approve_quotation");
 
 /***************************************************************************************/
 define('ICONS', 'assets/images/icons/');
+
+/********** For Report *******************************************/
+define('REPORT_FOLDER', 'report/');
+define('REPORT_TEMPLATES', 'report_templates/');
+define("REPORT_LAYOUT", REPORT_TEMPLATES."report_layout.php");
+define("REPORT_BODY", 'reports_body/');
 
 /* End of file constants.php */
 /* Location: ./application/config/constants.php */

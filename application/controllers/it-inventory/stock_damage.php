@@ -88,7 +88,7 @@ class Stock_Damage extends MX_Controller {
             if(!isset($this->my_session->permissions['canIT-InventoryView'])){
                 $crud->unset_read();
             }
-            $crud->add_action('Repair', "", IT_MODULE_FOLDER.'repair/index', 'ui-icon-wrench');
+            //$crud->add_action('Repair', "", IT_MODULE_FOLDER.'repair/index', 'ui-icon-wrench');
 
             if($this->is_stock_empty($stockId))$crud->unset_add();
 

@@ -1,6 +1,7 @@
 <?php if ( ! defined('BASEPATH')) exit('No direct script access allowed');
 
 class Repair extends MX_Controller {
+    var $damageId= 0;
     function __construct(){
         parent::__construct();
 
@@ -19,9 +20,10 @@ class Repair extends MX_Controller {
 
    function index($damageId){
        if(!$damageId){
-           redirect(base_url().IT_MODULE_FOLDER.'stock');
+           redirect(base_url().IT_MODULE_FOLDER.'stock_list');
            die();
        }
+       $this->damageId= $damageId;
         try{
             $this->load->library('grocery_CRUD');
             $crud = new grocery_CRUD($this);
@@ -35,7 +37,7 @@ class Repair extends MX_Controller {
             $crud->set_table(TBL_REPAIR);
             $crud->set_relation("repairTypeId", TBL_REPAIR_TYPE, '{repairTypeName}');
             $crud->set_relation("vendorsId", TBL_VENDORS, '{vendorsName}');
-            //$crud->where('damageId', $damageId);
+            $crud->where('damageId', $damageId);
             $crud->set_subject('Repair');
 
             $crud->columns('repairName','repairTypeId','repairDate','vendorsId', 'repairQuantity');

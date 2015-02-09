@@ -11,7 +11,8 @@
     <link href="<?=$base_url.ASSETS_FOLDER?>css/bootstrap.css" rel="stylesheet">    
     <link href="<?=$base_url.ASSETS_FOLDER?>style.css" rel="stylesheet">    
     <?=$css?>
-    <?php 
+    <?php
+
 foreach($css_files as $file): ?>
 	<link type="text/css" rel="stylesheet" href="<?php echo $file; ?>" />
 <?php endforeach; ?>

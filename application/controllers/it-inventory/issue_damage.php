@@ -95,7 +95,7 @@ class Issue_Damage extends MX_Controller {
 
             if($this->is_issue_empty($issueId))$crud->unset_add();
 
-            $crud->add_action('Repair', "", IT_MODULE_FOLDER.'repair/index', 'ui-icon-wrench');
+            //$crud->add_action('Repair', "", IT_MODULE_FOLDER.'repair/index', 'ui-icon-wrench');
 
             $output = $crud->render();
 

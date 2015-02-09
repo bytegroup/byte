@@ -14,7 +14,7 @@
         <input type="text"  name="currentDate"/>
     </form>
 </div>
-<?php echo $output; ?>
+<?php //echo $output; ?>
 
 
 
