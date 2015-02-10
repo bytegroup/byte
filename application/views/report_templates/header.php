@@ -48,9 +48,12 @@
     <link rel="apple-touch-icon-precomposed" sizes="72x72" href="../assets/ico/apple-touch-icon-72-precomposed.png">
     <link rel="apple-touch-icon-precomposed" href="../assets/ico/apple-touch-icon-57-precomposed.png">
 
-    <script type="text/javascript" src="<?php echo $base_url.ASSETS_FOLDER;?>js/jquery.js"></script>
+    <link rel="stylesheet" href="<?php echo $base_url.REPORT_ASSETS;?>css/jquery.dataTables.css"/>
+    <link rel="stylesheet" href="<?php echo $base_url.REPORT_ASSETS;?>css/jquery.dataTables_themeroller.css"/>
+    <script type="text/javascript" src="<?php echo $base_url.REPORT_ASSETS;?>js/jquery.js"></script>
+    <script type="text/javascript" src="<?php echo $base_url.REPORT_ASSETS;?>js/jquery.dataTables.js"></script>
+
     <script type="text/javascript" src="<?php echo $base_url.ASSETS_FOLDER;?>js/jquery-ui.min.js"></script>
-    <script type="text/javascript" src="<?php echo $base_url.ASSETS_FOLDER;?>js/jquery-ui.js"></script>
     <script type="text/javascript" src="<?php echo $base_url.ASSETS_FOLDER;?>js/jquery.validate.min.js"></script>
     <script type="text/javascript" src="<?php echo $base_url.ASSETS_FOLDER;?>js/jquery.numeric.min.js"></script>
 

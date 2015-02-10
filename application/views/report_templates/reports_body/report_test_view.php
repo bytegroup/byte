@@ -8,22 +8,52 @@
 ?>
 
 <h3><?php echo $pageTitle; ?></h3>
-<div id="report-search">
-    <form id="report-search-form" action="">
-        <input type="text"  name="preDate"/>
-        <input type="text"  name="currentDate"/>
-    </form>
-</div>
-<?php //echo $output; ?>
+<?php
+$rows= $data;
+?>
+<table id="example" class="display" width="100%" cellspacing="0">
+    <thead>
+        <tr>
+            <th>Title</th>
+            <th>Req. No.</th>
+            <th>Date</th>
+            <th>Req. For</th>
+            <th>Company</th>
+            <th>Description</th>
+        </tr>
+    </thead>
 
+    <tfoot>
+        <tr>
+            <th>Title</th>
+            <th>Req. No.</th>
+            <th>Date</th>
+            <th>Req. For</th>
+            <th>Company</th>
+            <th>Description</th>
+        </tr>
+    </tfoot>
+
+    <tbody>
+    <?php foreach($rows as $row): ?>
+        <tr>
+            <td><?php echo $row->requisitionTitle;?></td>
+            <td><?php echo $row->requisitionNumber;?></td>
+            <td><?php echo $row->requisitionCreateDate;?></td>
+            <td><?php echo $row->requisitionFor;?></td>
+            <td><?php echo $row->companyId;?></td>
+            <td><?php echo $row->requisitionDescription;?></td>
+        </tr>
+    <?php endforeach;?>
+
+    </tbody>
+</table>
 
 
 <script language="JavaScript">
     $(document).ready(function(e){
         $("#collapseReport").removeClass("in").addClass("in");
-        $("#report-search-form input").click(function(){
-            //alert('testes');
-        });
-        $("#report-search-form input").datepicker();
+
+        $('#example').dataTable();
     });
 </script>

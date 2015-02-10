@@ -32,7 +32,12 @@ class Report_Test extends MX_Controller {
             $time = time();
             $time= mdate($dateString, $time);
 
-            $output= array();
+            $this->load->model(REPORT_MODELS.'report_model', 'model');
+
+            $rows= $this->model->get_data(TBL_REQUISITIONS, '*');
+            //var_dump($rows);
+
+            $output['data']= $rows;
             $output['css'] = "";
             $output['js'] = "";
             $output['pageTitle'] = "Stock Information";

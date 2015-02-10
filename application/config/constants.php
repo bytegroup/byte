@@ -127,6 +127,8 @@ define('REPORT_FOLDER', 'report/');
 define('REPORT_TEMPLATES', 'report_templates/');
 define("REPORT_LAYOUT", REPORT_TEMPLATES."report_layout.php");
 define("REPORT_BODY", 'reports_body/');
+define("REPORT_MODELS", "report_models/");
+define("REPORT_ASSETS", ASSETS_FOLDER."report_assets/");
 
 /* End of file constants.php */
 /* Location: ./application/config/constants.php */
