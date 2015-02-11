@@ -50,10 +50,15 @@
 
     <link rel="stylesheet" href="<?php echo $base_url.REPORT_ASSETS;?>css/jquery.dataTables.css"/>
     <link rel="stylesheet" href="<?php echo $base_url.REPORT_ASSETS;?>css/jquery.dataTables_themeroller.css"/>
-    <script type="text/javascript" src="<?php echo $base_url.REPORT_ASSETS;?>js/jquery.js"></script>
-    <script type="text/javascript" src="<?php echo $base_url.REPORT_ASSETS;?>js/jquery.dataTables.js"></script>
+    <link rel="stylesheet" href="http://code.jquery.com/ui/1.10.3/themes/smoothness/jquery-ui.css"/>
+    <link rel="stylesheet" href="http://cdn.datatables.net/plug-ins/f2c75b7247b/integration/jqueryui/dataTables.jqueryui.css"/>
+    <link rel="stylesheet" href="<?php echo $base_url.REPORT_ASSETS;?>TableTools/css/dataTables.tableTools.css"/>
 
-    <script type="text/javascript" src="<?php echo $base_url.ASSETS_FOLDER;?>js/jquery-ui.min.js"></script>
+    <script type="text/javascript" src="http://code.jquery.com/jquery-1.11.1.min.js"></script>
+    <script type="text/javascript" src="http://cdn.datatables.net/1.10.5/js/jquery.dataTables.min.js"></script>
+    <script type="text/javascript" src="http://cdn.datatables.net/plug-ins/f2c75b7247b/integration/jqueryui/dataTables.jqueryui.js"></script>
+    <script type="text/javascript" src="<?php echo $base_url.REPORT_ASSETS;?>TableTools/js/dataTables.tableTools.js"></script>
+
     <script type="text/javascript" src="<?php echo $base_url.ASSETS_FOLDER;?>js/jquery.validate.min.js"></script>
     <script type="text/javascript" src="<?php echo $base_url.ASSETS_FOLDER;?>js/jquery.numeric.min.js"></script>
 
