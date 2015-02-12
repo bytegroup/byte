@@ -97,7 +97,7 @@ class Item_Master extends MX_Controller {
         <input type="radio" name="itemType" value="Uncountable" /> Uncountable';
     }
     function edit_field_callback_itemType($itemType){
-        if($itemType == 'NonCountable')
+        if($itemType == 'Uncountable')
             return '<input type="radio" name="itemType" value="Countable"/> Countable
                     <input type="radio" name="itemType" value="Uncountable" checked="true" /> Uncountable';
 

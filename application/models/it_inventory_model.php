@@ -77,6 +77,25 @@ Class It_Inventory_Model extends CI_Model {
     public function get_itemId_by_stockId(){
 
     }
+    public function isCountable($itemId){
+        if(!$itemId)return false;
+        $this->db->select('itemType');
+        $this->db->from(TBL_ITEMS_MASTER);
+        $this->db->where('itemMasterId', $itemId);
+        $db= $this->db->get();
+        if(!$db->num_rows())return false;
+        if($db->result()[0]->itemType==='Countable')return true;
+        else return false;
+    }
+    public function isReceivePrior($reqId, $itemId){
+        if(!$reqId || !$itemId) return false;
+        $this->db->select('productCode');
+        $this->db->from(TBL_RECEIVES_DETAIL);
+        $this->db->where(array('requisitionId'=>$reqId, 'itemMasterId'=>$itemId));
+        $db= $this->db->get();
+        if(!$db->num_rows())return false;
+        else return true;
+    }
 }
 
 ?>

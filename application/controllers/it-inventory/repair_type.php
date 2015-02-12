@@ -30,17 +30,21 @@ class Repair_Type extends MX_Controller {
             $crud->set_theme(TABLE_THEME);            
             $crud->set_table(TBL_REPAIR_TYPE);
             $crud->set_relation("categoryId", TBL_CATEGORIES, '{categoryName}');
-            $crud->set_subject('Repair Type');
+            $crud->set_subject('Repair Service');
 
-            $crud->columns('repairTypeName', 'repairTypeDescription');
-            $crud->display_as('repairTypeName','Name')
-                ->display_as('repairTypeDescription','Description')
-                ->display_as('categoryId','Product Category');
+            $crud->columns('categoryId', 'serviceType', 'serviceRate', 'serviceStartDate', 'serviceEndDate');
+            $crud->display_as('serviceType','Service Name')
+                ->display_as('serviceTypeDescription','Description')
+                ->display_as('categoryId','Category')
+                ->display_as('serviceStartDate', 'Start Date')
+                ->display_as('serviceEndDate', 'End Date')
+                ->display_as('serviceRate', 'Service Rate');
 
-            $crud->add_fields('repairTypeName', 'repairTypeDescription', 'creatorId', 'createDate');
-            $crud->edit_fields('repairTypeName', 'repairTypeDescription', 'editorId', 'editDate');
-            $crud->required_fields(array('repairTypeName'));
-            $crud->unset_texteditor('repairTypeDescription');
+            $crud->add_fields('categoryId', 'serviceType', 'serviceTypeDescription', 'serviceRate', 'serviceStartDate', 'serviceEndDate', 'creatorId', 'createDate');
+            $crud->edit_fields('categoryId', 'serviceType', 'serviceTypeDescription', 'serviceRate', 'serviceStartDate', 'serviceEndDate', 'editorId', 'editDate');
+            $crud->set_read_fields('categoryId', 'serviceType', 'serviceTypeDescription', 'serviceRate', 'serviceStartDate', 'serviceEndDate');
+            $crud->required_fields(array('categoryId', 'serviceType', 'serviceRate', 'serviceStartDate', 'serviceEndDate'));
+            $crud->unset_texteditor('serviceTypeDescription');
             $crud->field_type('creatorId', 'hidden', $this->my_session->userId);
             $crud->field_type('createDate', 'hidden', $time);
             $crud->field_type('editorId', 'hidden', $this->my_session->userId);

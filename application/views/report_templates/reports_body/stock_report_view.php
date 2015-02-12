@@ -48,74 +48,13 @@ $rows= $data;
             <?php } ?>
         </tr>
     <?php endforeach;?>
-    <?php foreach($rows as $fields): ?>
-        <tr>
-            <?php foreach($fields as $field){?>
-                <td><?php echo $field;?></td>
-            <?php } ?>
-        </tr>
-    <?php endforeach;?>
-    <?php foreach($rows as $fields): ?>
-        <tr>
-            <?php foreach($fields as $field){?>
-                <td><?php echo $field;?></td>
-            <?php } ?>
-        </tr>
-    <?php endforeach;?>
 
     </tbody>
 </table>
 
-
 <script language="JavaScript">
     $(document).ready(function(e){
-        $.fn.dataTable.TableTools.buttons.download = $.extend(
-            true,
-            {},
-            $.fn.dataTable.TableTools.buttonBase,
-            {
-                "sButtonText": "Download",
-                "sUrl":      "",
-                "sType":     "POST",
-                "fnData":    false,
-                "fnClick": function( button, config ) {
-                    var dt = new $.fn.dataTable.Api( this.s.dt );
-                    var data = dt.ajax.params() || {};
 
-                    // Optional static additional parameters
-                    // data.customParameter = ...;
-
-                    if ( config.fnData ) {
-                        config.fnData( data );
-                    }
-
-                    var iframe = $('>iframe/<', {
-                        id: "RemotingIFrame"
-                    }).css( {
-                        border: 'none',
-                        width: 0,
-                        height: 0
-                    } )
-                        .appendTo( 'body' );
-
-                    var contentWindow = iframe[0].contentWindow;
-                    contentWindow.document.open();
-                    contentWindow.document.close();
-
-                    var form = contentWindow.document.createElement( 'form' );
-                    form.setAttribute( 'method', config.sType );
-                    form.setAttribute( 'action', config.sUrl );
-
-                    var input = contentWindow.document.createElement( 'input' );
-                    input.name = 'json';
-                    input.value = JSON.stringify( data );
-
-                    form.appendChild( input );
-                    contentWindow.document.body.appendChild( form );
-                    form.submit();
-                }
-            }
-        );
         $("#collapseReport").removeClass("in").addClass("in");
         $('#report-table tfoot th').each( function () {
             var title = $('#report-table thead th.report-header').eq( $(this).index() ).text();
@@ -137,20 +76,18 @@ $rows= $data;
             "sSwfPath": "<?php echo $base_url.REPORT_ASSETS;?>TableTools/swf/copy_csv_xls_pdf.swf",
             "aButtons": [
                 "copy",
-                "print",
-                {
-                    "sExtends":    "collection",
-                    "sButtonText": "Save",
-                    "aButtons":    [ "csv", "xls", "pdf" ]
-                },
-                {
-                    "sExtends":    "download",
-                    "sButtonText": "Download XLS",
-                    "sUrl":        "<?php echo base_url('report/stock_report/pdfTest');?>"
-                }
+                "print"
             ]
         });
         $( tt.fnContainer() ).insertBefore('div.dataTables_filter');
 
+        $('div.DTTT_container').append(
+            '<a id="dlink"  style="display:none;"></a>' +
+            '<a id="excelDownload" class="DTTT_button DTTT_button_ExcelDownload">Excel</a>'
+        );
+        $('div.DTTT_container a#excelDownload').click(function(){
+            tableToExcel('report-table', '<?php echo $pageTitle;?>', '<?php echo $pageTitle;?>.xlsx');
+        });
     });
+
 </script>

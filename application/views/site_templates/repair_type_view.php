@@ -13,5 +13,9 @@
 <script language="JavaScript">
     $(document).ready(function(e){
         $("#collapseIT-Inventory").removeClass("in").addClass("in");
+        //var today=
+        if($('#field-serviceStartDate').val()==='')$('#field-serviceStartDate').datepicker('setDate', 'today');
+        //if($('#field-serviceEndDate').val()==='')$('#field-serviceEndDate').datepicker('setDate', 'today');
+        $("#field-serviceRate").numeric();
     });
 </script>

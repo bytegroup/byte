@@ -97,7 +97,7 @@ class Receive extends MX_Controller{
                 $crud->unset_delete();
             }
 
-            //$crud->unset_edit();
+            $crud->unset_edit();
 
             if ($this->isAllProductReceived($this->requisitionId, $quotationId)) $crud->unset_add();
 
@@ -235,21 +235,36 @@ class Receive extends MX_Controller{
         $warranty = $post['warranty'];
         foreach ($itemIds as $index => $item) {
             $itemCode= $this->it_inventory_model->get_item_code_by_itemId($item);
+            $isCountable= $this->it_inventory_model->isCountable($item);
             $data = array(
                 'receiveId' => $key,
                 'itemMasterId' => $item,
+                'receiveQuantity'=> $recQty[$index],
                 'warrantyEndDate' => $warranty[$index]
             );
-            for($i=1; $i<= $recQty[$index]; $i++){
-                $this->db->insert(TBL_RECEIVES_DETAIL, $data);
-                $insertId= $this->db->insert_id();
-                $this->db->update(
-                    TBL_RECEIVES_DETAIL,
-                    array('productCode'=> ''.$code.'/'.$itemCode.'/'.$insertId),
-                    array('receiveDetailId'=>$insertId)
-                );
+            if($this->it_inventory_model->isCountable($item)){
+                for($i=1; $i<= $recQty[$index]; $i++){
+                    $this->db->insert(TBL_RECEIVES_DETAIL, $data);
+                    $insertId= $this->db->insert_id();
+                    $this->db->update(
+                        TBL_RECEIVES_DETAIL,
+                        array('productCode'=> ''.$code.'/'.$itemCode.'/'.$insertId),
+                        array('receiveDetailId'=>$insertId)
+                    );
+                }
             }
-            $this->add_to_stock($key, $item, $companyId, $code);
+            else{
+                if(!$this->it_inventory_model->isReceivePrior($this->requisitionId, $item)){
+                    $this->db->insert(TBL_RECEIVES_DETAIL, $data);
+                    $insertId= $this->db->insert_id();
+                    $this->db->update(
+                        TBL_RECEIVES_DETAIL,
+                        array('productCode'=> ''.$code.'/'.$itemCode.'/'.$insertId),
+                        array('receiveDetailId'=>$insertId)
+                    );
+                }
+            }
+            $this->add_to_stock($key, $item, $companyId, $code, $recQty[$index]);
         }
     }
 
@@ -295,7 +310,7 @@ class Receive extends MX_Controller{
                     );
                 }
             }
-            $this->add_to_stock($key, $item, $companyId, $code);
+            $this->add_to_stock($key, $item, $companyId, $code, $recQty[$index]);
         }
     }
 
@@ -303,18 +318,31 @@ class Receive extends MX_Controller{
         $currentRecDetails= $this->get_receive_details($key);
         foreach($currentRecDetails as $id=>$item){
             $this->db->where('itemMasterId', $id);
-            $this->db->set('stockQuantity', 'stockQuantity - '.$item['qty'], FALSE);
+            $this->db->set(
+                'stockQuantity',
+                'CASE WHEN stockQuantity < '.$item['qty'].' THEN 0  ELSE stockQuantity - '.$item['qty'].' END',
+                FALSE
+            );
             $this->db->update(TBL_STOCK);
         }
-        $this->db->delete(TBL_RECEIVES_DETAIL, array('receiveId' => $key));
-    }
+        $this->db->delete(TBL_RECEIVES_DETAIL, array('receiveId' => $key, 'damageId'=> 0, 'issueId'=>0));
 
-    function callback_delete_receive($key){
-        return $this->db->update(TBL_RECEIVES, array('deleted' => '1'), array('receiveId' => $key));
     }
-
 
     /*******************************************************************************/
+    function count_damage_qty($recId){
+        $this->db->select('rd.itemMasterId, rd.receiveQuantity, count(rd.damageId) as damageQty, i.itemType');
+        $this->db->from(TBL_RECEIVES_DETAIL.' as rd ');
+        $this->db->join(TBL_ITEMS_MASTER.' as i ', 'i.itemMasterId=rd.itemMasterId');
+        $this->db->where('receiveId', $recId);
+        $this->db->group_by('itemMasterId');
+        $db = $this->db->get();
+        if (!$db->num_rows()) return array();
+        $array = array();
+        foreach ($db->result() as $row):
+            $array[$row->itemMasterId] = array('qty'=>$row->receiveQuantity, 'warranty' => $row->warrantyEndDate);
+        endforeach;
+    }
     function get_requisitionId($quotId){
         if (!$quotId) return 0;
         $this->db->select("requisitionId")
@@ -401,7 +429,7 @@ class Receive extends MX_Controller{
 
     function get_receive_details($receiveId = 0){
         if (!$receiveId) return array();
-        $this->db->select('itemMasterId, count(itemMasterId) as qty, warrantyEndDate');
+        $this->db->select('itemMasterId, receiveQuantity, warrantyEndDate');
         $this->db->from(TBL_RECEIVES_DETAIL);
         $this->db->where('receiveId', $receiveId);
         $this->db->group_by('itemMasterId');
@@ -409,7 +437,7 @@ class Receive extends MX_Controller{
         if (!$db->num_rows()) return array();
         $array = array();
         foreach ($db->result() as $row):
-            $array[$row->itemMasterId] = array('qty'=>$row->qty, 'warranty' => $row->warrantyEndDate);
+            $array[$row->itemMasterId] = array('qty'=>$row->receiveQuantity, 'warranty' => $row->warrantyEndDate);
         endforeach;
         return $array;
     }
@@ -433,8 +461,8 @@ class Receive extends MX_Controller{
         return true;
     }
 
-    function add_to_stock($recId, $itemId, $comId, $companyCode){
-        $qty = $this->it_inventory_model->get_received_item_quantity($itemId);
+    function add_to_stock($recId, $itemId, $comId, $companyCode, $qty){
+        //$qty = $this->it_inventory_model->get_received_item_quantity($itemId);
         if (!$itemId || !$recId) return false;
         $this->db->select("stockId")
             ->from(TBL_STOCK)
@@ -444,7 +472,7 @@ class Receive extends MX_Controller{
             $data = array(
                 "itemMasterId" => $itemId,
                 "companyId" => $comId,
-                "stockQuantity" => $qty[$itemId]
+                "stockQuantity" => $qty
             );
             $this->db->insert(TBL_STOCK, $data);
             $primary_key = $this->db->insert_id();
@@ -455,7 +483,7 @@ class Receive extends MX_Controller{
             );
         } else {
             $this->db->where('itemMasterId', $itemId);
-            $this->db->set('stockQuantity', $qty[$itemId], FALSE);
+            $this->db->set('stockQuantity', 'stockQuantity+'.$qty, FALSE);
             $this->db->update(TBL_STOCK);
         }
         return false;

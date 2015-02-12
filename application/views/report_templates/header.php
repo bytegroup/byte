@@ -58,6 +58,7 @@
     <script type="text/javascript" src="http://cdn.datatables.net/1.10.5/js/jquery.dataTables.min.js"></script>
     <script type="text/javascript" src="http://cdn.datatables.net/plug-ins/f2c75b7247b/integration/jqueryui/dataTables.jqueryui.js"></script>
     <script type="text/javascript" src="<?php echo $base_url.REPORT_ASSETS;?>TableTools/js/dataTables.tableTools.js"></script>
+    <script type="text/javascript" src="<?php echo $base_url.REPORT_ASSETS;?>tableToExcel.js"></script>
 
     <script type="text/javascript" src="<?php echo $base_url.ASSETS_FOLDER;?>js/jquery.validate.min.js"></script>
     <script type="text/javascript" src="<?php echo $base_url.ASSETS_FOLDER;?>js/jquery.numeric.min.js"></script>
