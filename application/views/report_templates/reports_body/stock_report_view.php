@@ -86,7 +86,7 @@ $rows= $data;
             '<a id="excelDownload" class="DTTT_button DTTT_button_ExcelDownload">Excel</a>'
         );
         $('div.DTTT_container a#excelDownload').click(function(){
-            tableToExcel('report-table', '<?php echo $pageTitle;?>', '<?php echo $pageTitle;?>.xlsx');
+            tableToExcel('report-table', '<?php echo $pageTitle;?>', '<?php echo $pageTitle;?>.xls');
         });
     });
 

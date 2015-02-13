@@ -2,6 +2,7 @@
 
 class Issue extends MX_Controller {
     var $stockId=0;
+    var $isCountable=true;
     function __construct(){
         parent::__construct();
 
@@ -25,6 +26,7 @@ class Issue extends MX_Controller {
             die();
         }
         $this->stockId=$stockId;
+        $this->isCountable= $this->isCountable($stockId);
         try{
             $this->load->library('grocery_CRUD');
             $crud = new grocery_CRUD($this);
@@ -81,6 +83,7 @@ class Issue extends MX_Controller {
             $output->css = "";
             $output->js = "";
             $output->stockId=$stockId;
+            $output->isCountable=$this->isCountable;
             $output->issueHeader= $this->get_issue_item_header($stockId);
 
             $output->pageTitle = "Issue";
@@ -263,6 +266,17 @@ class Issue extends MX_Controller {
     function is_stock_empty($stockId=0){
         if(!$stockId)return false;
         if(!$this->get_stock_quantity($stockId))return true;
+        else return false;
+    }
+    function isCountable($stockId){
+        if(!$stockId)return false;
+        $this->db->select('i.itemType');
+        $this->db->from(TBL_STOCK.' as s ');
+        $this->db->join(TBL_ITEMS_MASTER.' as i ', 'i.itemMasterId=s.itemMasterId');
+        $this->db->where('stockId', $stockId);
+        $db= $this->db->get();
+        if(!$db->num_rows())return false;
+        if($db->result()[0]->itemType==='Countable')return true;
         else return false;
     }
 }

@@ -214,7 +214,7 @@ class Bill extends MX_Controller {
     }
     function get_bill_amount($recId){
         if(!$recId)return 0;
-        $this->db->select('rd.itemMasterId, count(rd.itemMasterId) as qty, qd.unitPrice');
+        $this->db->select('rd.itemMasterId, rd.receiveQuantity as qty, qd.unitPrice');
         $this->db->from(TBL_RECEIVES_DETAIL.' as rd ');
         $this->db->join(TBL_RECEIVES.' as r ', 'r.receiveId=rd.receiveId');
         $this->db->join(TBL_QUOTATIONS_DETAIL.' as qd ', 'qd.quotationId= r.quotationId and qd.itemMasterId=rd.itemMasterId');

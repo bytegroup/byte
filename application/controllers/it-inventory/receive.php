@@ -96,8 +96,9 @@ class Receive extends MX_Controller{
             if (!isset($this->my_session->permissions['canIT-InventoryDelete'])) {
                 $crud->unset_delete();
             }
-
+            //var_dump($this->get_total_received_qty($this->quotationId, $this->requisitionId));
             $crud->unset_edit();
+            $crud->unset_delete();
 
             if ($this->isAllProductReceived($this->requisitionId, $quotationId)) $crud->unset_add();
 
@@ -235,7 +236,6 @@ class Receive extends MX_Controller{
         $warranty = $post['warranty'];
         foreach ($itemIds as $index => $item) {
             $itemCode= $this->it_inventory_model->get_item_code_by_itemId($item);
-            $isCountable= $this->it_inventory_model->isCountable($item);
             $data = array(
                 'receiveId' => $key,
                 'itemMasterId' => $item,
@@ -325,7 +325,7 @@ class Receive extends MX_Controller{
             );
             $this->db->update(TBL_STOCK);
         }
-        $this->db->delete(TBL_RECEIVES_DETAIL, array('receiveId' => $key, 'damageId'=> 0, 'issueId'=>0));
+        $this->db->delete(TBL_RECEIVES_DETAIL, array('receiveId' => $key));
 
     }
 
@@ -342,6 +342,7 @@ class Receive extends MX_Controller{
         foreach ($db->result() as $row):
             $array[$row->itemMasterId] = array('qty'=>$row->receiveQuantity, 'warranty' => $row->warrantyEndDate);
         endforeach;
+        return $array;
     }
     function get_requisitionId($quotId){
         if (!$quotId) return 0;
@@ -413,16 +414,13 @@ class Receive extends MX_Controller{
 
     function get_total_received_qty($quotationId, $requisitionId = 0){
         if (!$requisitionId || !$quotationId) return array();
-        $this->db->select('rd.itemMasterId, count(rd.itemMasterId) as qty');
-        $this->db->from(TBL_RECEIVES.' as r ');
-        $this->db->join(TBL_RECEIVES_DETAIL.' as rd ', 'r.receiveId=rd.receiveId');
-        $this->db->where(array('r.quotationId'=>$quotationId ,'r.requisitionId'=> $requisitionId));
-        $this->db->group_by('itemMasterId');
-        $db = $this->db->get();
+
+        $db = $this->db->query('select itemMasterId, sum(qty) as totalQty from (select d.itemMasterId, d.receiveQuantity as qty from ocl_receives AS r INNER JOIN ocl_receives_detail AS d ON r.receiveId = d.receiveId WHERE r.requisitionId = 100 and r.quotationId = 83 GROUP BY d.receiveId, d.itemMasterId ) AS t GROUP BY itemMasterId');
+
         if (!$db->num_rows()) return array();
         $array = array();
         foreach ($db->result() as $row):
-            $array[$row->itemMasterId] = $row->qty;
+            $array[$row->itemMasterId] = $row->totalQty;
         endforeach;
         return $array;
     }
