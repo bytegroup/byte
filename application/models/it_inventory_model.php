@@ -96,6 +96,34 @@ Class It_Inventory_Model extends CI_Model {
         if(!$db->num_rows())return false;
         else return true;
     }
+    public function add_to_stock($recId, $itemId, $comId, $companyCode, $qty){
+        if (!$itemId || !$recId) return 0;
+        $stockId=0;
+        $this->db->select("stockId")
+            ->from(TBL_STOCK)
+            ->where('itemMasterId', $itemId);
+        $db = $this->db->get();
+        if (!$db->num_rows()) {
+            $data = array(
+                "itemMasterId" => $itemId,
+                "companyId" => $comId,
+                "stockQuantity" => $qty
+            );
+            $this->db->insert(TBL_STOCK, $data);
+            $stockId = $this->db->insert_id();
+            $this->db->update(
+                TBL_STOCK,
+                array('stockNumber' => '' . $companyCode . '/STK/' . mdate("%y", time()) . '/' . $stockId),
+                array('stockId' => $stockId)
+            );
+        } else {
+            $stockId= $db->result()[0]->stockId;
+            $this->db->where('itemMasterId', $itemId);
+            $this->db->set('stockQuantity', 'stockQuantity+'.$qty, FALSE);
+            $this->db->update(TBL_STOCK);
+        }
+        return $stockId;
+    }
 }
 
 ?>
