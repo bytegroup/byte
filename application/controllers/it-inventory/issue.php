@@ -2,7 +2,6 @@
 
 class Issue extends MX_Controller {
     var $stockId=0;
-    var $isCountable=true;
     function __construct(){
         parent::__construct();
 
@@ -11,7 +10,9 @@ class Issue extends MX_Controller {
         $this->load->helper('url');
         $this->load->helper('date');
 
-        /* ------------------ */	
+        /* ------------------ */
+        $this->load->model('issue_model', 'issueModel');
+        $this->load->model('it_inventory_model', 'itModel');
         $this->load->library("my_session");
         $this->my_session->checkSession();
 		
@@ -26,7 +27,10 @@ class Issue extends MX_Controller {
             die();
         }
         $this->stockId=$stockId;
-        $this->isCountable= $this->isCountable($stockId);
+        if(!$this->itModel->isCountableStock($stockId)){
+            redirect(base_url(IT_MODULE_FOLDER.'issue_uncountable/index').'/'.$stockId);
+            die();
+        }
         try{
             $this->load->library('grocery_CRUD');
             $crud = new grocery_CRUD($this);
@@ -77,14 +81,13 @@ class Issue extends MX_Controller {
             $output = $crud->render();
 
             $currentIssueId= isset($crud->getStateInfo()->primary_key)? $crud->getStateInfo()->primary_key: 0;
-            $output->issuedItems=json_encode($this->get_issue_items_by_stock_id($stockId, $currentIssueId));
-            $output->toBeIssuedItems=json_encode($this->get_issue_items_by_stock_id($stockId));
+            $output->issuedItems=json_encode($this->issueModel->get_issue_items_by_stock_id($stockId, $currentIssueId));
+            $output->toBeIssuedItems=json_encode($this->issueModel->get_issue_items_by_stock_id($stockId));
             $output->state = $crud->getState();
             $output->css = "";
             $output->js = "";
             $output->stockId=$stockId;
-            $output->isCountable=$this->isCountable;
-            $output->issueHeader= $this->get_issue_item_header($stockId);
+            $output->issueHeader= $this->issueModel->get_issue_item_header($stockId);
 
             $output->pageTitle = "Issue";
             $output->base_url = base_url();
@@ -103,10 +106,10 @@ class Issue extends MX_Controller {
     /*** call back functions ***/
     /*****************************/
     function callback_field_company($row, $key){
-        return $this->get_company_name_by_stock_id($this->stockId);
+        return $this->issueModel->get_company_name_by_stock_id($this->stockId);
     }
     function callback_read_field_company($row, $key){
-        return $this->get_company_name_by_stock_id($this->stockId);
+        return $this->issueModel->get_company_name_by_stock_id($this->stockId);
     }
     function callback_field_issueTo($value, $key){
         if(!$value)$value='';
@@ -120,10 +123,10 @@ class Issue extends MX_Controller {
         return $html;
     }
     function callback_field_stockQuantity($row, $key){
-        return $this->get_stock_quantity($this->stockId);
+        return $this->issueModel->get_stock_quantity($this->stockId);
     }
     function callback_read_field_stockQuantity($row, $key){
-        return $this->get_stock_quantity($this->stockId);
+        return $this->issueModel->get_stock_quantity($this->stockId);
     }
     function callback_field_items($row, $key){
         $html = '';
@@ -133,7 +136,7 @@ class Issue extends MX_Controller {
         $issuedItems= $post['selectedItems'];
 
         foreach($issuedItems as $id):
-            $this->db->update(TBL_RECEIVES_DETAIL, array('issueId'=>$key), array('receiveDetailId'=>$id));
+            $this->db->insert(TBL_ISSUE_DETAIL, array('issueId'=>$key, 'stockDetailId'=>$id));
         endforeach;
 
         $this->db->where('stockId', $this->stockId);
@@ -144,13 +147,13 @@ class Issue extends MX_Controller {
     function callback_after_update_issue($post, $key){
         $issuedItems= $post['selectedItems'];
 
-        $this->db->update(TBL_RECEIVES_DETAIL, array('issueId'=>0), array('issueId'=>$key));
+        $this->db->delete(TBL_ISSUE_DETAIL, array('issueId'=>$key));
         $preIssueQty= $this->db->affected_rows();
-        $currentIssueQty= $post['issueQuantity'];
-
         foreach($issuedItems as $id):
-            $this->db->update(TBL_RECEIVES_DETAIL, array('issueId'=>$key), array('receiveDetailId'=>$id));
+            $this->db->insert(TBL_ISSUE_DETAIL, array('issueId'=>$key, 'stockDetailId'=>$id));
         endforeach;
+
+        $currentIssueQty= $post['issueQuantity'];
 
         $qtyDeff=abs($preIssueQty-$currentIssueQty);
         if($preIssueQty > $currentIssueQty){
@@ -215,68 +218,9 @@ class Issue extends MX_Controller {
     }
 
     /******************************************************************************/
-    function get_company_name_by_stock_id($stockId){
-        if(!$stockId)return array();
-        $this->db->select('c.companyId, c.companyName');
-        $this->db->from(TBL_STOCK.' as s ');
-        $this->db->join(TBL_COMPANIES.' as c ', 's.companyId=c.companyId');
-        $db= $this->db->get();
-        if(!$db->num_rows()) return array();
-        return $db->result()[0]->companyName;
-    }
-    function get_stock_quantity($stockId){
-        if(!$stockId)return array();
-        $this->db->select('stockQuantity');
-        $this->db->from(TBL_STOCK);
-        $this->db->where('stockId', $stockId);
-        $db= $this->db->get();
-        if(!$db->num_rows()) return array();
-        return $db->result()[0]->stockQuantity;
-    }
-    function get_issue_item_header($stockId){
-        if(!$stockId)return array();
-        $this->db->select('s.stockNumber, i.itemName, c.categoryName');
-        $this->db->from(TBL_STOCK.' as s ');
-        $this->db->join(TBL_ITEMS_MASTER.' as i ', 's.itemMasterId=i.itemMasterId');
-        $this->db->join(TBL_CATEGORIES.' as c ', 'i.categoryId=c.categoryId');
-        $this->db->where('stockId', $stockId);
-        $db= $this->db->get();
-        if(!$db->num_rows()) return array();
-        $array= array();
-        return $db->result()[0];
-    }
-    function get_issue_items_by_stock_id($stockId, $issueId=0){
-        if(!$stockId)return array();
-        $this->db->select('rd.receiveDetailId, v.vendorsName, rd.productCode, rd.warrantyEndDate');
-        $this->db->from(TBL_STOCK.' as s ');
-        $this->db->join(TBL_RECEIVES_DETAIL.' as rd ', 's.itemMasterId=rd.itemMasterId and rd.issueId='.$issueId.' and rd.damageId=0');
-        $this->db->join(TBL_RECEIVES.' as r ', 'rd.receiveId=r.receiveId');
-        $this->db->join(TBL_QUOTATIONS.' as q ', 'r.quotationId=q.quotationId');
-        $this->db->join(TBL_VENDORS.' as v ', 'q.vendorsId=v.vendorsId');
-        $this->db->where('s.stockId', $stockId);
-        //$this->db->where('rd.issueId', 0);
-        $db= $this->db->get();
-        if(!$db->num_rows())return array();
-        $array= array();
-        foreach($db->result() as $row):
-            $array[]= array('issuedId'=>$row->receiveDetailId ,'vendor'=>$row->vendorsName, 'productCode'=>$row->productCode, 'warranty'=>$row->warrantyEndDate);
-        endforeach;
-        return $array;
-    }
     function is_stock_empty($stockId=0){
         if(!$stockId)return false;
-        if(!$this->get_stock_quantity($stockId))return true;
-        else return false;
-    }
-    function isCountable($stockId){
-        if(!$stockId)return false;
-        $this->db->select('i.itemType');
-        $this->db->from(TBL_STOCK.' as s ');
-        $this->db->join(TBL_ITEMS_MASTER.' as i ', 'i.itemMasterId=s.itemMasterId');
-        $this->db->where('stockId', $stockId);
-        $db= $this->db->get();
-        if(!$db->num_rows())return false;
-        if($db->result()[0]->itemType==='Countable')return true;
+        if(!$this->issueModel->get_stock_quantity($stockId))return true;
         else return false;
     }
 }

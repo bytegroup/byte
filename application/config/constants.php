@@ -102,6 +102,8 @@ define("TBL_STOCK", DB_PREFIX."stock");
 define("TBL_STOCK_DETAIL", DB_PREFIX."stock_detail");
 define("TBL_STOCK_DETAIL_SUB", DB_PREFIX."stock_detail_sub");
 define("TBL_ISSUES", DB_PREFIX."issues");
+define("TBL_ISSUE_DETAIL", DB_PREFIX."issue_details");
+define("TBL_ISSUE_UNCOUNTABLE_DETAIL", DB_PREFIX."issue_uncountable_details");
 define("TBL_ISSUES_SUB", DB_PREFIX."issues_sub");
 
 define("TBL_DAMAGE", DB_PREFIX."damage");

@@ -19,7 +19,7 @@ Class It_Inventory_Model extends CI_Model {
      * @return bool
      */
     public function get_received_item_quantity($itemId=0){
-        $this->db->select("itemMasterId, count(itemMasterId) as qty");
+        $this->db->select("itemMasterId, receiveQuantity as qty");
         $this->db->from(TBL_RECEIVES_DETAIL);
         if($itemId)$this->db->where('itemMasterId', $itemId);
         $this->db->group_by('itemMasterId');
@@ -65,11 +65,11 @@ Class It_Inventory_Model extends CI_Model {
     public function get_all_items_code_by_stockId(){
 
     }
-    public function get_stockId_by_itemId($itemId){
-        if(!$itemId) return 0;
+    public function get_stockId_by_itemId($itemId, $companyId){
+        if(!$itemId||!$companyId) return 0;
         $this->db->select("stockId");
         $this->db->from(TBL_STOCK);
-        $this->db->where('itemMasterId', $itemId);
+        $this->db->where(array('itemMasterId'=> $itemId, 'companyId'=>$companyId));
         $db = $this->db->get();
         if(!$db->num_rows())return 0;
         return $db->result()[0]->stockId;
@@ -87,6 +87,17 @@ Class It_Inventory_Model extends CI_Model {
         if($db->result()[0]->itemType==='Countable')return true;
         else return false;
     }
+    public function isCountableStock($stockId){
+        if(!$stockId)return false;
+        $this->db->select('i.itemType');
+        $this->db->from(TBL_STOCK.' as s ');
+        $this->db->join(TBL_ITEMS_MASTER.' as i ', 'i.itemMasterId=s.itemMasterId');
+        $this->db->where('s.stockId', $stockId);
+        $db= $this->db->get();
+        if(!$db->num_rows())return false;
+        if($db->result()[0]->itemType==='Countable')return true;
+        else return false;
+    }
     public function isReceivePrior($reqId, $itemId){
         if(!$reqId || !$itemId) return false;
         $this->db->select('productCode');
@@ -97,11 +108,11 @@ Class It_Inventory_Model extends CI_Model {
         else return true;
     }
     public function add_to_stock($recId, $itemId, $comId, $companyCode, $qty){
-        if (!$itemId || !$recId) return 0;
+        if (!$itemId || !$comId) return 0;
         $stockId=0;
         $this->db->select("stockId")
             ->from(TBL_STOCK)
-            ->where('itemMasterId', $itemId);
+            ->where(array('itemMasterId'=> $itemId, 'companyId'=>$comId));
         $db = $this->db->get();
         if (!$db->num_rows()) {
             $data = array(
@@ -118,7 +129,7 @@ Class It_Inventory_Model extends CI_Model {
             );
         } else {
             $stockId= $db->result()[0]->stockId;
-            $this->db->where('itemMasterId', $itemId);
+            $this->db->where('stockId', $stockId);
             $this->db->set('stockQuantity', 'stockQuantity+'.$qty, FALSE);
             $this->db->update(TBL_STOCK);
         }

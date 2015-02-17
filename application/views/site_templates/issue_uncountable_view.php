@@ -2,8 +2,8 @@
 /**
  * Created by PhpStorm.
  * User: mizanur
- * Date: 12/31/14
- * Time: 3:54 PM
+ * Date: 2/17/15
+ * Time: 7:05 PM
  */
 ?>
 <style type="text/css">
@@ -12,10 +12,14 @@
     #items_input_box ul{width: 100%;list-style: none; margin: 0;}
     #items_input_box ul li ul.items-table-header{background-color: #a9dba9;}
     #items_input_box ul li ul li:first-child{width: 20px;}
-    #items_input_box ul li ul li:last-child{width: 250px;}
-    #items_input_box ul li ul li{display: inline-block;padding: 0 4px; width: 150px;text-align: left;}
+    #items_input_box ul li ul li:last-child{width: 250px;text-align: left;}
+    #items_input_box ul li ul li:nth-child(2){text-align: left;}
+    #items_input_box ul li ul li:nth-child(3){width: 80px;}
+    #items_input_box ul li ul li:nth-child(4){width: 80px;}
+    #items_input_box ul li ul li{display: inline-block;padding: 0 4px; width: 150px;text-align: center;}
     #items_input_box ul li li input[type="checkbox"]{margin-bottom: 3px;}
     #items_input_box ul li ul{border-bottom: 1px #9acc9a solid;}
+    #items_input_box ul li ul li input[type='number']{width: 70px;margin: 5px 0;}
 </style>
 <div class="" style="width: auto; height: auto; border: 0px #999 solid; float: right">
     <div class="form-button-box">
@@ -68,8 +72,8 @@
             $('#field-issueQuantity').val(issueQty);
         });
 
-        var departmentURL= '<?php echo base_url(IT_MODULE_FOLDER);?>/issue/ajax_get_department/'+stockId+'/';
-        var employeeURL  = '<?php echo base_url(IT_MODULE_FOLDER);?>/issue/ajax_get_employee/'+stockId+'/';
+        var departmentURL= '<?php echo base_url(IT_MODULE_FOLDER);?>/issue_uncountable/ajax_get_department/'+stockId+'/';
+        var employeeURL  = '<?php echo base_url(IT_MODULE_FOLDER);?>/issue_uncountable/ajax_get_employee/'+stockId+'/';
         var currentDpt= $('#field-departmentId').val();
         var currentEmp= $('#field-issueUserId').val();
         if(state==='add' || state==='edit'){
@@ -137,22 +141,24 @@
         $html += '<ul>';
         $html += '<li>';
         $html += '<ul class="items-table-header">';
-        $html += '<li>&nbsp;</li><li>Product Code</li><li>Warranty</li><li>Vendor</li>';
+        $html += '<li>&nbsp;</li><li>Product Code</li><li>Rem. Quantity</li><li>Issue Quantity</li><li>Warranty</li><li>Vendor</li>';
         $html += '</ul>';
         $html += '</li>';
         numOfItems= items.length;
         if(numOfItems>0)
-        for(var i=0; i<numOfItems; i++){
-            $html += '<li>';
-            $html += '<ul>';
-            $html += '<li><input type="checkbox" id="items-'+items[i].issuedId+'" name="selectedItems[]" value="'+items[i].issuedId+'"/></li>';
-            $html += '<li>'+items[i].productCode +'</li>';
-            $html += '<li>'+items[i].warranty +'</li>';
-            $html += '<li>'+items[i].vendor +'</li>';
-            $html += '<input type="hidden" name="issuedIds[]" value="'+items[i].issuedId+'"/>';
-            $html += '</ul>';
-            $html += '</li>';
-        }
+            for(var i=0; i<numOfItems; i++){
+                $html += '<li>';
+                $html += '<ul>';
+                $html += '<li><input type="checkbox" id="items-'+items[i].issuedId+'" name="selectedItems[]" value="'+items[i].issuedId+'"/></li>';
+                $html += '<li>'+items[i].productCode +'</li>';
+                $html += '<li>&nbsp;</li>';
+                $html += '<li><input type="number" name="qty" min="0"/></li>';
+                $html += '<li>'+items[i].warranty +'</li>';
+                $html += '<li>'+items[i].vendor +'</li>';
+                $html += '<input type="hidden" name="issuedIds[]" value="'+items[i].issuedId+'"/>';
+                $html += '</ul>';
+                $html += '</li>';
+            }
 
         $html += '</ul>';
 

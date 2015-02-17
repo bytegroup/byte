@@ -40,8 +40,8 @@
 
 $route['default_controller'] = "home";
 $route['404_override'] = 'error';
-$route['it-inventory'] = IT_MODULE_FOLDER."item_master";
-$route['report'] = REPORT_FOLDER."report_test";
+$route['it-inventory'] = IT_MODULE_FOLDER."stock";
+$route['report'] = REPORT_FOLDER."stock_report";
 
 /* End of file routes.php */
 /* Location: ./application/config/routes.php */

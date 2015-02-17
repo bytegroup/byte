@@ -1,74 +1,99 @@
 <?php if ( ! defined('BASEPATH')) exit('No direct script access allowed');
 
-/**
- * Description of users model
- *
- * @author USER
- */
 Class Issue_model extends CI_Model {
     function __construct() {
         parent::__construct();
     }
-    
-    function getRequisition($userid){
-        $this->db->select("U.*, OG.* ",false)
-                 ->from(TBL_USERS." U LEFT JOIN ".TBL_ORGANIZATIONS." OG ON U.organizationId = OG.organizationId ")        ->where("U.userId", $userid);
-        $result = $this->db->get();
-        if($result->num_rows() > 0){
-            return $result;
-        }
-        return false;        
+    public function get_company_name_by_stock_id($stockId){
+        if(!$stockId)return array();
+        $this->db->select('c.companyId, c.companyName');
+        $this->db->from(TBL_STOCK.' as s ');
+        $this->db->join(TBL_COMPANIES.' as c ', 's.companyId=c.companyId');
+        $db= $this->db->get();
+        if(!$db->num_rows()) return array();
+        return $db->result()[0]->companyName;
     }
-   
-    function saveIssue($issueId,$data)
-    {
-        $time = time();
-        if($issueId > 0)
-        {
-            $this->db->where("issueId",$issueId)->update(TBL_ISSUES,$data);
-            return true;
-        }
-        
-        $this->db->insert(TBL_ISSUES,$data);
-        $insertId = $this->db->insert_id();
-        if($insertId > 0)
-        {
-            return (int)$insertId;
-        }
-        return false;
+    public function get_stock_quantity($stockId){
+        if(!$stockId)return array();
+        $this->db->select('stockQuantity');
+        $this->db->from(TBL_STOCK);
+        $this->db->where('stockId', $stockId);
+        $db= $this->db->get();
+        if(!$db->num_rows()) return array();
+        return $db->result()[0]->stockQuantity;
     }
+    public function get_issue_item_header($stockId){
+        if(!$stockId)return array();
+        $this->db->select('s.stockNumber, i.itemName, c.categoryName, u.unitName');
+        $this->db->from(TBL_STOCK.' as s ');
+        $this->db->join(TBL_ITEMS_MASTER.' as i ', 's.itemMasterId=i.itemMasterId');
+        $this->db->join(TBL_CATEGORIES.' as c ', 'i.categoryId=c.categoryId');
+        $this->db->join(TBL_UNITS.' as u ', 'u.unitId=i.unitId');
+        $this->db->where('stockId', $stockId);
+        $db= $this->db->get();
+        if(!$db->num_rows()) return array();
+        $array= array();
+        return $db->result()[0];
+    }
+    public function get_issue_items_by_stock_id($stockId, $issueId=0){
+        if(!$stockId)return array();
+        $this->db->select('sd.stockDetailId, v.vendorsName, sd.productCode, rd.warrantyEndDate');
+        $this->db->from(TBL_STOCK.' as s ');
+        $this->db->join(TBL_STOCK_DETAIL.' as sd ', 'sd.stockId=s.stockId');
+        if($issueId)$this->db->join(TBL_ISSUE_DETAIL.' as id ', 'id.stockDetailId=sd.stockDetailId and id.issueId='.$issueId);
+        $this->db->join(TBL_RECEIVES_DETAIL.' as rd ', 'rd.receiveDetailId=sd.receiveDetailId');
+        $this->db->join(TBL_RECEIVES.' as r ', 'rd.receiveId=r.receiveId');
+        $this->db->join(TBL_QUOTATIONS.' as q ', 'r.quotationId=q.quotationId');
+        $this->db->join(TBL_VENDORS.' as v ', 'q.vendorsId=v.vendorsId');
+        $this->db->where('s.stockId', $stockId);
+        if(!$issueId)$this->db->where('sd.stockDetailId NOT IN (select stockDetailId from '.TBL_ISSUE_DETAIL.')',NULL,FALSE);
+        $db= $this->db->get();
+        if(!$db->num_rows())return array();
+        $array= array();
+        foreach($db->result() as $row):
+            $array[]= array('issuedId'=>$row->stockDetailId ,'vendor'=>$row->vendorsName, 'productCode'=>$row->productCode, 'warranty'=>$row->warrantyEndDate);
+        endforeach;
+        return $array;
+    }
+    public function get_uncountable_stock_items($stockId, $issueId=0){
+        if(!$stockId)return array();
+        $this->db->select('sd.stockDetailId, v.vendorsName, sd.productCode, rd.warrantyEndDate, rd.receiveQuantity');
+        $this->db->from(TBL_STOCK.' as s ');
+        $this->db->join(TBL_STOCK_DETAIL.' as sd ', 'sd.stockId=s.stockId');
+        $this->db->join(TBL_ISSUE_UNCOUNTABLE_DETAIL.' as id ', 'id.stockDetailId=sd.stockDetailId', 'left');
+        $this->db->join(TBL_RECEIVES_DETAIL.' as rd ', 'rd.receiveDetailId=sd.receiveDetailId');
+        $this->db->join(TBL_RECEIVES.' as r ', 'rd.receiveId=r.receiveId');
+        $this->db->join(TBL_QUOTATIONS.' as q ', 'r.quotationId=q.quotationId');
+        $this->db->join(TBL_VENDORS.' as v ', 'q.vendorsId=v.vendorsId');
+        $this->db->where('s.stockId', $stockId);
+        $db= $this->db->get();
+        if(!$db->num_rows())return array();
 
-    function saveSubIssue($issueId,$data)
-    {
-        $time = time();
-        if($issueId > 0)
-        {
-            $this->db->where("issueSubId",$issueId)->update(TBL_ISSUES_SUB,$data);
-            return true;
-        }
-
-        $this->db->insert(TBL_ISSUES_SUB,$data);
-        $insertId = $this->db->insert_id();
-        if($insertId > 0)
-        {
-            return (int)$insertId;
-        }
-        return false;
+        $array= array();
+        foreach($db->result() as $row):
+            $array[]= array('issuedId'=>$row->stockDetailId ,'vendor'=>$row->vendorsName, 'productCode'=>$row->productCode, 'warranty'=>$row->warrantyEndDate);
+        endforeach;
+        return $array;
     }
-    
-    /*function addIssueDetails($data,$receiveId=''){
-        $this->db->insert(TBL_RECEIVES_DETAIL,$data);
-        if($this->db->affected_rows() >= 0)
-        {
-            $value['success'] = true;
-            return $value;
-        }
-        $value['success'] = false;
-        return $value;    
-    }*/
-    function deleteIssue($id){
-        $result = $this->db->delete(TBL_ISSUES, array('issueId' => $id));
-        //$resultDetails = $this->db->delete(TBL_RECEIVES_DETAIL, array('receiveId' => $id));
+    public function get_issued_uncountable_stock($stockId, $issueId){
+        if(!$stockId)return array();
+        $this->db->select('sd.stockDetailId, v.vendorsName, sd.productCode, rd.warrantyEndDate, rd.receiveQuantity');
+        $this->db->from(TBL_STOCK.' as s ');
+        $this->db->join(TBL_STOCK_DETAIL.' as sd ', 'sd.stockId=s.stockId');
+        $this->db->join(TBL_ISSUE_UNCOUNTABLE_DETAIL.' as id ', 'id.stockDetailId=sd.stockDetailId', 'left');
+        $this->db->join(TBL_RECEIVES_DETAIL.' as rd ', 'rd.receiveDetailId=sd.receiveDetailId');
+        $this->db->join(TBL_RECEIVES.' as r ', 'rd.receiveId=r.receiveId');
+        $this->db->join(TBL_QUOTATIONS.' as q ', 'r.quotationId=q.quotationId');
+        $this->db->join(TBL_VENDORS.' as v ', 'q.vendorsId=v.vendorsId');
+        $this->db->where('s.stockId', $stockId);
+        $db= $this->db->get();
+        if(!$db->num_rows())return array();
+
+        $array= array();
+        foreach($db->result() as $row):
+            $array[]= array('issuedId'=>$row->stockDetailId ,'vendor'=>$row->vendorsName, 'productCode'=>$row->productCode, 'warranty'=>$row->warrantyEndDate);
+        endforeach;
+        return $array;
     }
 }
 

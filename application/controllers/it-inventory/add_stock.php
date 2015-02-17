@@ -155,9 +155,10 @@ class Add_Stock extends MX_Controller{
 
     function callback_after_add_stock($post, $key){
         $this->db->select("c.companyId, c.companyCode")
-            ->from(TBL_REQUISITIONS . ' as r ')
+            ->from(TBL_RECEIVES.' as rec ')
+            ->join(TBL_REQUISITIONS . ' as r ', 'r.requisitionId=rec.requisitionId')
             ->join(TBL_COMPANIES . ' as c ', 'r.companyId=c.companyId')
-            ->where('requisitionId', $this->requisitionId);
+            ->where('receiveId', $key);
         $db = $this->db->get();
         if (!$db->num_rows()) {
             $companyId = 0;
