@@ -11,6 +11,7 @@
 class Issue_Uncountable extends MX_Controller {
     var $stockId=0;
     var $isCountable=true;
+    var $preIssuedQty= 0;
     function __construct(){
         parent::__construct();
 
@@ -79,7 +80,9 @@ class Issue_Uncountable extends MX_Controller {
             $crud->callback_field('stockQuantity', array($this, 'callback_field_stockQuantity'));
             $crud->callback_read_field('stockQuantity', array($this, 'callback_read_field_stockQuantity'));
             $crud->callback_field('items', array($this, 'callback_field_items'));
+            $crud->callback_read_field('items', array($this, 'callback_read_field_items'));
             $crud->callback_after_insert(array($this, 'callback_after_insert_issue'));
+            $crud->callback_before_update(array($this, 'callback_before_update_issue'));
             $crud->callback_after_update(array($this, 'callback_after_update_issue'));
             $crud->callback_after_delete(array($this, 'callback_after_delete_issue'));
 
@@ -88,7 +91,7 @@ class Issue_Uncountable extends MX_Controller {
             $output = $crud->render();
 
             $currentIssueId= isset($crud->getStateInfo()->primary_key)? $crud->getStateInfo()->primary_key: 0;
-            $output->issuedItems=json_encode($this->issueModel->get_uncountable_stock_items($stockId, $currentIssueId));
+            $output->issuedItems=json_encode($this->issueModel->get_issued_uncountable_stock($stockId, $currentIssueId));
             $output->toBeIssuedItems=json_encode($this->issueModel->get_uncountable_stock_items($stockId));
             $output->state = $crud->getState();
             $output->css = "";
@@ -137,14 +140,79 @@ class Issue_Uncountable extends MX_Controller {
         return $this->issueModel->get_stock_quantity($this->stockId);
     }
     function callback_field_items($row, $key){
+        if($key)$issuedQty=$this->issueModel->get_issued_uncountable_stock($this->stockId, $key);
+        else $issuedQty=array();
+        $items=$this->issueModel->get_uncountable_stock_items($this->stockId);
+
         $html = '';
+
+        $html .= '<ul>';
+        $html .= '<li>';
+        $html .= '<ul class="items-table-header">';
+        $html .= '<li>&nbsp;</li><li>Product Code</li><li>Rem. Quantity</li><li>Issue Quantity</li><li>Warranty</li><li>Vendor</li>';
+        $html .= '</ul>';
+        $html .= '</li>';
+
+        foreach($items as $item){
+            $qty= isset($issuedQty[$item['issuedId']])?$issuedQty[$item['issuedId']]:0;
+            $checked= $qty? 'checked= checked': '';
+            $html .= '<li>';
+            $html .= '<ul>';
+            $html .= '<li><input type="checkbox" '.$checked.' id="items-'.$item['issuedId'].'" name="selectedItems[]" value="'.$item['issuedId'].'"/></li>';
+            $html .= '<li>'.$item['productCode'].'</li>';
+            $html .= '<li id="remQty-'.$item['issuedId'].'">'.$item['remQty'].'</li>';
+            $html .= '<li><input type="number" id="qty-'.$item['issuedId'].'" name="qty[]" min="0" max="'.($item['remQty']+$qty).'" value="'.$qty.'"/></li>';
+            $html .= '<li>'.$item['warranty'] .'</li>';
+            $html .= '<li>'.$item['vendor'] .'</li>';
+            $html .= '<input type="hidden" name="issuedIds[]" value="'.$item['issuedId'].'"/>';
+            $html .= '</ul>';
+            $html .= '</li>';
+        }
+
+        $html .= '</ul>';
+
+        return $html;
+    }
+    function callback_read_field_items($row, $key){
+        if($key)$issuedQty=$this->issueModel->get_issued_uncountable_stock($this->stockId, $key);
+        else $issuedQty=array();
+        $items=$this->issueModel->get_uncountable_stock_items($this->stockId);
+
+        $html = '';
+
+        $html .= '<ul>';
+        $html .= '<li>';
+        $html .= '<ul class="items-table-header">';
+        $html .= '<li>&nbsp;</li><li>Product Code</li><li>Rem. Quantity</li><li>Issue Quantity</li><li>Warranty</li><li>Vendor</li>';
+        $html .= '</ul>';
+        $html .= '</li>';
+
+        foreach($items as $item){
+            if(isset($issuedQty[$item['issuedId']])){
+                $html .= '<li>';
+                $html .= '<ul>';
+                $html .= '<li>&nbsp;</li>';
+                $html .= '<li>'.$item['productCode'].'</li>';
+                $html .= '<li id="remQty-'.$item['issuedId'].'">'.$item['remQty'].'</li>';
+                $html .= '<li>'.$issuedQty[$item['issuedId']].'</li>';
+                $html .= '<li>'.$item['warranty'] .'</li>';
+                $html .= '<li>'.$item['vendor'] .'</li>';
+                $html .= '</ul>';
+                $html .= '</li>';
+            }
+        }
+
+        $html .= '</ul>';
+
         return $html;
     }
     function callback_after_insert_issue($post, $key){
         $issuedItems= $post['selectedItems'];
-
-        foreach($issuedItems as $id):
-            $this->db->insert(TBL_ISSUE_DETAIL, array('issueId'=>$key, 'stockDetailId'=>$id));
+        foreach($issuedItems as $index=>$id):
+            $this->db->insert(
+                TBL_ISSUE_UNCOUNTABLE_DETAIL,
+                array('issueId'=>$key, 'stockDetailId'=>$id, 'issueQuantity'=>$post['qty'][$index])
+            );
         endforeach;
 
         $this->db->where('stockId', $this->stockId);
@@ -152,13 +220,19 @@ class Issue_Uncountable extends MX_Controller {
         $this->db->set('issueQuantity', 'issueQuantity + '.$post['issueQuantity'], FALSE);
         $this->db->update(TBL_STOCK);
     }
+    function callback_before_update_issue($post, $key){
+
+    }
     function callback_after_update_issue($post, $key){
         $issuedItems= $post['selectedItems'];
+        $preIssueQty= $post['preIssueQty'];
+        $this->db->delete(TBL_ISSUE_UNCOUNTABLE_DETAIL, array('issueId'=>$key));
 
-        $this->db->delete(TBL_ISSUE_DETAIL, array('issueId'=>$key));
-        $preIssueQty= $this->db->affected_rows();
-        foreach($issuedItems as $id):
-            $this->db->insert(TBL_ISSUE_DETAIL, array('issueId'=>$key, 'stockDetailId'=>$id));
+        foreach($issuedItems as $index=>$id):
+            $this->db->insert(
+                TBL_ISSUE_UNCOUNTABLE_DETAIL,
+                array('issueId'=>$key, 'stockDetailId'=>$id, 'issueQuantity'=>$post['qty'][$index])
+            );
         endforeach;
 
         $currentIssueQty= $post['issueQuantity'];

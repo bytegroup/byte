@@ -55,12 +55,11 @@ Class Issue_model extends CI_Model {
         endforeach;
         return $array;
     }
-    public function get_uncountable_stock_items($stockId, $issueId=0){
+    public function get_uncountable_stock_items($stockId){
         if(!$stockId)return array();
         $this->db->select('sd.stockDetailId, v.vendorsName, sd.productCode, rd.warrantyEndDate, rd.receiveQuantity');
         $this->db->from(TBL_STOCK.' as s ');
         $this->db->join(TBL_STOCK_DETAIL.' as sd ', 'sd.stockId=s.stockId');
-        $this->db->join(TBL_ISSUE_UNCOUNTABLE_DETAIL.' as id ', 'id.stockDetailId=sd.stockDetailId', 'left');
         $this->db->join(TBL_RECEIVES_DETAIL.' as rd ', 'rd.receiveDetailId=sd.receiveDetailId');
         $this->db->join(TBL_RECEIVES.' as r ', 'rd.receiveId=r.receiveId');
         $this->db->join(TBL_QUOTATIONS.' as q ', 'r.quotationId=q.quotationId');
@@ -68,30 +67,33 @@ Class Issue_model extends CI_Model {
         $this->db->where('s.stockId', $stockId);
         $db= $this->db->get();
         if(!$db->num_rows())return array();
-
+        $totalIssued= $this->get_issued_uncountable_stock($stockId);
         $array= array();
         foreach($db->result() as $row):
-            $array[]= array('issuedId'=>$row->stockDetailId ,'vendor'=>$row->vendorsName, 'productCode'=>$row->productCode, 'warranty'=>$row->warrantyEndDate);
+            if(isset($totalIssued[$row->stockDetailId])){
+                if($totalIssued[$row->stockDetailId]==$row->receiveQuantity)continue;
+                else $array[]= array('issuedId'=>$row->stockDetailId, 'vendor'=>$row->vendorsName, 'productCode'=>$row->productCode, 'warranty'=>$row->warrantyEndDate, 'remQty'=>$row->receiveQuantity-$totalIssued[$row->stockDetailId]);
+            }else{
+                $array[]= array('issuedId'=>$row->stockDetailId, 'vendor'=>$row->vendorsName, 'productCode'=>$row->productCode, 'warranty'=>$row->warrantyEndDate, 'remQty'=>$row->receiveQuantity);
+            }
         endforeach;
         return $array;
     }
-    public function get_issued_uncountable_stock($stockId, $issueId){
+    public function get_issued_uncountable_stock($stockId, $issueId=0){
         if(!$stockId)return array();
-        $this->db->select('sd.stockDetailId, v.vendorsName, sd.productCode, rd.warrantyEndDate, rd.receiveQuantity');
+        $this->db->select('sd.stockDetailId, sum(id.issueQuantity) as issueQty');
         $this->db->from(TBL_STOCK.' as s ');
         $this->db->join(TBL_STOCK_DETAIL.' as sd ', 'sd.stockId=s.stockId');
-        $this->db->join(TBL_ISSUE_UNCOUNTABLE_DETAIL.' as id ', 'id.stockDetailId=sd.stockDetailId', 'left');
-        $this->db->join(TBL_RECEIVES_DETAIL.' as rd ', 'rd.receiveDetailId=sd.receiveDetailId');
-        $this->db->join(TBL_RECEIVES.' as r ', 'rd.receiveId=r.receiveId');
-        $this->db->join(TBL_QUOTATIONS.' as q ', 'r.quotationId=q.quotationId');
-        $this->db->join(TBL_VENDORS.' as v ', 'q.vendorsId=v.vendorsId');
+        if($issueId)$this->db->join(TBL_ISSUE_UNCOUNTABLE_DETAIL.' as id ', 'id.stockDetailId=sd.stockDetailId and id.issueId='.$issueId);
+        else $this->db->join(TBL_ISSUE_UNCOUNTABLE_DETAIL.' as id ', 'id.stockDetailId=sd.stockDetailId');
         $this->db->where('s.stockId', $stockId);
+        $this->db->group_by('id.stockDetailId');
         $db= $this->db->get();
         if(!$db->num_rows())return array();
 
         $array= array();
         foreach($db->result() as $row):
-            $array[]= array('issuedId'=>$row->stockDetailId ,'vendor'=>$row->vendorsName, 'productCode'=>$row->productCode, 'warranty'=>$row->warrantyEndDate);
+            $array[$row->stockDetailId ]= $row->issueQty;
         endforeach;
         return $array;
     }

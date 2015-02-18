@@ -39,37 +39,35 @@
 
         var state= '<?php echo $state;?>';
         var stockId=<?php echo $stockId ?>;
-        var stockItems= '<?php echo $issuedItems; ?>';
-        var remStockItems= '<?php echo $toBeIssuedItems;?>';
 
         $("form#crudForm #form-button-save").hide();
         if(state==='add')$("form#crudForm #save-and-go-back-button").val('Save');
         else $("form#crudForm #save-and-go-back-button").val('Update Changes');
 
         $("#field-issueQuantity").prop("readonly",true);
+        $("#items_input_box ul").append('<input type="hidden" name="preIssueQty" value="'+$("#field-issueQuantity").val()+'"/>');
 
-        stockItems= $.parseJSON(stockItems);
-        remStockItems= $.parseJSON(remStockItems);
+        $("#items_input_box input[type='number']").on('input', function(){
+            var max= parseInt($(this).attr('max'));
+            if(!$.isNumeric($(this).val()))$(this).val(0);
+            var currentId= $(this).attr('id').split('-')[1];
+            var remQty= parseInt($('#items_input_box li#remQty-'+currentId).text());
+            var issueQty= parseInt($(this).val());
+            if(max<issueQty){$(this).val(0); issueQty=0;}
+            if(issueQty>0)$('#items-'+currentId).prop('checked', true);
+            else $('#items-'+currentId).prop('checked', false);
+            var total=0;
+            $("#items_input_box input[type='number']").each(function(){
+                total += parseInt($(this).val()? $(this).val():0);
+            });
+            $("#field-issueQuantity").val(total);
+        });
 
-        var issueQty= stockItems.length;
-        if(state==='read'){
-            $("#items_input_box").html(items(stockItems, issueQty));
-            $("#items_input_box input[type='checkbox']").each(function(){
-                $(this).remove();
-            })
-        }
-        else if(state==='add')$("#items_input_box").html(items(remStockItems, issueQty));
-        else if(state==='edit'){
-            $("#items_input_box").html(items($.merge($.merge([], stockItems), remStockItems), 0));
-            for(var i=0; i< issueQty; i++){
-                $('#items_input_box input#items-'+stockItems[i].issuedId).attr('checked', true);
+        $("#items_input_box input[type='checkbox']").change(function(){
+            if(!$(this).is('checked')){
+                var currentId= $(this).attr('id').split('-')[1];
+                $('#items_input_box input#qty-'+currentId).val(0);
             }
-        }
-        else{}
-
-        $('#items_input_box input[type="checkbox"]').change(function(){
-            issueQty= $("#items_input_box input[type='checkbox']:checked").length;
-            $('#field-issueQuantity').val(issueQty);
         });
 
         var departmentURL= '<?php echo base_url(IT_MODULE_FOLDER);?>/issue_uncountable/ajax_get_department/'+stockId+'/';
@@ -136,7 +134,7 @@
             });
     }
 
-    function items(items, numOfItems){
+    /*function items(items, numOfItems){
         var $html= '';
         $html += '<ul>';
         $html += '<li>';
@@ -151,8 +149,8 @@
                 $html += '<ul>';
                 $html += '<li><input type="checkbox" id="items-'+items[i].issuedId+'" name="selectedItems[]" value="'+items[i].issuedId+'"/></li>';
                 $html += '<li>'+items[i].productCode +'</li>';
-                $html += '<li>&nbsp;</li>';
-                $html += '<li><input type="number" name="qty" min="0"/></li>';
+                $html += '<li id="remQty-'+items[i].issuedId+'">'+items[i].remQty+'</li>';
+                $html += '<li><input type="number" id="qty-'+items[i].issuedId+'" name="qty[]" min="0" max="'+items[i].remQty+'" value="'+items[i].issueQty+'"/></li>';
                 $html += '<li>'+items[i].warranty +'</li>';
                 $html += '<li>'+items[i].vendor +'</li>';
                 $html += '<input type="hidden" name="issuedIds[]" value="'+items[i].issuedId+'"/>';
@@ -163,6 +161,6 @@
         $html += '</ul>';
 
         return $html;
-    }
+    }*/
 
 </script>
