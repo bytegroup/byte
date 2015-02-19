@@ -98,6 +98,18 @@ Class It_Inventory_Model extends CI_Model {
         if($db->result()[0]->itemType==='Countable')return true;
         else return false;
     }
+    public function isCountableIssue($issueId){
+        if(!$issueId)return false;
+        $this->db->select('im.itemType');
+        $this->db->from(TBL_ISSUES.' as i ');
+        $this->db->join(TBL_STOCK.' as s ', 's.stockId=i.stockId');
+        $this->db->join(TBL_ITEMS_MASTER.' as im ', 'im.itemMasterId=s.itemMasterId');
+        $this->db->where('i.issueId', $issueId);
+        $db= $this->db->get();
+        if(!$db->num_rows())return false;
+        if($db->result()[0]->itemType==='Countable')return true;
+        else return false;
+    }
     public function isReceivePrior($reqId, $itemId){
         if(!$reqId || !$itemId) return false;
         $this->db->select('productCode');

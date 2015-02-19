@@ -107,6 +107,7 @@ define("TBL_ISSUE_UNCOUNTABLE_DETAIL", DB_PREFIX."issue_uncountable_details");
 define("TBL_ISSUES_SUB", DB_PREFIX."issues_sub");
 
 define("TBL_DAMAGE", DB_PREFIX."damage");
+define("TBL_DAMAGE_DETAIL", DB_PREFIX.'damage_details');
 
 define("TBL_REPAIR_TYPE", DB_PREFIX."repair_types");
 define("TBL_REPAIR", DB_PREFIX."repair");

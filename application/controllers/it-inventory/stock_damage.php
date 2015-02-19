@@ -10,6 +10,7 @@
 
 class Stock_Damage extends MX_Controller {
     var $stockId=0;
+    var $isCountable=true;
     function __construct(){
         parent::__construct();
 
@@ -19,6 +20,8 @@ class Stock_Damage extends MX_Controller {
         $this->load->helper('date');
 
         /* ------------------ */
+        $this->load->model('stock_model', 'stockModel');
+        $this->load->model("it_inventory_model", 'itModel');
         $this->load->library("my_session");
         $this->my_session->checkSession();
 
@@ -33,6 +36,7 @@ class Stock_Damage extends MX_Controller {
             die();
         }
         $this->stockId= $stockId;
+        $this->isCountable= $this->itModel->isCountableStock($stockId);
         try{
             $this->load->library('grocery_CRUD');
             $crud = new grocery_CRUD($this);
@@ -96,6 +100,7 @@ class Stock_Damage extends MX_Controller {
 
             $output->state = $crud->getState();
             $output->stockInfo= $this->get_stock_info($stockId);
+            $output->isCountable= $this->isCountable;
             $output->css = "";
             $output->js = "";
             $output->pageTitle = "Damaged Products From Stock";
@@ -113,94 +118,26 @@ class Stock_Damage extends MX_Controller {
     /***  callback functions  ***/
     /*****************************/
     function callback_add_field_items($row, $key){
-        $items= $this->get_stock_items($this->stockId);
-        $html='';
-
-        $html .= '<ul>';
-
-        $html .= '<li>';
-        $html .= '<ul class="items-table-header">';
-        $html .= '<li>&nbsp;</li><li>Product Code</li><li>Warranty</li><li>Vendor</li>';
-        $html .= '</ul>';
-        $html .= '</li>';
-
-        foreach($items as $item):
-            if($item['damageId']>0) continue;
-            $html .= '<li>';
-            $html .= '<ul>';
-            $html .= '<li><input type="checkbox" name="selectedItems[]" value="'.$item['receiveDetailId'].'"/></li>';
-            $html .= '<li>'.$item['productCode'].'</li>';
-            $html .= '<li>'.$item['warranty'].'</li>';
-            $html .= '<li>'.$item['vendor'].'</li>';
-            $html .= '</ul>';
-            $html .= '</li>';
-        endforeach;
-
-        $html .= '</ul>';
-
-        return $html;
+        if($this->isCountable) return $this->stockModel->html_for_countable_add_field($this->stockId);
+        else return $this->stockModel->html_for_uncountable_add_field($this->stockId);
     }
     function callback_edit_field_items($row, $key){
-        $items= $this->get_stock_items($this->stockId, $key);
-        $html='';
-
-        $html .= '<ul>';
-
-        $html .= '<li>';
-        $html .= '<ul class="items-table-header">';
-        $html .= '<li>&nbsp;</li><li>Product Code</li><li>Warranty</li><li>Vendor</li>';
-        $html .= '</ul>';
-        $html .= '</li>';
-
-        foreach($items as $item):
-            $checked= $item['damageId']>0? 'checked':'';
-            $html .= '<li>';
-            $html .= '<ul>';
-            $html .= '<li><input type="checkbox" name="selectedItems[]" '.$checked.' value="'.$item['receiveDetailId'].'"/></li>';
-            $html .= '<li>'.$item['productCode'].'</li>';
-            $html .= '<li>'.$item['warranty'].'</li>';
-            $html .= '<li>'.$item['vendor'].'</li>';
-            $html .= '</ul>';
-            $html .= '</li>';
-        endforeach;
-
-        $html .= '</ul>';
-
-        return $html;
+        return $this->stockModel->html_for_countable_edit_field($this->stockId, $key);
     }
     function callback_read_field_items($row, $key){
-        $items= $this->get_stock_items($this->stockId, $key);
-        $html='';
-
-        $html .= '<ul>';
-
-        $html .= '<li>';
-        $html .= '<ul class="items-table-header">';
-        $html .= '<li>&nbsp;</li><li>Product Code</li><li>Warranty</li><li>Vendor</li>';
-        $html .= '</ul>';
-        $html .= '</li>';
-
-        foreach($items as $item):
-            if(!$item['damageId']) continue;
-            $html .= '<li>';
-            $html .= '<ul>';
-            $html .= '<li>&nbsp;</li>';
-            $html .= '<li>'.$item['productCode'].'</li>';
-            $html .= '<li>'.$item['warranty'].'</li>';
-            $html .= '<li>'.$item['vendor'].'</li>';
-            $html .= '</ul>';
-            $html .= '</li>';
-        endforeach;
-
-        $html .= '</ul>';
-
-        return $html;
+        return $this->stockModel->html_for_countable_read_field($this->stockId, $key);
     }
     function callback_after_insert_damage($post, $key){
         $damagedItems= $post['selectedItems'];
+
         foreach($damagedItems as $id):
-            $this->db->update(TBL_RECEIVES_DETAIL, array('damageId'=>$key), array('receiveDetailId'=>$id));
+            $qty= $this->isCountable? 1: 0;
+            $this->db->insert(
+                TBL_DAMAGE_DETAIL,
+                array('damageId'=>$key, 'stockDetailId'=>$id, 'damageQuantity'=>$qty)
+            );
         endforeach;
+
         $this->db->where('stockId', $this->stockId);
         $this->db->set('stockQuantity', 'stockQuantity - '.$post['damageQuantity'], FALSE);
         $this->db->set('damageQuantity', 'damageQuantity + '.$post['damageQuantity'], FALSE);
@@ -209,13 +146,18 @@ class Stock_Damage extends MX_Controller {
     function callback_after_update_damage($post, $key){
         $damageItems= $post['selectedItems'];
 
-        $this->db->update(TBL_RECEIVES_DETAIL, array('damageId'=>0), array('damageId'=>$key));
+        $this->db->delete(TBL_DAMAGE_DETAIL, array('damageId'=>$key));
         $preDamageQty= $this->db->affected_rows();
-        $currentDamageQty= $post['damageQuantity'];
 
         foreach($damageItems as $id):
-            $this->db->update(TBL_RECEIVES_DETAIL, array('damageId'=>$key), array('receiveDetailId'=>$id));
+            $qty= $this->isCountable? 1: 0;
+            $this->db->insert(
+                TBL_DAMAGE_DETAIL,
+                array('damageId'=>$key, 'stockDetailId'=>$id, 'damageQuantity'=>$qty)
+            );
         endforeach;
+
+        $currentDamageQty= $post['damageQuantity'];
 
         $qtyDeff=abs($preDamageQty-$currentDamageQty);
         if($preDamageQty > $currentDamageQty){
@@ -259,24 +201,6 @@ class Stock_Damage extends MX_Controller {
             'category'=>$db->result()[0]->categoryName
         );
 
-        return $array;
-    }
-    function get_stock_items($stockId, $damageId=0){
-        if(!$stockId) return array();
-        $this->db->select('rd.receiveDetailId, rd.productCode, rd.warrantyEndDate, rd.damageId, v.vendorsName');
-        $this->db->from(TBL_STOCK.' as s ');
-        if(!$damageId)$this->db->join(TBL_RECEIVES_DETAIL.' as rd ', 'rd.itemMasterId=s.itemMasterId and rd.issueId=0');
-        else $this->db->join(TBL_RECEIVES_DETAIL.' as rd ', 'rd.itemMasterId=s.itemMasterId and rd.issueId=0 and (rd.damageId=0 or rd.damageId='.$damageId.')');
-        $this->db->join(TBL_RECEIVES.' as r ', 'r.receiveId=rd.receiveId');
-        $this->db->join(TBL_QUOTATIONS.' as q ', 'q.quotationId=r.quotationId');
-        $this->db->join(TBL_VENDORS.' as v ', 'v.vendorsId=q.vendorsId');
-        $this->db->where('stockId', $stockId);
-        $db= $this->db->get();
-        if(!$db->num_rows())return array();
-        $array= array();
-        foreach($db->result() as $row):
-            $array[]= array('receiveDetailId'=>$row->receiveDetailId ,'vendor'=>$row->vendorsName, 'productCode'=>$row->productCode, 'warranty'=>$row->warrantyEndDate, 'damageId'=> $row->damageId);
-        endforeach;
         return $array;
     }
     function get_stock_quantity($stockId){

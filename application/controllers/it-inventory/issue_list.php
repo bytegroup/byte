@@ -18,6 +18,7 @@ class Issue_List extends MX_Controller{
         $this->load->helper('date');
 
         /* ------------------ */
+        $this->load->model('it_inventory_model', 'itModel');
         $this->load->library("my_session");
         $this->my_session->checkSession();
 
@@ -104,6 +105,8 @@ class Issue_List extends MX_Controller{
         return $this->get_company_name_by_issue_id($key);
     }
     function callback_read_field_items($row, $key){
+        if(!$this->itModel->isCountableIssue($key))
+            return $this->callback_read_field_uncountable_items($key);
         $issuedItems= $this->get_issue_items_by_issue_id($key);
         $html = '';
         $html .= '<ul>';
@@ -126,6 +129,30 @@ class Issue_List extends MX_Controller{
         $html .= '</ul>';
         return $html;
     }
+    function callback_read_field_uncountable_items($key){
+        $issuedItems= $this->get_issued_uncountable_items($key);
+        $html = '';
+        $html .= '<ul>';
+        $html .= '<li>';
+        $html .= '<ul class="items-table-header">';
+        $html .= '<li>Product Code</li><li>Quantity</li><li>Warranty</li><li>Vendor</li>';
+        $html .= '</ul>';
+        $html .= '</li>';
+        if(count($issuedItems))
+            foreach($issuedItems as $items){
+                $html .= '<li>';
+                $html .= '<ul>';
+                $html .= '<li>'.$items['productCode'].'</li>';
+                $html .= '<li>'.$items['issueQty'].'</li>';
+                $html .= '<li>'.$items['warranty'].'</li>';
+                $html .= '<li>'.$items['vendor'].'</li>';
+                $html .= '</ul>';
+                $html .= '</li>';
+            }
+
+        $html .= '</ul>';
+        return $html;
+    }
 
     /******************************************************************************/
     function get_company_name_by_issue_id($issueId){
@@ -141,9 +168,11 @@ class Issue_List extends MX_Controller{
     }
     function get_issue_items_by_issue_id($issueId = 0){
         if (!$issueId) return array();
-        $this->db->select('rd.receiveDetailId, v.vendorsName, rd.productCode, rd.warrantyEndDate');
+        $this->db->select('id.stockDetailId, v.vendorsName, sd.productCode, rd.warrantyEndDate');
         $this->db->from(TBL_ISSUES.' as i ');
-        $this->db->join(TBL_RECEIVES_DETAIL . ' as rd ', 'rd.issueId=i.issueId and rd.damageId=0');
+        $this->db->join(TBL_ISSUE_DETAIL . ' as id ', 'id.issueId=i.issueId');
+        $this->db->join(TBL_STOCK_DETAIL.' as sd ', 'sd.stockDetailId=id.stockDetailId');
+        $this->db->join(TBL_RECEIVES_DETAIL.' as rd ', 'sd.receiveDetailId=rd.receiveDetailId');
         $this->db->join(TBL_RECEIVES . ' as r ', 'rd.receiveId=r.receiveId');
         $this->db->join(TBL_QUOTATIONS . ' as q ', 'r.quotationId=q.quotationId');
         $this->db->join(TBL_VENDORS . ' as v ', 'q.vendorsId=v.vendorsId');
@@ -152,9 +181,29 @@ class Issue_List extends MX_Controller{
         if (!$db->num_rows()) return array();
         $array = array();
         foreach ($db->result() as $row):
-            $array[] = array('issuedId' => $row->receiveDetailId, 'vendor' => $row->vendorsName, 'productCode' => $row->productCode, 'warranty' => $row->warrantyEndDate);
+            $array[] = array('issuedId' => $row->stockDetailId, 'vendor' => $row->vendorsName, 'productCode' => $row->productCode, 'warranty' => $row->warrantyEndDate);
         endforeach;
         return $array;
     }
+    function get_issued_uncountable_items($issueId){
+        if (!$issueId) return array();
+        $this->db->select('id.stockDetailId, id.issueQuantity, v.vendorsName, sd.productCode, rd.warrantyEndDate');
+        $this->db->from(TBL_ISSUES.' as i ');
+        $this->db->join(TBL_ISSUE_UNCOUNTABLE_DETAIL . ' as id ', 'id.issueId=i.issueId');
+        $this->db->join(TBL_STOCK_DETAIL.' as sd ', 'sd.stockDetailId=id.stockDetailId');
+        $this->db->join(TBL_RECEIVES_DETAIL.' as rd ', 'sd.receiveDetailId=rd.receiveDetailId');
+        $this->db->join(TBL_RECEIVES . ' as r ', 'rd.receiveId=r.receiveId');
+        $this->db->join(TBL_QUOTATIONS . ' as q ', 'r.quotationId=q.quotationId');
+        $this->db->join(TBL_VENDORS . ' as v ', 'q.vendorsId=v.vendorsId');
+        $this->db->where('i.issueId', $issueId);
+        $db = $this->db->get();
+        if (!$db->num_rows()) return array();
+        $array = array();
+        foreach ($db->result() as $row):
+            $array[] = array('issuedId' => $row->stockDetailId, 'vendor' => $row->vendorsName, 'productCode' => $row->productCode, 'warranty' => $row->warrantyEndDate, 'issueQty'=>$row->issueQuantity);
+        endforeach;
+        return $array;
+    }
+
 }
 ?>
