@@ -42,7 +42,7 @@
 <h6><?php echo "Item: " ?><i style="color: #005580;"><?php echo $stockInfo['item']; ?></i></h6>
 <h6><?php echo "Category: " ?><i style="color: #005580;"><?php echo $stockInfo['category']; ?></i></h6>
 <h6><?php echo "Stock Quantity: " ?><i style="color: #005580;"><?php echo $stockInfo['qty']; ?></i></h6>
-<?php echo $output; var_dump($isCountable);?>
+<?php echo $output;?>
 
 <script language="JavaScript">
     $(document).ready(function(e){
@@ -50,7 +50,8 @@
 
         $("#collapseIT-Inventory").removeClass("in").addClass("in");
         $("#field-damageQuantity").prop("readonly",true);
-        $("#items_input_box ul").append('<input type="hidden" name="preIssueQty" value="'+$("#field-issueQuantity").val()+'"/>');
+        $("#items_input_box ul").append('<input type="hidden" name="preDamageQty" value="'+$("#field-damageQuantity").val()+'"/>');
+
         if(isCountable){
             $("#items_input_box input[type='checkbox']").change(function(){
                 var damageQty= $("#items_input_box input[type='checkbox']:checked").length;
@@ -71,7 +72,14 @@
                 $("#items_input_box input[type='number']").each(function(){
                     total += parseInt($(this).val()? $(this).val():0);
                 });
-                $("#field-issueQuantity").val(total);
+                $("#field-damageQuantity").val(total);
+            });
+
+            $("#items_input_box input[type='number']").focus( function() {
+                if ( $(this).val()=="0") {$(this).val('');}
+            });
+            $("#items_input_box input[type='number']").blur( function() {
+                if ( $(this).val()=="") {$(this).val('0');}
             });
 
             $("#items_input_box input[type='checkbox']").change(function(){

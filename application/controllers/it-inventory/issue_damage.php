@@ -6,12 +6,12 @@
  * Time: 7:34 PM
  */
 ?>
-
 <?php if ( ! defined('BASEPATH')) exit('No direct script access allowed');
 
 class Issue_Damage extends MX_Controller {
     var $issueId=0;
     var $stockId=0;
+    var $isCountable= true;
     function __construct(){
         parent::__construct();
 
@@ -21,6 +21,8 @@ class Issue_Damage extends MX_Controller {
         $this->load->helper('date');
 
         /* ------------------ */
+        $this->load->model('issue_damage_model', 'damageModel');
+        $this->load->model('it_inventory_model', 'itModel');
         $this->load->library("my_session");
         $this->my_session->checkSession();
 
@@ -36,6 +38,7 @@ class Issue_Damage extends MX_Controller {
         }
         $this->issueId= $issueId;
         $this->stockId= $this->get_stock_id_by_issue_id($issueId);
+        $this->isCountable=$this->itModel->isCountableStock($this->stockId);
         try{
             $this->load->library('grocery_CRUD');
             $crud = new grocery_CRUD($this);
@@ -95,12 +98,11 @@ class Issue_Damage extends MX_Controller {
 
             if($this->is_issue_empty($issueId))$crud->unset_add();
 
-            //$crud->add_action('Repair', "", IT_MODULE_FOLDER.'repair/index', 'ui-icon-wrench');
-
             $output = $crud->render();
 
             $output->state = $crud->getState();
-            $output->stockInfo= $this->get_stock_info($this->stockId);
+            $output->stockInfo= $this->get_stock_info($this->issueId);
+            $output->isCountable=$this->isCountable;
             $output->css = "";
             $output->js = "";
             $output->pageTitle = "Damaged Products From Issue";
@@ -118,32 +120,7 @@ class Issue_Damage extends MX_Controller {
     /***  callback functions  ***/
     /*****************************/
     function callback_add_field_items($row, $key){
-        $items= $this->get_issued_items($this->issueId);
-        $html='';
-
-        $html .= '<ul>';
-
-        $html .= '<li>';
-        $html .= '<ul class="items-table-header">';
-        $html .= '<li>&nbsp;</li><li>Product Code</li><li>Warranty</li><li>Vendor</li>';
-        $html .= '</ul>';
-        $html .= '</li>';
-
-        foreach($items as $item):
-            if($item['damageId']>0) continue;
-            $html .= '<li>';
-            $html .= '<ul>';
-            $html .= '<li><input type="checkbox" name="selectedItems[]" value="'.$item['receiveDetailId'].'"/></li>';
-            $html .= '<li>'.$item['productCode'].'</li>';
-            $html .= '<li>'.$item['warranty'].'</li>';
-            $html .= '<li>'.$item['vendor'].'</li>';
-            $html .= '</ul>';
-            $html .= '</li>';
-        endforeach;
-
-        $html .= '</ul>';
-
-        return $html;
+        return $this->damageModel->html_for_countable_add_field($this->issueId);
     }
     function callback_edit_field_items($row, $key){
         $items= $this->get_issued_items($this->issueId, $key);
@@ -203,9 +180,15 @@ class Issue_Damage extends MX_Controller {
     }
     function callback_after_insert_damage($post, $key){
         $damagedItems= $post['selectedItems'];
-        foreach($damagedItems as $id):
-            $this->db->update(TBL_RECEIVES_DETAIL, array('damageId'=>$key), array('receiveDetailId'=>$id));
+
+        foreach($damagedItems as $index=>$id):
+            $qty= $this->isCountable? 1: 0;
+            $this->db->insert(
+                TBL_DAMAGE_DETAIL,
+                array('damageId'=>$key, 'stockDetailId'=>$id, 'damageQuantity'=>$qty, 'issueId'=>$this->issueId)
+            );
         endforeach;
+
         $this->db->where('stockId', $this->stockId);
         $this->db->set('issueQuantity', 'issueQuantity - '.$post['damageQuantity'], FALSE);
         $this->db->set('damageQuantityFromIssue', 'damageQuantityFromIssue + '.$post['damageQuantity'], FALSE);
@@ -277,42 +260,28 @@ class Issue_Damage extends MX_Controller {
         if(!$db->num_rows())return 0;
         return $db->result()[0]->stockId;
     }
-    function get_stock_info($stockId){
-        if(!$stockId) return array();
-        $this->db->select('s.stockNumber, s.issueQuantity, i.itemName, c.categoryName');
-        $this->db->from(TBL_STOCK.' as s ');
-        $this->db->join(TBL_ITEMS_MASTER.' as i ', 'i.itemMasterId=s.itemMasterId');
-        $this->db->join(TBL_CATEGORIES.' as c ', 'c.categoryId=i.categoryId');
-        $this->db->where('stockId', $stockId);
+    function get_stock_info($issueId){
+        if(!$issueId) return array();
+        $this->db->select('s.stockNumber, i.issueQuantity, im.itemName, c.categoryName, u.unitName');
+        $this->db->from(TBL_ISSUES.' as i ');
+        $this->db->join(TBL_STOCK.' as s ', 's.stockId=i.stockId');
+        $this->db->join(TBL_ITEMS_MASTER.' as im ', 'im.itemMasterId=s.itemMasterId');
+        $this->db->join(TBL_CATEGORIES.' as c ', 'c.categoryId=im.categoryId');
+        $this->db->join(TBL_UNITS.' as u ', 'u.unitId=im.unitId');
+        $this->db->where('i.issueId', $issueId);
         $db=$this->db->get();
         if(!$db->num_rows()) return array();
         $array= array(
-            'stockNumber' => $db->result()[0]->stockNumber,
-            'qty'=> $db->result()[0]->issueQuantity,
-            'item' => $db->result()[0]->itemName,
-            'category'=>$db->result()[0]->categoryName
+            'stockNumber'   => $db->result()[0]->stockNumber,
+            'qty'           => $db->result()[0]->issueQuantity,
+            'item'          => $db->result()[0]->itemName,
+            'category'      => $db->result()[0]->categoryName,
+            'unit'          => $db->result()[0]->unitName
         );
 
         return $array;
     }
-    function get_issued_items($issueId, $damageId=0){
-        if(!$issueId) return array();
-        $this->db->select('rd.receiveDetailId, rd.productCode, rd.warrantyEndDate, rd.damageId, v.vendorsName');
-        $this->db->from(TBL_ISSUES.' as i ');
-        if(!$damageId)$this->db->join(TBL_RECEIVES_DETAIL.' as rd ', 'rd.issueId=i.issueId and rd.damageId=0');
-        else $this->db->join(TBL_RECEIVES_DETAIL.' as rd ', 'rd.issueId=i.issueId and (damageId=0 or damageId='.$damageId.')');
-        $this->db->join(TBL_RECEIVES.' as r ', 'r.receiveId=rd.receiveId');
-        $this->db->join(TBL_QUOTATIONS.' as q ', 'q.quotationId=r.quotationId');
-        $this->db->join(TBL_VENDORS.' as v ', 'v.vendorsId=q.vendorsId');
-        $this->db->where('i.issueId', $issueId);
-        $db= $this->db->get();
-        if(!$db->num_rows())return array();
-        $array= array();
-        foreach($db->result() as $row):
-            $array[]= array('receiveDetailId'=>$row->receiveDetailId ,'vendor'=>$row->vendorsName, 'productCode'=>$row->productCode, 'warranty'=>$row->warrantyEndDate, 'damageId'=> $row->damageId);
-        endforeach;
-        return $array;
-    }
+
     function get_issue_quantity($issueId){
         if(!$issueId)return array();
         $this->db->select('issueQuantity');

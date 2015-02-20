@@ -47,6 +47,7 @@ Class Issue_model extends CI_Model {
         $this->db->join(TBL_VENDORS.' as v ', 'q.vendorsId=v.vendorsId');
         $this->db->where('s.stockId', $stockId);
         if(!$issueId)$this->db->where('sd.stockDetailId NOT IN (select stockDetailId from '.TBL_ISSUE_DETAIL.')',NULL,FALSE);
+        $this->db->where('sd.stockDetailId NOT IN (SELECT stockDetailId FROM '.TBL_DAMAGE_DETAIL.')', NULL, FALSE);
         $db= $this->db->get();
         if(!$db->num_rows())return array();
         $array= array();
@@ -95,6 +96,22 @@ Class Issue_model extends CI_Model {
         foreach($db->result() as $row):
             $array[$row->stockDetailId ]= $row->issueQty;
         endforeach;
+        return $array;
+    }
+    public function get_damage_from_stock_qty($stockId){
+        if(!$stockId)return array();
+        $this->db->select('sd.stockDetailId, sum(dd.damageQuantity) as qty');
+        $this->db->from(TBL_STOCK.' as s ');
+        $this->db->join(TBL_STOCK_DETAIL.' as sd ', 'sd.stockId=s.stockId');
+        $this->db->join(TBL_DAMAGE_DETAIL.' as dd ', 'dd.stockDetailId=sd.stockDetailId and issueId=0');
+        $this->db->where('s.stockId', $stockId);
+        $this->db->group_by('dd.stockDetailId');
+        $db=$this->db->get();
+        if(!$db->num_rows())return array();
+        $array= array();
+        foreach($db->result() as $row){
+            $array[$row->stockDetailId]=$row->qty;
+        }
         return $array;
     }
 }

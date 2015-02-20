@@ -143,7 +143,7 @@ class Issue_Uncountable extends MX_Controller {
         if($key)$issuedQty=$this->issueModel->get_issued_uncountable_stock($this->stockId, $key);
         else $issuedQty=array();
         $items=$this->issueModel->get_uncountable_stock_items($this->stockId);
-
+        $damageQty= $this->issueModel->get_damage_from_stock_qty($this->stockId);
         $html = '';
 
         $html .= '<ul>';
@@ -155,13 +155,15 @@ class Issue_Uncountable extends MX_Controller {
 
         foreach($items as $item){
             $qty= isset($issuedQty[$item['issuedId']])?$issuedQty[$item['issuedId']]:0;
+            $remQty= isset($damageQty[$item['issuedId']])?($item['remQty']-$damageQty[$item['issuedId']]):$qty;
+            if(!$remQty && !$qty)continue;
             $checked= $qty? 'checked= checked': '';
             $html .= '<li>';
             $html .= '<ul>';
             $html .= '<li><input type="checkbox" '.$checked.' id="items-'.$item['issuedId'].'" name="selectedItems[]" value="'.$item['issuedId'].'"/></li>';
             $html .= '<li>'.$item['productCode'].'</li>';
-            $html .= '<li id="remQty-'.$item['issuedId'].'">'.$item['remQty'].'</li>';
-            $html .= '<li><input type="number" id="qty-'.$item['issuedId'].'" name="qty[]" min="0" max="'.($item['remQty']+$qty).'" value="'.$qty.'"/></li>';
+            $html .= '<li id="remQty-'.$item['issuedId'].'">'.$remQty.'</li>';
+            $html .= '<li><input type="number" id="qty-'.$item['issuedId'].'" name="qty[]" min="0" max="'.($remQty+$qty).'" value="'.$qty.'"/></li>';
             $html .= '<li>'.$item['warranty'] .'</li>';
             $html .= '<li>'.$item['vendor'] .'</li>';
             $html .= '<input type="hidden" name="issuedIds[]" value="'.$item['issuedId'].'"/>';

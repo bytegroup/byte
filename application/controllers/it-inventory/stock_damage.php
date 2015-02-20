@@ -20,7 +20,7 @@ class Stock_Damage extends MX_Controller {
         $this->load->helper('date');
 
         /* ------------------ */
-        $this->load->model('stock_model', 'stockModel');
+        $this->load->model('stock_damage_model', 'damageModel');
         $this->load->model("it_inventory_model", 'itModel');
         $this->load->library("my_session");
         $this->my_session->checkSession();
@@ -118,20 +118,22 @@ class Stock_Damage extends MX_Controller {
     /***  callback functions  ***/
     /*****************************/
     function callback_add_field_items($row, $key){
-        if($this->isCountable) return $this->stockModel->html_for_countable_add_field($this->stockId);
-        else return $this->stockModel->html_for_uncountable_add_field($this->stockId);
+        if($this->isCountable) return $this->damageModel->html_for_countable_add_field($this->stockId);
+        else return $this->damageModel->html_for_uncountable_add_field($this->stockId);
     }
     function callback_edit_field_items($row, $key){
-        return $this->stockModel->html_for_countable_edit_field($this->stockId, $key);
+        if($this->isCountable) return $this->damageModel->html_for_countable_edit_field($this->stockId, $key);
+        else return $this->damageModel->html_for_uncountable_edit_field($this->stockId, $key);
     }
     function callback_read_field_items($row, $key){
-        return $this->stockModel->html_for_countable_read_field($this->stockId, $key);
+        if($this->isCountable)return $this->damageModel->html_for_countable_read_field($this->stockId, $key);
+        else return $this->damageModel->html_for_uncountable_read_field($this->stockId, $key);
     }
     function callback_after_insert_damage($post, $key){
         $damagedItems= $post['selectedItems'];
 
-        foreach($damagedItems as $id):
-            $qty= $this->isCountable? 1: 0;
+        foreach($damagedItems as $index=>$id):
+            $qty= $this->isCountable? 1: $post['qty'][$index];
             $this->db->insert(
                 TBL_DAMAGE_DETAIL,
                 array('damageId'=>$key, 'stockDetailId'=>$id, 'damageQuantity'=>$qty)
@@ -145,12 +147,10 @@ class Stock_Damage extends MX_Controller {
     }
     function callback_after_update_damage($post, $key){
         $damageItems= $post['selectedItems'];
-
+        $preDamageQty= $post['preDamageQty']? $post['preDamageQty']:0;
         $this->db->delete(TBL_DAMAGE_DETAIL, array('damageId'=>$key));
-        $preDamageQty= $this->db->affected_rows();
-
-        foreach($damageItems as $id):
-            $qty= $this->isCountable? 1: 0;
+        foreach($damageItems as $index=>$id):
+            $qty= $this->isCountable? 1: $post['qty'][$index];
             $this->db->insert(
                 TBL_DAMAGE_DETAIL,
                 array('damageId'=>$key, 'stockDetailId'=>$id, 'damageQuantity'=>$qty)
