@@ -120,69 +120,23 @@ class Issue_Damage extends MX_Controller {
     /***  callback functions  ***/
     /*****************************/
     function callback_add_field_items($row, $key){
-        return $this->damageModel->html_for_countable_add_field($this->issueId);
+        if($this->isCountable)return $this->damageModel->html_for_countable_add_field($this->issueId);
+        else return $this->damageModel->html_for_uncountable_add_field($this->issueId);
     }
     function callback_edit_field_items($row, $key){
-        $items= $this->get_issued_items($this->issueId, $key);
-        $html='';
+        if($this->isCountable)return $this->damageModel->html_for_countable_edit_field($this->issueId, $key);
+        else return $this->damageModel->html_for_uncountable_edit_field($this->issueId, $key);
 
-        $html .= '<ul>';
-
-        $html .= '<li>';
-        $html .= '<ul class="items-table-header">';
-        $html .= '<li>&nbsp;</li><li>Product Code</li><li>Warranty</li><li>Vendor</li>';
-        $html .= '</ul>';
-        $html .= '</li>';
-
-        foreach($items as $item):
-            $checked= $item['damageId']>0? 'checked':'';
-            $html .= '<li>';
-            $html .= '<ul>';
-            $html .= '<li><input type="checkbox" name="selectedItems[]" '.$checked.' value="'.$item['receiveDetailId'].'"/></li>';
-            $html .= '<li>'.$item['productCode'].'</li>';
-            $html .= '<li>'.$item['warranty'].'</li>';
-            $html .= '<li>'.$item['vendor'].'</li>';
-            $html .= '</ul>';
-            $html .= '</li>';
-        endforeach;
-
-        $html .= '</ul>';
-
-        return $html;
     }
     function callback_read_field_items($row, $key){
-        $items= $this->get_issued_items($this->issueId, $key);
-        $html='';
-
-        $html .= '<ul>';
-
-        $html .= '<li>';
-        $html .= '<ul class="items-table-header">';
-        $html .= '<li>&nbsp;</li><li>Product Code</li><li>Warranty</li><li>Vendor</li>';
-        $html .= '</ul>';
-        $html .= '</li>';
-
-        foreach($items as $item):
-            if(!$item['damageId']) continue;
-            $html .= '<li>';
-            $html .= '<ul>';
-            $html .= '<li>&nbsp;</li>';
-            $html .= '<li>'.$item['productCode'].'</li>';
-            $html .= '<li>'.$item['warranty'].'</li>';
-            $html .= '<li>'.$item['vendor'].'</li>';
-            $html .= '</ul>';
-            $html .= '</li>';
-        endforeach;
-
-        $html .= '</ul>';
-
-        return $html;
+        if($this->isCountable)return $this->damageModel->html_for_countable_read_field($this->issueId, $key);
+        else return $this->damageModel->html_for_uncountable_read_field($this->issueId, $key);
     }
     function callback_after_insert_damage($post, $key){
         $damagedItems= $post['selectedItems'];
 
         foreach($damagedItems as $index=>$id):
-            $qty= $this->isCountable? 1: 0;
+            $qty= $this->isCountable? 1: $post['qty'][$index];
             $this->db->insert(
                 TBL_DAMAGE_DETAIL,
                 array('damageId'=>$key, 'stockDetailId'=>$id, 'damageQuantity'=>$qty, 'issueId'=>$this->issueId)
@@ -200,14 +154,18 @@ class Issue_Damage extends MX_Controller {
     }
     function callback_after_update_damage($post, $key){
         $damageItems= $post['selectedItems'];
+        $preDamageQty= $post['preDamageQty']? $post['preDamageQty']:0;
 
-        $this->db->update(TBL_RECEIVES_DETAIL, array('damageId'=>0), array('damageId'=>$key));
-        $preDamageQty= $this->db->affected_rows();
-        $currentDamageQty= $post['damageQuantity'];
-
-        foreach($damageItems as $id):
-            $this->db->update(TBL_RECEIVES_DETAIL, array('damageId'=>$key), array('receiveDetailId'=>$id));
+        $this->db->delete(TBL_DAMAGE_DETAIL, array('damageId'=>$key));
+        foreach($damageItems as $index=>$id):
+            $qty= $this->isCountable? 1: $post['qty'][$index];
+            $this->db->insert(
+                TBL_DAMAGE_DETAIL,
+                array('damageId'=>$key, 'stockDetailId'=>$id, 'damageQuantity'=>$qty)
+            );
         endforeach;
+
+        $currentDamageQty= $post['damageQuantity'];
 
         $qtyDeff=abs($preDamageQty-$currentDamageQty);
         if($preDamageQty > $currentDamageQty){
@@ -216,7 +174,7 @@ class Issue_Damage extends MX_Controller {
             $this->db->set('damageQuantityFromIssue', 'damageQuantityFromIssue - '.$qtyDeff, FALSE);
             $this->db->update(TBL_STOCK);
 
-            $this->db->where('stockId', $this->issueId);
+            $this->db->where('issueId', $this->issueId);
             $this->db->set('issueQuantity', 'issueQuantity + '.$qtyDeff, FALSE);
             $this->db->update(TBL_ISSUES);
         }

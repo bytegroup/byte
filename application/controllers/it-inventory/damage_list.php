@@ -46,7 +46,7 @@ class Damage_List extends MX_Controller {
             $crud->field_type('editorId', 'hidden');
             $crud->field_type('editDate', 'hidden');
 
-            $crud->columns('stockId', 'damageFrom', 'damageType','damageQuantity','damageDate');
+            $crud->columns('stockId', 'damageFrom', 'damageType','damageQuantity');
             $crud->callback_column('damageFrom', array($this, 'callback_column_damageFrom'));
             $crud->display_as('stockId','Stock No.')
                 ->display_as('damageFrom', 'Damage From')

@@ -114,6 +114,21 @@ Class Issue_model extends CI_Model {
         }
         return $array;
     }
+    public function get_uncountable_damage_qty($issueId){
+        if(!$issueId)return array();
+        $this->db->select('dd.stockDetailId, sum(dd.damageQuantity) as qty');
+        $this->db->from(TBL_DAMAGE.' as d ');
+        $this->db->join(TBL_DAMAGE_DETAIL.' as dd ', 'dd.damageId=d.damageId');
+        $this->db->where('d.issueId', $issueId);
+        $this->db->group_by('dd.stockDetailId');
+        $db=$this->db->get();
+        if(!$db->num_rows())return array();
+        $array= array();
+        foreach($db->result() as $row){
+            $array[$row->stockDetailId]=$row->qty;
+        }
+        return $array;
+    }
 }
 
 ?>

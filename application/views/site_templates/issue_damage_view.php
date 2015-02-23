@@ -55,12 +55,48 @@
 
 <script language="JavaScript">
     $(document).ready(function(e){
+        var isCountable=<?php if($isCountable){ ?>true;<?php } else{ ?> false;<?php } ?>
+
         $("#collapseIT-Inventory").removeClass("in").addClass("in");
         $("#field-damageQuantity").prop("readonly",true);
-        $("#items_input_box input[type='checkbox']").change(function(){
-            var damageQty= $("#items_input_box input[type='checkbox']:checked").length;
-            if(damageQty==0)$('#field-damageQuantity').val('');
-            else $('#field-damageQuantity').val(damageQty);
-        });
+        $("#items_input_box ul").append('<input type="hidden" name="preDamageQty" value="'+parseInt($("#field-damageQuantity").val())+'"/>');
+
+        if(isCountable){
+            $("#items_input_box input[type='checkbox']").change(function(){
+                var damageQty= $("#items_input_box input[type='checkbox']:checked").length;
+                if(damageQty==0)$('#field-damageQuantity').val('');
+                else $('#field-damageQuantity').val(damageQty);
+            });
+        }else{
+            $("#items_input_box input[type='number']").on('input', function(){
+                var max= parseInt($(this).attr('max'));
+                if(!$.isNumeric($(this).val()))$(this).val(0);
+                var currentId= $(this).attr('id').split('-')[1];
+                var remQty= parseInt($('#items_input_box li#remQty-'+currentId).text());
+                var issueQty= parseInt($(this).val());
+                if(max<issueQty){$(this).val(0); issueQty=0;}
+                if(issueQty>0)$('#items-'+currentId).prop('checked', true);
+                else $('#items-'+currentId).prop('checked', false);
+                var total=0;
+                $("#items_input_box input[type='number']").each(function(){
+                    total += parseInt($(this).val()? $(this).val():0);
+                });
+                $("#field-damageQuantity").val(total);
+            });
+
+            $("#items_input_box input[type='number']").focus( function() {
+                if ( $(this).val()=="0") {$(this).val('');}
+            });
+            $("#items_input_box input[type='number']").blur( function() {
+                if ( $(this).val()=="") {$(this).val('0');}
+            });
+
+            $("#items_input_box input[type='checkbox']").change(function(){
+                if(!$(this).is('checked')){
+                    var currentId= $(this).attr('id').split('-')[1];
+                    $('#items_input_box input#qty-'+currentId).val(0);
+                }
+            });
+        }
     });
 </script>
