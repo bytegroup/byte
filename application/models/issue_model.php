@@ -56,7 +56,7 @@ Class Issue_model extends CI_Model {
         endforeach;
         return $array;
     }
-    public function get_uncountable_stock_items($stockId){
+    public function get_uncountable_stock($stockId){
         if(!$stockId)return array();
         $this->db->select('sd.stockDetailId, v.vendorsName, sd.productCode, rd.warrantyEndDate, rd.receiveQuantity');
         $this->db->from(TBL_STOCK.' as s ');
@@ -68,42 +68,51 @@ Class Issue_model extends CI_Model {
         $this->db->where('s.stockId', $stockId);
         $db= $this->db->get();
         if(!$db->num_rows())return array();
-        $totalIssued= $this->get_issued_uncountable_stock($stockId);
         $array= array();
         foreach($db->result() as $row):
-            if(isset($totalIssued[$row->stockDetailId])){
-                if($totalIssued[$row->stockDetailId]==$row->receiveQuantity)continue;
-                else $array[]= array('issuedId'=>$row->stockDetailId, 'vendor'=>$row->vendorsName, 'productCode'=>$row->productCode, 'warranty'=>$row->warrantyEndDate, 'remQty'=>$row->receiveQuantity-$totalIssued[$row->stockDetailId]);
-            }else{
-                $array[]= array('issuedId'=>$row->stockDetailId, 'vendor'=>$row->vendorsName, 'productCode'=>$row->productCode, 'warranty'=>$row->warrantyEndDate, 'remQty'=>$row->receiveQuantity);
-            }
+            $array[]= array('issuedId'=>$row->stockDetailId, 'vendor'=>$row->vendorsName, 'productCode'=>$row->productCode, 'warranty'=>$row->warrantyEndDate, 'recQty'=>$row->receiveQuantity);
         endforeach;
         return $array;
     }
-    public function get_issued_uncountable_stock($stockId, $issueId=0){
+    public function get_uncountable_issued_items_qty($stockId, $issueId=0){
         if(!$stockId)return array();
-        $this->db->select('sd.stockDetailId, sum(id.issueQuantity) as issueQty');
+        $this->db->select('id.stockDetailId, sum(id.issueQuantity) as issueQty');
         $this->db->from(TBL_STOCK.' as s ');
-        $this->db->join(TBL_STOCK_DETAIL.' as sd ', 'sd.stockId=s.stockId');
-        if($issueId)$this->db->join(TBL_ISSUE_UNCOUNTABLE_DETAIL.' as id ', 'id.stockDetailId=sd.stockDetailId and id.issueId='.$issueId);
-        else $this->db->join(TBL_ISSUE_UNCOUNTABLE_DETAIL.' as id ', 'id.stockDetailId=sd.stockDetailId');
+        if($issueId)$this->db->join(TBL_ISSUES.' as i ', 'i.stockId=s.stockId and i.issueId='.$issueId);
+        else $this->db->join(TBL_ISSUES.' as i ', 'i.stockId=s.stockId');
+        $this->db->join(TBL_ISSUE_UNCOUNTABLE_DETAIL.' as id ', 'id.issueId=i.issueId');
         $this->db->where('s.stockId', $stockId);
         $this->db->group_by('id.stockDetailId');
         $db= $this->db->get();
         if(!$db->num_rows())return array();
-
         $array= array();
         foreach($db->result() as $row):
             $array[$row->stockDetailId ]= $row->issueQty;
         endforeach;
         return $array;
     }
-    public function get_damage_from_stock_qty($stockId){
+    public function get_uncountable_stockDamaged_items_qty($stockId){
         if(!$stockId)return array();
-        $this->db->select('sd.stockDetailId, sum(dd.damageQuantity) as qty');
+        $this->db->select('dd.stockDetailId, sum(dd.damageQuantity) as qty');
         $this->db->from(TBL_STOCK.' as s ');
-        $this->db->join(TBL_STOCK_DETAIL.' as sd ', 'sd.stockId=s.stockId');
-        $this->db->join(TBL_DAMAGE_DETAIL.' as dd ', 'dd.stockDetailId=sd.stockDetailId and issueId=0');
+        $this->db->join(TBL_DAMAGE.' as d ', 'd.stockId=s.stockId and d.issueId=0');
+        $this->db->join(TBL_DAMAGE_DETAIL.' as dd ', 'dd.damageId=d.damageId');
+        $this->db->where('s.stockId', $stockId);
+        $this->db->group_by('dd.stockDetailId');
+        $db=$this->db->get();
+        if(!$db->num_rows())return array();
+        $array= array();
+        foreach($db->result() as $row){
+            $array[$row->stockDetailId]=$row->qty;
+        }
+        return $array;
+    }
+    public function get_uncountable_issueDamaged_items_qty($stockId, $issueId){
+        if(!$stockId || !$issueId)return array();
+        $this->db->select('dd.stockDetailId, sum(dd.damageQuantity) as qty');
+        $this->db->from(TBL_STOCK.' as s ');
+        $this->db->join(TBL_DAMAGE.' as d ', 'd.stockId=s.stockId and d.issueId='.$issueId);
+        $this->db->join(TBL_DAMAGE_DETAIL.' as dd ', 'dd.damageId=d.damageId');
         $this->db->where('s.stockId', $stockId);
         $this->db->group_by('dd.stockDetailId');
         $db=$this->db->get();

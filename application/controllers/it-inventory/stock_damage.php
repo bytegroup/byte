@@ -62,13 +62,13 @@ class Stock_Damage extends MX_Controller {
                 ->display_as('damageDetails', 'Details')
                 ->display_as('damageRemarks', 'Remarks');
 
-            $crud->add_fields('stockId', 'damageType', 'damageDate', 'checkedById', 'damageDetails', 'damageRemarks', 'damageQuantity', 'items', 'creatorId', 'createDate');
-            $crud->edit_fields('stockId', 'damageType', 'damageDate', 'checkedById', 'damageDetails', 'damageRemarks', 'damageQuantity', 'items', 'editorId', 'editDate');
+            $crud->add_fields('stockId', 'damageDate', 'checkedById', 'damageDetails', 'damageRemarks', 'damageQuantity', 'items', 'creatorId', 'createDate');
+            $crud->edit_fields('stockId', 'damageDate', 'checkedById', 'damageDetails', 'damageRemarks', 'damageQuantity', 'items', 'editorId', 'editDate');
             $crud->set_read_fields('stockId', 'damageType', 'damageDate', 'checkedById', 'damageDetails', 'damageRemarks', 'damageQuantity', 'items');
             $crud->required_fields('stockId', 'damageType', 'damageDate', 'checkedById', 'damageQuantity');
             $crud->unset_texteditor('damageDetails', 'damageRemarks');
             $crud->field_type('stockId', 'hidden', $stockId);
-            $crud->field_type('damageType', 'enum', array('Repairable-Damage', 'Permanent-Damage'));
+            //$crud->field_type('damageType', 'enum', array('Repairable-Damage', 'Permanent-Damage'));
             $crud->field_type('creatorId', 'hidden', $this->my_session->userId);
             $crud->field_type('createDate', 'hidden', $time);
             $crud->field_type('editorId', 'hidden', $this->my_session->userId);
@@ -131,12 +131,13 @@ class Stock_Damage extends MX_Controller {
     }
     function callback_after_insert_damage($post, $key){
         $damagedItems= $post['selectedItems'];
+        $damageType= $post['damageType'];
 
         foreach($damagedItems as $index=>$id):
             $qty= $this->isCountable? 1: $post['qty'][$index];
             $this->db->insert(
                 TBL_DAMAGE_DETAIL,
-                array('damageId'=>$key, 'stockDetailId'=>$id, 'damageQuantity'=>$qty)
+                array('damageId'=>$key, 'stockDetailId'=>$id, 'damageQuantity'=>$qty, 'damageType'=>$damageType[$index])
             );
         endforeach;
 
@@ -147,13 +148,14 @@ class Stock_Damage extends MX_Controller {
     }
     function callback_after_update_damage($post, $key){
         $damageItems= $post['selectedItems'];
+        $damageType= $post['damageType'];
         $preDamageQty= $post['preDamageQty']? $post['preDamageQty']:0;
         $this->db->delete(TBL_DAMAGE_DETAIL, array('damageId'=>$key));
         foreach($damageItems as $index=>$id):
             $qty= $this->isCountable? 1: $post['qty'][$index];
             $this->db->insert(
                 TBL_DAMAGE_DETAIL,
-                array('damageId'=>$key, 'stockDetailId'=>$id, 'damageQuantity'=>$qty)
+                array('damageId'=>$key, 'stockDetailId'=>$id, 'damageQuantity'=>$qty, 'damageType'=>$damageType[$index])
             );
         endforeach;
 

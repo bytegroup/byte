@@ -30,15 +30,16 @@
     #items_input_box ul{width: 100%;list-style: none; margin: 0;}
     #items_input_box ul li ul.items-table-header{background-color: #a9dba9;}
     #items_input_box ul li ul li:first-child{width: 20px;}
-    #items_input_box ul li ul li:last-child{width: 250px;text-align: left;}
-    #items_input_box ul li ul li:nth-child(2){text-align: left;}
+    #items_input_box ul li ul li:last-child{width: 200px;text-align: left;}
+    #items_input_box ul li ul li:nth-child(2){text-align: left;width: 150px;}
     #items_input_box ul li ul li:nth-child(3){width: 80px;}
     #items_input_box ul li ul li:nth-child(4){width: 80px;}
-    #items_input_box ul li ul li{display: inline-block;padding: 0 4px; width: 150px;text-align: center;}
+    #items_input_box ul li ul li{display: inline-block;padding: 0 4px; width: 90px;text-align: center;}
     #items_input_box ul li li input[type="checkbox"]{margin-bottom: 3px;}
     #items_input_box ul li ul{border-bottom: 1px #9acc9a solid;}
     #items_input_box ul li ul li input[type='number']{width: 70px;margin: 5px 0;}
     <?php } ?>
+    #items_input_box ul li ul select{width: 100px; min-width: 50px;height: 25px; padding: 2px; margin: 2px 0;}
 </style>
 <div class="" style="width: auto; height: auto; border: 0px #999 solid; float: right">
     <div class="form-button-box">
@@ -59,7 +60,7 @@
 
         $("#collapseIT-Inventory").removeClass("in").addClass("in");
         $("#field-damageQuantity").prop("readonly",true);
-        $("#items_input_box ul").append('<input type="hidden" name="preDamageQty" value="'+parseInt($("#field-damageQuantity").val())+'"/>');
+        $("#items_input_box").append('<input type="hidden" name="preDamageQty" value="'+parseInt($("#field-damageQuantity").val())+'"/>');
 
         if(isCountable){
             $("#items_input_box input[type='checkbox']").change(function(){

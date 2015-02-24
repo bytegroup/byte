@@ -141,10 +141,11 @@ class Issue_List extends MX_Controller{
         $html .= '</li>';
         if(count($issuedItems))
             foreach($issuedItems as $items){
+                $damQty=isset($damageQty[$items['issuedId']])?$damageQty[$items['issuedId']]:0;
                 $html .= '<li>';
                 $html .= '<ul>';
                 $html .= '<li>'.$items['productCode'].'</li>';
-                $html .= '<li>'.($items['issueQty']-$damageQty[$items['issuedId']]).'</li>';
+                $html .= '<li>'.($items['issueQty']- $damQty).'</li>';
                 $html .= '<li>'.$items['warranty'].'</li>';
                 $html .= '<li>'.$items['vendor'].'</li>';
                 $html .= '</ul>';

@@ -37,8 +37,8 @@ class Damage_List extends MX_Controller {
             $time= mdate($dateString, $time);
 
             $crud->set_theme(TABLE_THEME);
-            $crud->set_table(TBL_DAMAGE);
-            $crud->set_relation('stockId', TBL_STOCK, '{stockNumber}');
+            $crud->set_table(TBL_DAMAGE_DETAIL);
+            $crud->set_relation('stockDetailId', TBL_STOCK_DETAIL, '{productCode}');
             $crud->set_subject('Damage');
 
             $crud->field_type('creatorId', 'hidden');
@@ -46,16 +46,15 @@ class Damage_List extends MX_Controller {
             $crud->field_type('editorId', 'hidden');
             $crud->field_type('editDate', 'hidden');
 
-            $crud->columns('stockId', 'damageFrom', 'damageType','damageQuantity');
-            $crud->callback_column('damageFrom', array($this, 'callback_column_damageFrom'));
-            $crud->display_as('stockId','Stock No.')
-                ->display_as('damageFrom', 'Damage From')
+            $crud->columns('stockNumber', 'stockDetailId', 'itemName', 'damageType');
+            $crud->callback_column('stockNumber', array($this, 'callback_column_stockNumber'));
+            $crud->callback_column('itemName', array($this, 'callback_column_itemName'));
+            $crud->display_as('stockNumber','Stock No.')
+                ->display_as('stockDetailId', 'Product Code')
                 ->display_as('damageType','Damage Type')
                 ->display_as('damageQuantity','Damage Quantity')
                 ->display_as('damageDate','Damage Date')
-                ->display_as('checkedById', 'Checked By')
-                ->display_as('damageDetails', 'Details')
-                ->display_as('damageRemarks', 'Remarks');
+                ->display_as('itemName', 'Item Name');
 
             $crud->unset_add()->unset_edit()->unset_read();
 
@@ -94,8 +93,11 @@ class Damage_List extends MX_Controller {
     /*****************************/
     /***  callback functions  ***/
     /*****************************/
-    function callback_column_damageFrom($value, $row){
-        return $this->get_damage_from($row->damageId);
+    function callback_column_stockNumber($value, $row){
+        return $this->get_stock_number($row->damageId);
+    }
+    function callback_column_itemName($value, $row){
+        return $this->get_item_name($row->damageId);
     }
     function callback_action_repair($key, $row){
         if($this->is_repairable($key)){
@@ -105,21 +107,32 @@ class Damage_List extends MX_Controller {
     }
 
     /*********************************************************************************************/
-    function get_damage_from($damageId){
+    function get_stock_number($damageId){
         if(!$damageId) return '';
-        $this->db->select('issueId');
-        $this->db->from(TBL_DAMAGE);
-        $this->db->where('damageId', $damageId);
+        $this->db->select('s.stockNumber');
+        $this->db->from(TBL_DAMAGE.' as d ');
+        $this->db->join(TBL_STOCK.' as s ', 's.stockId=d.stockId');
+        $this->db->where('d.damageId', $damageId);
         $db= $this->db->get();
         if(!$db->num_rows()) return '';
-        if(!$db->result()[0]->issueId) return 'Stock';
-        return 'Issue';
+        return $db->result()[0]->stockNumber;
     }
-    function is_repairable($damageId){
-        if(!$damageId) return false;
+    function get_item_name($damageId){
+        if(!$damageId) return '';
+        $this->db->select('i.itemName');
+        $this->db->from(TBL_DAMAGE.' as d ');
+        $this->db->join(TBL_STOCK.' as s ', 's.stockId=d.stockId');
+        $this->db->join(TBL_ITEMS_MASTER.' as i ', 'i.itemMasterId=s.itemMasterId');
+        $this->db->where('d.damageId', $damageId);
+        $db= $this->db->get();
+        if(!$db->num_rows()) return '';
+        return $db->result()[0]->itemName;
+    }
+    function is_repairable($damageDetailId){
+        if(!$damageDetailId) return false;
         $this->db->select('damageType');
-        $this->db->from(TBL_DAMAGE);
-        $this->db->where('damageId', $damageId);
+        $this->db->from(TBL_DAMAGE_DETAIL);
+        $this->db->where('damageDetailId', $damageDetailId);
         $db= $this->db->get();
         if(!$db->num_rows()) return false;
         if($db->result()[0]->damageType==='Repairable-Damage') return true;
