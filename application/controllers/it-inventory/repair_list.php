@@ -38,11 +38,11 @@ class Repair_List extends MX_Controller {
 
             $crud->set_theme(TABLE_THEME);
             $crud->set_table(TBL_REPAIR);
-            $crud->set_relation("repairTypeId", TBL_REPAIR_TYPE, '{repairTypeName}');
+            $crud->set_relation("repairTypeId", TBL_REPAIR_TYPE, '{serviceType}');
             $crud->set_relation("vendorsId", TBL_VENDORS, '{vendorsName}');
             $crud->set_subject('Repair');
 
-            $crud->columns('repairName','repairTypeId','repairDate','vendorsId', 'repairQuantity');
+            $crud->columns('repairTypeId', 'repairDate', 'repairAmount', 'vendorsId');
             $crud->display_as('repairName','Name')
                 ->display_as('repairDate','Date')
                 ->display_as('repairTypeId','Repair Type')
@@ -52,8 +52,6 @@ class Repair_List extends MX_Controller {
 
             $crud->unset_add()->unset_edit();
 
-            $crud->add_fields('repairName', 'repairTypeId', 'vendorsId', 'repairQuantity', 'repairDate', 'repairDetails', 'repairRemarks', 'creatorId', 'createDate');
-            $crud->edit_fields('repairName', 'repairTypeId', 'vendorsId', 'repairQuantity', 'repairDate', 'repairDetails', 'repairRemarks', 'editorId', 'editDate');
             $crud->unset_texteditor('repairDetails', 'repairRemarks');
             $crud->field_type('creatorId', 'hidden', $this->my_session->userId);
             $crud->field_type('createDate', 'hidden', $time);
@@ -72,6 +70,8 @@ class Repair_List extends MX_Controller {
             if(!isset($this->my_session->permissions['canIT-InventoryView'])){
                 $crud->unset_read();
             }
+
+            $crud->unset_add()->unset_edit()->unset_delete();
 
             $crud->add_action('Stock', "", IT_MODULE_FOLDER.'repair/complete_Repair', 'ui-icon-plus');
             $crud->add_action('Damage', "", IT_MODULE_FOLDER.'repair/complete_Repair', 'ui-icon-minus');

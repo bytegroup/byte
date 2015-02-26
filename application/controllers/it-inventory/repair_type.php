@@ -20,7 +20,9 @@ class Repair_Type extends MX_Controller {
    function index(){
         try{
             $this->load->library('grocery_CRUD');
-            $crud = new grocery_CRUD($this);
+            $this->load->library('gc_extension_for_unique_in_period');
+            //$crud = new grocery_CRUD($this);
+            $crud = new GC_extension_for_unique_in_period($this);
             $crud->unset_jquery();
 
             $dateString = "%d-%m-%y :: %h:%i %a";
@@ -38,12 +40,14 @@ class Repair_Type extends MX_Controller {
                 ->display_as('categoryId','Category')
                 ->display_as('serviceStartDate', 'Start Date')
                 ->display_as('serviceEndDate', 'End Date')
-                ->display_as('serviceRate', 'Service Rate');
+                ->display_as('serviceRate', 'Service Rate')
+                ->display_as('serviceWarranty', 'Service Warranty (days)');
 
-            $crud->add_fields('categoryId', 'serviceType', 'serviceTypeDescription', 'serviceRate', 'serviceStartDate', 'serviceEndDate', 'creatorId', 'createDate');
-            $crud->edit_fields('categoryId', 'serviceType', 'serviceTypeDescription', 'serviceRate', 'serviceStartDate', 'serviceEndDate', 'editorId', 'editDate');
-            $crud->set_read_fields('categoryId', 'serviceType', 'serviceTypeDescription', 'serviceRate', 'serviceStartDate', 'serviceEndDate');
+            $crud->add_fields('categoryId', 'serviceType', 'serviceTypeDescription', 'serviceRate', 'serviceWarranty', 'serviceStartDate', 'serviceEndDate', 'creatorId', 'createDate');
+            $crud->edit_fields('categoryId', 'serviceType', 'serviceTypeDescription', 'serviceRate', 'serviceWarranty', 'serviceStartDate', 'serviceEndDate', 'editorId', 'editDate');
+            $crud->set_read_fields('categoryId', 'serviceType', 'serviceTypeDescription', 'serviceRate','serviceWarranty', 'serviceStartDate', 'serviceEndDate');
             $crud->required_fields(array('categoryId', 'serviceType', 'serviceRate', 'serviceStartDate', 'serviceEndDate'));
+            $crud->unique_field_in_period('serviceType/serviceStartDate/serviceEndDate');
             $crud->unset_texteditor('serviceTypeDescription');
             $crud->field_type('creatorId', 'hidden', $this->my_session->userId);
             $crud->field_type('createDate', 'hidden', $time);
@@ -79,7 +83,7 @@ class Repair_Type extends MX_Controller {
     }
 
     /*****************************/
-    /*** call back validations ***/
+    /*** callback functions ***/
     /*****************************/
     
 }

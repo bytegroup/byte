@@ -975,8 +975,24 @@ class CI_Form_validation {
             return false;
         }
     }
-    /********** Custom code end *****************************************************************/
 
+    /**
+     * @param $str
+     * @param $fields
+     * @return bool
+     */
+    public function is_unique_in_period($str, $fields){
+        list($table, $uniqueField, $startDateField, $endDateField) = explode(',', str_replace(' ', '', $fields));
+        $startDate=implode('-', array_reverse(explode('/', $_POST[$startDateField])));
+        $this->CI->db->select("*");
+        $this->CI->db->from($table);
+        $this->CI->db->where($uniqueField." = '".$str."' and ".$endDateField." >= '".$startDate."'");
+        $db = $this->CI->db->get();
+        if(!$db->num_rows()){return true;}
+        $this->set_message('is_unique_in_period', 'The %s field should be unique');
+        return false;
+    }
+    /********** Custom code end *****************************************************************/
 
 	/**
 	 * Minimum Length

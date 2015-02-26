@@ -9,48 +9,46 @@ Class Repair_model extends CI_Model {
     function __construct() {
         parent::__construct();
     }
-    
-    function getRequisition($userid){
-        $this->db->select("U.*, OG.* ",false)
-                 ->from(TBL_USERS." U LEFT JOIN ".TBL_ORGANIZATIONS." OG ON U.organizationId = OG.organizationId ")        ->where("U.userId", $userid);
-        $result = $this->db->get();
-        if($result->num_rows() > 0){
-            return $result;
+
+    public function get_repair_types(){
+        $this->db->select('repairTypeId, serviceType');
+        $this->db->from(TBL_REPAIR_TYPE);
+        $this->db->where("serviceEndDate > '".mdate("%y-%m-%d", time())."'");
+        $db= $this->db->get();
+        if(!$db->num_rows())return array();
+        $array= array();
+        foreach($db->result() as $row){
+            $array[$row->repairTypeId]=$row->serviceType;
         }
-        return false;        
+        return $array;
     }
-   
-    function saveRepair($repairId,$data)
-    {
-        $time = time();
-        if($repairId > 0)
-        {
-            $this->db->where("repairId",$repairId)->update(TBL_REPAIR,$data);
-            return true;
-        }
-        
-        $this->db->insert(TBL_REPAIR,$data);
-        $insertId = $this->db->insert_id();
-        if($insertId > 0)
-        {
-            return (int)$insertId;
-        }
-        return false;
+    public function get_repair_amount($repairTypeId){
+        if (!$repairTypeId) return 0;
+        $this->db->select("serviceRate")
+            ->from(TBL_REPAIR_TYPE)
+            ->where('repairTypeId', $repairTypeId);
+        $db = $this->db->get();
+        if(!$db->num_rows())return 0;
+        return $db->result()[0]->serviceRate;
     }
-    
-    function addRepairDetails($data,$receiveId=''){
-        $this->db->insert(TBL_RECEIVES_DETAIL,$data);
-        if($this->db->affected_rows() >= 0)
-        {
-            $value['success'] = true;
-            return $value;
+    public function get_repair_list($damageDetailId=0){
+        $this->db->select('r.repairId, r.repairAmount, r.repairDate, rt.serviceType, v.vendorsName');
+        $this->db->from(TBL_REPAIR.' as r ');
+        $this->db->join(TBL_REPAIR_TYPE.' as rt ', 'rt.repairTypeId=r.repairTypeId');
+        $this->db->join(TBL_VENDORS.' as v ', 'v.vendorsId=r.vendorsId');
+        if($damageDetailId)$this->db->where('r.damageDetailId', $damageDetailId);
+        $db=$this->db->get(TBL_REPAIR);
+        if(!$db->num_rows())return array();
+        $array= array();
+        foreach($db->result() as $row){
+            $array[$row->repairId]=array(
+                'repairType'    => $row->serviceType,
+                'amount'        => $row->repairAmount,
+                'vendor'        => $row->vendorsName,
+                'date'          => $row->repairDate
+            );
         }
-        $value['success'] = false;
-        return $value;    
-    }
-    function deleteRepair($id){
-        $result = $this->db->delete(TBL_REPAIR, array('repairId' => $id));
-        //$resultDetails = $this->db->delete(TBL_RECEIVES_DETAIL, array('receiveId' => $id));
+        return $array;
     }
 }
 
