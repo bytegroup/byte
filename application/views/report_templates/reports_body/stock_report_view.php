@@ -62,7 +62,7 @@ $rows= $data;
         } );
 
         var table = $('#report-table').DataTable({
-            "scrollX": true
+            //"scrollX": true
         });
         table.columns().eq( 0 ).each( function ( colIdx ) {
             $( 'input', table.column( colIdx ).footer() ).on( 'keyup change', function () {
@@ -86,7 +86,10 @@ $rows= $data;
             '<a id="excelDownload" class="DTTT_button DTTT_button_ExcelDownload">Excel</a>'
         );
         $('div.DTTT_container a#excelDownload').click(function(){
-            tableToExcel('report-table', '<?php echo $pageTitle;?>', '<?php echo $pageTitle;?>.xls');
+            var oTable =  $('#report-table'). dataTable();
+            var oData = oTable.fnGetData();
+            window.location= '<?php echo base_url(REPORT_FOLDER.'stock_report/get_excel2');?>';
+            //console.log(oData);
         });
     });
 
