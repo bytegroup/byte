@@ -31,12 +31,12 @@ $rows= $data;
             <th colspan="2">Damage</th>
         </tr>
         <tr>
-            <?php foreach($headerFields as $header){?><th class="report-header"><?php echo $header;?></th><?php } ?>
+            <?php foreach($headers as $header){?><th class="report-header"><?php echo $header;?></th><?php } ?>
         </tr>
     </thead>
     <tfoot>
         <tr>
-            <?php foreach($headerFields as $header){?><th><?php echo $header;?></th><?php } ?>
+            <?php foreach($headers as $header){?><th><?php echo $header;?></th><?php } ?>
         </tr>
     </tfoot>
 
@@ -88,7 +88,7 @@ $rows= $data;
         $('div.DTTT_container a#excelDownload').click(function(){
             var oTable =  $('#report-table'). dataTable();
             var oData = oTable.fnGetData();
-            window.location= '<?php echo base_url(REPORT_FOLDER.'stock_report/get_excel2');?>';
+            window.location= '<?php echo base_url(REPORT_FOLDER.'stock_report/get_excel');?>';
             //console.log(oData);
         });
     });
