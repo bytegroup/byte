@@ -51,10 +51,12 @@ class Repair extends MX_Controller {
 
             $crud->add_fields('damageDetailId', 'repairTypeId', 'repairAmount', 'vendorsId', 'repairDate', 'repairDetails', 'creatorId', 'createDate');
             $crud->edit_fields('damageDetailId', 'repairTypeId', 'repairAmount', 'vendorsId', 'repairDate', 'repairDetails', 'editorId', 'editDate');
+            //var_dump($this->repairModel->get_repair_types($damageDetailId, 5));
             $crud->unset_texteditor('repairDetails');
             $crud->required_fields('repairTypeId', 'repairAmount', 'vendorsId', 'repairDate');
             $crud->field_type('damageDetailId', 'hidden', $damageDetailId);
-            $crud->field_type('repairTypeId', 'dropdown', $this->repairModel->get_repair_types());
+            if($crud->getState()==='add')$crud->field_type('repairTypeId', 'dropdown', $this->repairModel->get_repair_types($damageDetailId));
+            if($crud->getState()==='edit')$crud->field_type('repairTypeId', 'dropdown', $this->repairModel->get_repair_types($damageDetailId, $crud->getStateInfo()->primary_key));
             $crud->field_type('creatorId', 'hidden', $this->my_session->userId);
             $crud->field_type('createDate', 'hidden', $time);
             $crud->field_type('editorId', 'hidden', $this->my_session->userId);

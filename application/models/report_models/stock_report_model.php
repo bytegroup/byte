@@ -39,5 +39,22 @@ class Stock_Report_Model extends CI_Model {
         endforeach;
         return $array;
     }
+
+    function get_headers(){
+        return array(
+            'SL',
+            'Company Name',
+            'Category',
+            'Item Name',
+            'Item Code',
+            'Item Details',
+            'Mini. Req.',
+            'New',
+            'Repaired',
+            'Issued',
+            'R. Damage',
+            'P. Damage'
+        );
+    }
 }
 ?>

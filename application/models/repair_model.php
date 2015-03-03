@@ -10,12 +10,23 @@ Class Repair_model extends CI_Model {
         parent::__construct();
     }
 
-    public function get_repair_types(){
-        $this->db->select('repairTypeId, serviceType');
-        $this->db->from(TBL_REPAIR_TYPE);
-        $this->db->where("serviceEndDate > '".mdate("%y-%m-%d", time())."'");
+    public function get_repair_types($damageDetailId=0, $repairId=0){
+        if(!$damageDetailId)return array('');
+        $this->db->select('rt.repairTypeId, rt.serviceType');
+        $this->db->from(TBL_REPAIR_TYPE.' as rt ');
+        $this->db->where(
+            'rt.categoryId IN ('
+            .'SELECT i.categoryId FROM '.TBL_DAMAGE_DETAIL.' as dd '
+            .'INNER JOIN '.TBL_STOCK_DETAIL.' as sd ON sd.stockDetailId=dd.stockDetailId '
+            .'INNER JOIN '.TBL_STOCK.' as s ON s.stockId=sd.stockId '
+            .'INNER JOIN '.TBL_ITEMS_MASTER.' as i ON i.itemMasterId=s.itemMasterId '
+            .')'
+        );
+        if(!$repairId)$this->db->where("rt.serviceEndDate >= '".mdate("%y-%m-%d", time())."'");
+        else $this->db->where("rt.serviceEndDate >= (SELECT repairDate FROM ".TBL_REPAIR." where repairId=".$repairId.")");
+
         $db= $this->db->get();
-        if(!$db->num_rows())return array();
+        if(!$db->num_rows())return array('');
         $array= array();
         foreach($db->result() as $row){
             $array[$row->repairTypeId]=$row->serviceType;

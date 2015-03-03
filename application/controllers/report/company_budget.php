@@ -2,20 +2,20 @@
 /**
  * Created by PhpStorm.
  * User: mizanur
- * Date: 2/10/15
- * Time: 4:24 PM
+ * Date: 3/3/15
+ * Time: 2:38 PM
  */
 ?>
 <?php if ( ! defined('BASEPATH')) exit('No direct script access allowed');
 
-class Stock_Report extends MX_Controller {
+class Company_Budget extends MX_Controller {
     function __construct(){
         parent::__construct();
         $this->load->helper('url');
         $this->load->helper('date');
 
         /* ------------------ */
-        $this->load->model(REPORT_MODELS.'stock_report_model', 'model');
+        $this->load->model(REPORT_MODELS.'company_budget_model', 'model');
         $this->load->library("my_session");
         $this->my_session->checkSession();
 
@@ -31,13 +31,12 @@ class Stock_Report extends MX_Controller {
             $time= mdate($dateString, $time);
 
             $output['headers']= $this->model->get_headers();
-            $rows= $this->model->get_data();
-            $output['data']= $rows;
+            $output['data']= $this->model->get_data();
             $output['css'] = "";
             $output['js'] = "";
-            $output['pageTitle'] = "Stock Information";
+            $output['pageTitle'] = "Budget Information of Companies";
             $output['base_url'] = base_url();
-            $output['body_template'] = "stock_report_view.php";
+            $output['body_template'] = "company_budget_view.php";
             $this->load->view(REPORT_LAYOUT, $output);
 
         }catch(Exception $e){
@@ -53,31 +52,24 @@ class Stock_Report extends MX_Controller {
         $this->excel->setActiveSheetIndex(0);
         $sheet= $this->excel->getSheet(0);
 
-        $sheet->setTitle('Stock Report');
+        $endColumn= chr(ord('A') + count($this->model->get_headers())-1);
         $style = array(
-            'font' => array('bold' => true, 'size'=>11),
+            'font' => array('bold' => true),
             'alignment' => array('horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_CENTER)
         );
-        $sheet->getStyle('A1:L4')->applyFromArray($style);
-        $sheet->setCellValue('A1', 'Current Stock Report');
+
+        $sheet->setTitle('Company wise budget report');
+        $sheet->setCellValue('A1', 'Company Wise Budget Report');
         $sheet->getStyle('A1')->getFont()->setSize(16);
-        $sheet->mergeCells('A1:L1');
-        $sheet->getRowDimension('1')->setRowHeight(50);
+        $sheet->getStyle('A1')->applyFromArray($style);
+        $sheet->mergeCells('A1:'.$endColumn.'1');
+        $sheet->getRowDimension('1')->setRowHeight(30);
 
-        $sheet->setCellValue('H2', 'Current Stock');
-        $sheet->mergeCells('H2:L2');
-
-        $sheet->setCellValue('H3', 'Stock');
-        $sheet->mergeCells('H3:I3');
-
-        $sheet->setCellValue('K3', 'Damage');
-        $sheet->mergeCells('K3:L3');
-
-        $this->excel->set_table($sheet, $this->model->get_headers(), $this->model->get_data(), $sheet->getHighestRow());
+        $this->excel->set_table($sheet, $this->model->get_headers(), $this->model->get_data(), 2);
         $this->excel->set_column_width_auto($sheet);
         $this->excel->set_all_borders($sheet);
 
-        $filename='stock_report.xlsx';
+        $filename='Company_Budget.xlsx';
         $this->excel->set_headers($filename);
 
         $objWriter = PHPExcel_IOFactory::createWriter($this->excel, 'Excel2007');
