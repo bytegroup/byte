@@ -53,7 +53,10 @@ $rows= $data;
         } );
 
         var table = $('#report-table').DataTable({
-            //"scrollX": true
+            "scrollX": true,
+            "scrollY": "500px",
+            "scrollCollapse": true
+            //"paging": false
         });
         table.columns().eq( 0 ).each( function ( colIdx ) {
             $( 'input', table.column( colIdx ).footer() ).on( 'keyup change', function () {
@@ -67,7 +70,8 @@ $rows= $data;
             "sSwfPath": "<?php echo $base_url.REPORT_ASSETS;?>TableTools/swf/copy_csv_xls_pdf.swf",
             "aButtons": [
                 "copy",
-                "print"
+                "print",
+                "pdf"
             ]
         });
         $( tt.fnContainer() ).insertBefore('div.dataTables_filter');

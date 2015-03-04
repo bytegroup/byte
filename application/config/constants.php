@@ -116,6 +116,7 @@ define("TBL_BUDGET", DB_PREFIX."budget");
 define("TBL_BUDGET_DETAIL", DB_PREFIX."budget_detail");
 
 define("TBL_BILL", DB_PREFIX."bill");
+define("TBL_SERVICE_AGREEMENTS", DB_PREFIX.'service_agreements');
 
 define("TBL_GUEST_USERS", DB_PREFIX."active_guests");
 define("TBL_ACTIVE_USERS", DB_PREFIX."active_users");
