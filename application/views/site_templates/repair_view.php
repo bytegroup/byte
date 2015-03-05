@@ -56,7 +56,7 @@
         '<a role="button" href="<?php echo base_url(IT_MODULE_FOLDER.'repair/index/'.$damageDetailId).'/add';?>" class="ui-button ui-state-default ui-button-text-icon-primary"> <span class="ui-button-icon-primary ui-icon ui-icon-circle-plus"></span> <span class="ui-button-text">Add New Repair</span> </a>' +
         '</li>' +
         '<li>' +
-        '<a role="button" href="#" class="ui-button ui-state-default ui-button-text-icon-primary"> <span class="ui-button-icon-primary ui-icon ui-icon-calculator"></span> <span class="ui-button-text">Repair Bill</span> </a>' +
+        '<a role="button" id="repair-bill" href="#" class="ui-button ui-state-default ui-button-text-icon-primary"> <span class="ui-button-icon-primary ui-icon ui-icon-calculator"></span> <span class="ui-button-text">Repair Bill</span> </a>' +
         '</li>' +
         '<li>' +
         '<a role="button" href="#" class="ui-button ui-state-default ui-button-text-icon-primary"> <span class="ui-button-icon-primary ui-icon ui-icon-circle-plus"></span> <span class="ui-button-text">Add to Stock</span> </a>' +
@@ -64,6 +64,28 @@
         '</ul>' +
         '</div>' +
         '');
+
+        $('form#crudForm a#repair-bill').click(function(){
+            var ids= '';
+            $('div.repair-list input[type="checkbox"]').each(function(){
+                if($(this).is(':checked') && !$(this).is(':disabled')) ids += $(this).val() + ';';
+            });
+            /*var form = document.createElement("form");
+            $(form).attr("action", "<?php //echo base_url(IT_MODULE_FOLDER.'repair_bill/index/add');?>").attr("method", "post");
+            $(form).html('<input type="hidden" name="repairIds" value="' + ids.slice(0,-1)+ '" />');
+            document.body.appendChild(form);
+            $(form).submit();
+            document.body.removeChild(form);*/
+            if(ids==='' || ids===null){
+                alert('Please select at least one repair to add the repair bill.');
+            }else{
+                ids= encodeURIComponent(ids.slice(0,-1));
+                window.location= '<?php echo base_url(IT_MODULE_FOLDER.'repair_bill/index');?>/'+ids+'/add';
+            }
+
+            //window.close();
+            //console.log();
+        });
     });
 
     function repair_amount(repairTypeId){
@@ -111,10 +133,14 @@
             {},
             function(data){
                 $.each(data, function(key, val){
+                    var disabled = (val.billId != 0) ? 'disabled checked':'';
                     $html = '<li>';
                     $html += '<ul>';
-                    $html += '<li>' +
-                    '<a href="<?php echo base_url(IT_MODULE_FOLDER.'repair/index/'.$damageDetailId).'/edit/';?>'+key+'" class="ui-widget ui-state-default" role="button">' +
+                    $html += '<li>';
+                    //if(val.billId == 0 )
+                    $html += '<input type="checkbox" name="repairIds[]" '+disabled+' value="'+key+'"/>&nbsp;&nbsp;';
+                    //else $html += '&nbsp;&nbsp;';
+                    $html += '<a href="<?php echo base_url(IT_MODULE_FOLDER.'repair/index/'.$damageDetailId).'/edit/';?>'+key+'" class="ui-widget ui-state-default" role="button">' +
                     '&nbsp;Edit&nbsp;' +
                     '</a>' +
                     '&nbsp;' +

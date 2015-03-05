@@ -43,7 +43,7 @@ Class Repair_model extends CI_Model {
         return $db->result()[0]->serviceRate;
     }
     public function get_repair_list($damageDetailId=0){
-        $this->db->select('r.repairId, r.repairAmount, r.repairDate, rt.serviceType, v.vendorsName');
+        $this->db->select('r.repairId, r.repairAmount, r.repairDate, r.billId, rt.serviceType, v.vendorsName');
         $this->db->from(TBL_REPAIR.' as r ');
         $this->db->join(TBL_REPAIR_TYPE.' as rt ', 'rt.repairTypeId=r.repairTypeId');
         $this->db->join(TBL_VENDORS.' as v ', 'v.vendorsId=r.vendorsId');
@@ -53,6 +53,7 @@ Class Repair_model extends CI_Model {
         $array= array();
         foreach($db->result() as $row){
             $array[$row->repairId]=array(
+                'billId'        => $row->billId,
                 'repairType'    => $row->serviceType,
                 'amount'        => $row->repairAmount,
                 'vendor'        => $row->vendorsName,

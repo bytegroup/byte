@@ -42,7 +42,8 @@ class Repair_List extends MX_Controller {
             $crud->set_relation("vendorsId", TBL_VENDORS, '{vendorsName}');
             $crud->set_subject('Repair');
 
-            $crud->columns('repairTypeId', 'repairDate', 'repairAmount', 'vendorsId');
+            $crud->columns('check', 'repairTypeId', 'repairDate', 'repairAmount', 'vendorsId');
+            $crud->callback_column('check', array($this, 'callback_column_check'));
             $crud->display_as('repairName','Name')
                 ->display_as('repairDate','Date')
                 ->display_as('repairTypeId','Repair Type')
@@ -90,5 +91,13 @@ class Repair_List extends MX_Controller {
         }catch(Exception $e){
             show_error($e->getMessage().' --- '.$e->getTraceAsString());
         }
+    }
+
+    function callback_column_check($value, $row){
+        $check= $row->billId ? 'checked disabled':'';
+        $html ='';
+        $html .= '<input type="checkbox" name="repairIds[]" '.$check.' value="'.$row->repairId.'"/>';
+
+        return $html;
     }
 }
