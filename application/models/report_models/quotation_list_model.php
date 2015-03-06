@@ -15,7 +15,7 @@ class Quotation_List_Model extends CI_Model {
     function get_data(){
         $this->db->select('c.companyName, q.quotationNumber, q.quotationDate, q.quotationDescription, v.vendorsName, r.requisitionNumber, r.requisitionTitle, r.requisitionCreateDate, r.departmentId, r.userId, d.departmentName, reqFor.firstName rFirstName, reqFor.middleName rMiddleName, reqFor.lastName rLastName, creator.firstName cFirstName, creator.middleName cMiddleName, creator.lastName cLastName, editor.firstName eFirstName, editor.middleName eMiddleName, editor.lastName eLastName, q.createDate, q.editDate');
         $this->db->from(TBL_QUOTATIONS.' as q ');
-        $this->db->from(TBL_REQUISITIONS.' as r ', 'r.requisitionId=q.requisitionId');
+        $this->db->join(TBL_REQUISITIONS.' as r ', 'r.requisitionId=q.requisitionId');
         $this->db->join(TBL_COMPANIES.' as c ', 'c.companyId=r.companyId');
         $this->db->join(TBL_VENDORS.' as v ', 'v.vendorsId=q.vendorsId');
         $this->db->join(TBL_DEPARTMENTS.' as d ', 'd.departmentId=r.departmentId', 'left');

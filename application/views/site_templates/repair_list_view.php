@@ -19,7 +19,8 @@
 <script language="JavaScript">
     $(document).ready(function(e){
         $("#collapseIT-Inventory").removeClass("in").addClass("in");
-        $("table.dataTable input[name='check']").hide();
+        $("table.dataTable input[name='check']").remove();
+        $("table.dataTable button.refresh-data").remove();
 
         $("div.dataTables_wrapper").prepend('' +
         '<div class="add-repair-bill-buttons">' +

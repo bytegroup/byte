@@ -42,14 +42,18 @@ class Repair_List extends MX_Controller {
             $crud->set_relation("vendorsId", TBL_VENDORS, '{vendorsName}');
             $crud->set_subject('Repair');
 
-            $crud->columns('check', 'repairTypeId', 'repairDate', 'repairAmount', 'vendorsId');
+            $crud->columns('check', 'items', 'repairTypeId', 'repairDate', 'repairAmount', 'vendorsId');
             $crud->callback_column('check', array($this, 'callback_column_check'));
+            $crud->callback_column('items', array($this, 'callback_column_items'));
             $crud->display_as('repairName','Name')
                 ->display_as('repairDate','Date')
                 ->display_as('repairTypeId','Repair Type')
                 ->display_as('vendorsId','Vendor')
                 ->display_as('repairVendorsId','Repair vendor')
-                ->display_as('repairQuantity','Quantity');
+                ->display_as('repairQuantity','Quantity')
+                ->display_as('repairDetails', 'Description');
+
+            $crud->set_read_fields('repairTypeId', 'repairAmount', 'vendorsId', 'repairDate', 'repairDetails');
 
             $crud->unset_add()->unset_edit();
 
@@ -74,8 +78,8 @@ class Repair_List extends MX_Controller {
 
             $crud->unset_add()->unset_edit()->unset_delete();
 
-            $crud->add_action('Stock', "", IT_MODULE_FOLDER.'repair/complete_Repair', 'ui-icon-plus');
-            $crud->add_action('Damage', "", IT_MODULE_FOLDER.'repair/complete_Repair', 'ui-icon-minus');
+            //$crud->add_action('Stock', "", IT_MODULE_FOLDER.'repair/complete_Repair', 'ui-icon-plus');
+            //$crud->add_action('Damage', "", IT_MODULE_FOLDER.'repair/complete_Repair', 'ui-icon-minus');
 
             $output = $crud->render();
 
@@ -99,5 +103,16 @@ class Repair_List extends MX_Controller {
         $html .= '<input type="checkbox" name="repairIds[]" '.$check.' value="'.$row->repairId.'"/>';
 
         return $html;
+    }
+    function callback_column_items($value, $row){
+        $this->db->select('i.itemName');
+        $this->db->from(TBL_DAMAGE_DETAIL.' as dd ');
+        $this->db->join(TBL_DAMAGE.' as d ', 'd.damageId=dd.damageId');
+        $this->db->join(TBL_STOCK.' as s ', 's.stockId=d.stockId');
+        $this->db->join(TBL_ITEMS_MASTER.' as i ', 'i.itemMasterId=s.itemMasterId');
+        $this->db->where('dd.damageDetailId', $row->damageDetailId);
+        $db= $this->db->get();
+        if(!$db->num_rows()) return '';
+        return $db->result()[0]->itemName;
     }
 }

@@ -49,6 +49,24 @@ class Excel extends PHPExcel {
         $objSheet->fromArray($rows, ' ', $startColumn.($startRow+1));
     }
 
+    public function set_meta_data($objSheet, $metadata, $startRow, $startColumn='A', $titleColumnSpan=2, $dataColumnSpan=5){
+
+        $numOfRows= count($metadata);
+        $i = 0;
+        foreach($metadata as $title => $data){
+            $firstColumn = $startColumn;
+            $endColumn= chr(ord($startColumn) + $titleColumnSpan - 1);
+            $objSheet->setCellValue($firstColumn.($startRow+$i), $title);
+            $objSheet->mergeCells($firstColumn.($startRow+$i).':'.$endColumn.($startRow+$i));
+            $objSheet->getStyle($firstColumn.($startRow+$i))->getFont()->setBold(true);
+            $firstColumn=chr(ord($endColumn) + 1);
+            $endColumn= chr(ord($endColumn) + $dataColumnSpan);
+            $objSheet->setCellValue($firstColumn.($startRow+$i), $data);
+            $objSheet->mergeCells($firstColumn.($startRow+$i).':'.$endColumn.($startRow+$i));
+            $i++;
+        }
+    }
+
     /**
      * @param $objSheet
      * @param string $startColumn
