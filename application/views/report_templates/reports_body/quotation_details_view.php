@@ -2,8 +2,8 @@
 /**
  * Created by PhpStorm.
  * User: mizanur
- * Date: 3/3/15
- * Time: 5:55 PM
+ * Date: 3/9/15
+ * Time: 2:29 PM
  */
 ?>
 <style type="text/css">
@@ -11,49 +11,24 @@
     .dataTable th{border-left: 1px #ddddff solid;}
     .dataTable th:last-child{border-right: 1px #ddddff solid;}
     .dataTable td:last-child{border-right: 1px #ddddff solid;}
-    .dataTable thead tr:first-child th{border-top:1px #000 solid;}
+    .dataTable thead tr th{border-top:0px #000 solid; text-align: left;}
     .dataTable tfoot tr th{border-bottom:1px #000 solid;}
     .dataTable tfoot input {  width: 100%;  padding: 3px;  box-sizing: border-box;  }
 </style>
 <h3><?php echo $pageTitle; ?></h3>
-<div style="border: 1px #9acc9a solid; width: 100%; height: auto;">
-    <form class="form-inline" role="form">
-        <div class="form-group">
-            <label class="sr-only" for="name">Name</label>
-            <input type="text" class="form-control" id="name" placeholder="Enter Name">
-        </div>
-        <div class="checkbox">
-            <label>
-                <input type="checkbox"> Check me out
-            </label>
-        </div>
-        <div class="checkbox">
-            <label>
-                <input type="checkbox"> Check me out
-            </label>
-        </div>
-        <div class="checkbox">
-            <label>
-                <input type="checkbox"> Check me out
-            </label>
-        </div>
-        <div class="checkbox">
-            <label>
-                <input type="checkbox"> Check me out
-            </label>
-        </div>
-        <div class="checkbox">
-            <label>
-                <input type="checkbox"> Check me out
-            </label>
-        </div>
-    </form>
-</div>
 <?php
 $rows= $data;
 ?>
 <table id="report-table" class="display" width="100%" cellspacing="0">
     <thead>
+    <?php
+    $numberOfColumns= count($headers);
+    foreach($metadata as $title=>$value){ ?>
+        <tr>
+            <th colspan="2"><?php echo $title;?></th>
+            <td colspan="<?php echo ($numberOfColumns-2);?>"><?php echo $value;?></td>
+        </tr>
+    <?php    } ?>
     <tr>
         <?php foreach($headers as $header){?><th class="report-header"><?php echo $header;?></th><?php } ?>
     </tr>
@@ -86,7 +61,10 @@ $rows= $data;
         } );
 
         var table = $('#report-table').DataTable({
-            //"scrollX": true
+            "scrollX": true,
+            "scrollY": "500px",
+            "scrollCollapse": true
+            //"paging": false
         });
         table.columns().eq( 0 ).each( function ( colIdx ) {
             $( 'input', table.column( colIdx ).footer() ).on( 'keyup change', function () {
@@ -100,7 +78,8 @@ $rows= $data;
             "sSwfPath": "<?php echo $base_url.REPORT_ASSETS;?>TableTools/swf/copy_csv_xls_pdf.swf",
             "aButtons": [
                 "copy",
-                "print"
+                "print",
+                "pdf"
             ]
         });
         $( tt.fnContainer() ).insertBefore('div.dataTables_filter');
@@ -112,7 +91,7 @@ $rows= $data;
         $('div.DTTT_container a#excelDownload').click(function(){
             var oTable =  $('#report-table'). dataTable();
             var oData = oTable.fnGetData();
-            window.location= '<?php echo base_url(REPORT_FOLDER.'requisition_list/get_excel');?>';
+            window.location= '<?php echo base_url(REPORT_FOLDER.'quotation_details/get_excel');?>';
             //console.log(oData);
         });
     });

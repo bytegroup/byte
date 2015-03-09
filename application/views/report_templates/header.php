@@ -33,6 +33,13 @@
         .sidebar-nav {
             padding: 9px 0;
         }
+        .nav-list > li > a {
+            padding: 3px;
+        }
+        .accordion-heading .accordion-toggle {
+            display: block;
+            padding: 8px 5px;
+        }
     </style>
 
     <!-- Le HTML5 shim, for IE6-8 support of HTML5 elements -->

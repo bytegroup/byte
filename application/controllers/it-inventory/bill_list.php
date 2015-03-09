@@ -6,7 +6,6 @@
  * Time: 3:33 PM
  */
 ?>
-
 <?php if ( ! defined('BASEPATH')) exit('No direct script access allowed');
 
 class Bill_List extends MX_Controller {
@@ -62,7 +61,7 @@ class Bill_List extends MX_Controller {
             $crud->add_fields('receiveId', 'budgetId', 'billingDate', 'billReceiveDate', 'billType', 'billAmount', 'billPaymentType', 'billCheckedById', 'billSubmittedById', 'billDescription', 'creatorId', 'createDate');
             $crud->edit_fields('receiveId', 'billNumber', 'budgetId', 'billingDate', 'billReceiveDate', 'billType', 'billAmount', 'billPaymentType', 'billCheckedById', 'billSubmittedById', 'billDescription', 'billPaymentById', 'editorId', 'editDate');
             $crud->unset_texteditor('billDescription', 'Particulars');
-            $crud->set_read_fields('budgetType', 'budgetId', 'billingDate', 'billReceiveDate', 'billType', 'billAmount', 'billPaymentType', 'billCheckedById', 'billSubmittedById', 'billDescription');
+            $crud->set_read_fields('budgetId', 'billingDate', 'billReceiveDate', 'billType', 'billAmount', 'billPaymentType', 'billCheckedById', 'billSubmittedById', 'billDescription');
             $crud->field_type('billNumber', 'readonly');
             $crud->field_type('billPaymentById', 'readonly');
             $crud->field_type('creatorId', 'hidden', $this->my_session->userId);

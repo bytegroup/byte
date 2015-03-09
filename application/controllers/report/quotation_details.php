@@ -2,20 +2,20 @@
 /**
  * Created by PhpStorm.
  * User: mizanur
- * Date: 3/6/15
- * Time: 3:24 PM
+ * Date: 3/9/15
+ * Time: 2:29 PM
  */
 ?>
 <?php if ( ! defined('BASEPATH')) exit('No direct script access allowed');
 
-class Requisition_Details extends MX_Controller {
+class Quotation_Details extends MX_Controller {
     function __construct(){
         parent::__construct();
         $this->load->helper('url');
         $this->load->helper('date');
 
         /* ------------------ */
-        $this->load->model(REPORT_MODELS.'requisition_details_model', 'model');
+        $this->load->model(REPORT_MODELS.'quotation_details_model', 'model');
         $this->load->library("my_session");
         $this->my_session->checkSession();
 
@@ -31,15 +31,15 @@ class Requisition_Details extends MX_Controller {
             $time= mdate($dateString, $time);
 
             $output['metaTitle']= $this->model->get_meta_data_title();
-            $output['metadata']= $this->model->get_meta_data(100);
+            $output['metadata']= $this->model->get_meta_data(84);
             $output['headers']= $this->model->get_headers();
-            $rows= $this->model->get_data(100);
+            $rows= $this->model->get_data(84);
             $output['data']= $rows;
             $output['css'] = "";
             $output['js'] = "";
-            $output['pageTitle'] = "Requisition Details";
+            $output['pageTitle'] = "Quotation Details";
             $output['base_url'] = base_url();
-            $output['body_template'] = "requisition_details_view.php";
+            $output['body_template'] = "quotation_details_view.php";
             $this->load->view(REPORT_LAYOUT, $output);
 
         }catch(Exception $e){
@@ -54,7 +54,7 @@ class Requisition_Details extends MX_Controller {
         $this->excel->getProperties()->setCreator($this->my_session->userName);
         $this->excel->setActiveSheetIndex(0);
         $sheet= $this->excel->getSheet(0);
-        $sheet->setTitle('Requisition Details');
+        $sheet->setTitle('Quotation Details');
 
         $endColumn= chr(ord('A') + count($this->model->get_headers())-1);
         $style = array(
@@ -62,18 +62,18 @@ class Requisition_Details extends MX_Controller {
             'alignment' => array('horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_CENTER)
         );
 
-        $sheet->setCellValue('A1', 'Requisition Details');
+        $sheet->setCellValue('A1', 'Quotation Details');
         $sheet->getStyle('A1')->getFont()->setSize(16);
         $sheet->getStyle('A1')->applyFromArray($style);
         $sheet->mergeCells('A1:'.$endColumn.'1');
         $sheet->getRowDimension('1')->setRowHeight(30);
 
-        $this->excel->set_meta_data($sheet, $this->model->get_meta_data(100), 2, 'A', 3, 5);
-        $this->excel->set_table($sheet, $this->model->get_headers(), $this->model->get_data(100), $sheet->getHighestRow()+2);
+        $this->excel->set_meta_data($sheet, $this->model->get_meta_data(84), 2, 'A', 3, (count($this->model->get_headers())-3));
+        $this->excel->set_table($sheet, $this->model->get_headers(), $this->model->get_data(84), $sheet->getHighestRow()+2);
         $this->excel->set_column_width_auto($sheet);
         $this->excel->set_all_borders($sheet);
 
-        $filename='Requisition_details.xlsx';
+        $filename='Quotation_details.xlsx';
         $this->excel->set_headers($filename);
 
         $objWriter = PHPExcel_IOFactory::createWriter($this->excel, 'Excel2007');
