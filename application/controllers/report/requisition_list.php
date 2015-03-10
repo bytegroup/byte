@@ -16,6 +16,7 @@ class Requisition_List extends MX_Controller {
 
         /* ------------------ */
         $this->load->model(REPORT_MODELS.'requisition_list_model', 'model');
+        $this->load->library('filter_form');
         $this->load->library("my_session");
         $this->my_session->checkSession();
 
@@ -30,6 +31,8 @@ class Requisition_List extends MX_Controller {
             $time = time();
             $time= mdate($dateString, $time);
 
+            $this->filter_form->set_filter_fields($this->model->get_filters());
+            $output['filter_form']= $this->filter_form->get_filter_form();
             $output['headers']= $this->model->get_headers();
             $rows= $this->model->get_data();
             $output['data']= $rows;

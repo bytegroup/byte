@@ -16,38 +16,8 @@
     .dataTable tfoot input {  width: 100%;  padding: 3px;  box-sizing: border-box;  }
 </style>
 <h3><?php echo $pageTitle; ?></h3>
-<div style="border: 1px #9acc9a solid; width: 100%; height: auto;">
-    <form class="form-inline" role="form">
-        <div class="form-group">
-            <label class="sr-only" for="name">Name</label>
-            <input type="text" class="form-control" id="name" placeholder="Enter Name">
-        </div>
-        <div class="checkbox">
-            <label>
-                <input type="checkbox"> Check me out
-            </label>
-        </div>
-        <div class="checkbox">
-            <label>
-                <input type="checkbox"> Check me out
-            </label>
-        </div>
-        <div class="checkbox">
-            <label>
-                <input type="checkbox"> Check me out
-            </label>
-        </div>
-        <div class="checkbox">
-            <label>
-                <input type="checkbox"> Check me out
-            </label>
-        </div>
-        <div class="checkbox">
-            <label>
-                <input type="checkbox"> Check me out
-            </label>
-        </div>
-    </form>
+<div class="ui-corner-all fill">
+    <?php echo $filter_form;?>
 </div>
 <?php
 $rows= $data;
@@ -78,7 +48,6 @@ $rows= $data;
 
 <script language="JavaScript">
     $(document).ready(function(e){
-
         $("#collapseReport").removeClass("in").addClass("in");
         $('#report-table tfoot th').each( function () {
             var title = $('#report-table thead th.report-header').eq( $(this).index() ).text();
@@ -97,7 +66,7 @@ $rows= $data;
             } );
         } );
         var tt = new $.fn.dataTable.TableTools(table, {
-            "sSwfPath": "<?php echo $base_url.REPORT_ASSETS;?>TableTools/swf/copy_csv_xls_pdf.swf",
+            "sSwfPath": "<?php echo base_url(REPORT_ASSETS.'TableTools/swf/copy_csv_xls_pdf.swf');?>",
             "aButtons": [
                 "copy",
                 "print"
@@ -113,7 +82,6 @@ $rows= $data;
             var oTable =  $('#report-table'). dataTable();
             var oData = oTable.fnGetData();
             window.location= '<?php echo base_url(REPORT_FOLDER.'requisition_list/get_excel');?>';
-            //console.log(oData);
         });
     });
 

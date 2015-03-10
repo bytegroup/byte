@@ -57,5 +57,53 @@ class Requisition_List_Model extends CI_Model {
             'Edit Date'
         );
     }
+
+    function get_company_list(){
+        $db= $this->db->get(TBL_COMPANIES);
+        if(!$db->num_rows())return array();
+        $array=array();
+        foreach($db->result() as $row){
+            $array[$row->companyId]= $row->companyName;
+        }
+        return $array;
+    }
+    function get_department_list(){
+        $db= $this->db->get(TBL_DEPARTMENTS);
+        if(!$db->num_rows())return array();
+        $array=array();
+        foreach($db->result() as $row){
+            $array[$row->departmentId]= $row->departmentName;
+        }
+        return $array;
+    }
+    function get_categories_list(){
+        $db= $this->db->get(TBL_CATEGORIES);
+        if(!$db->num_rows())return array();
+        $array=array();
+        foreach($db->result() as $row){
+            $array[$row->categoryId]= $row->categoryName;
+        }
+        return $array;
+    }
+    function get_item_list(){
+        $db= $this->db->get(TBL_ITEMS_MASTER);
+        if(!$db->num_rows())return array();
+        $array=array();
+        foreach($db->result() as $row){
+            $array[$row->itemMasterId]= $row->itemName;
+        }
+        return $array;
+    }
+
+    function get_filters(){
+        return array(
+            'From Date' => 'date',
+            'To Date' => 'date',
+            'Company' => array('select', $this->get_company_list()),
+            'Department' => array('select', $this->get_department_list()),
+            'Category' => array('select', $this->get_categories_list()),
+            'Item' => array('select', $this->get_item_list())
+        );
+    }
 }
 ?>
