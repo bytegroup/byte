@@ -12,7 +12,35 @@ class Requisition_List_Model extends CI_Model {
         parent::__construct();
     }
 
-    function get_data(){
+    private function _data_with_filter($filters){
+        $fromDate= !$filters['from_date'] ? '': mdate('%y-%m-%d', strtotime($filters['from_date']));
+        $toDate  = !$filters['to_date'] ? mdate('%y-%m-%d', time()): mdate('%y-%m-%d', strtotime($filters['to_date']));
+        $this->db->select('c.companyName, r.requisitionNumber, r.requisitionTitle, r.requisitionDescription, r.requisitionCreateDate, r.departmentId, r.userId, d.departmentName, reqFor.firstName rFirstName, reqFor.middleName rMiddleName, reqFor.lastName rLastName, creator.firstName cFirstName, creator.middleName cMiddleName, creator.lastName cLastName, editor.firstName eFirstName, editor.middleName eMiddleName, editor.lastName eLastName, r.createDate, r.editDate');
+        $this->db->from(TBL_REQUISITIONS.' as r ');
+        $this->db->join(TBL_COMPANIES.' as c ', 'c.companyId=r.companyId');
+
+        if(!$filters['department']) $this->db->join(TBL_DEPARTMENTS.' as d ', 'd.departmentId=r.departmentId', 'left');
+        else $this->db->join(TBL_DEPARTMENTS.' as d ', 'd.departmentId=r.departmentId and d.departmentId = '.$filters['department']);
+
+        if($filters['category'] || $filters['item']){
+            $this->db->join(TBL_REQUISITIONS_DETAIL.' as rd ', 'rd.requisitionId=r.requisitionId');
+            if(!$filters['item'])$this->db->join(TBL_ITEMS_MASTER.' as i ', 'i.itemMasterId=rd.itemMasterId');
+            else $this->db->join(TBL_ITEMS_MASTER.' as i ', 'i.itemMasterId=rd.itemMasterId and i.itemMasterId='.$filters['item']);
+            if($filters['category'])$this->db->join(TBL_CATEGORIES.' as cat ', 'cat.categoryId=i.categoryId and cat.categoryId='.$filters['category']);
+        }
+
+        $this->db->join(TBL_USERS.' as reqFor ', 'reqFor.userId=r.userId', 'left');
+        $this->db->join(TBL_USERS.' as creator ', 'creator.userId=r.creatorId', 'left');
+        $this->db->join(TBL_USERS.' as editor ', 'editor.userId=r.editorId', 'left');
+
+        if(!$fromDate)$this->db->where('r.requisitionCreateDate <= ', $toDate);
+        else $this->db->where('r.requisitionCreateDate BETWEEN "'.$fromDate.'" AND "'.$toDate.'" ');
+
+        if($filters['company'])$this->db->where('c.companyId', $filters['company']);
+
+        return $this->db->get();
+    }
+    private function _data_without_filter(){
         $this->db->select('c.companyName, r.requisitionNumber, r.requisitionTitle, r.requisitionDescription, r.requisitionCreateDate, r.departmentId, r.userId, d.departmentName, reqFor.firstName rFirstName, reqFor.middleName rMiddleName, reqFor.lastName rLastName, creator.firstName cFirstName, creator.middleName cMiddleName, creator.lastName cLastName, editor.firstName eFirstName, editor.middleName eMiddleName, editor.lastName eLastName, r.createDate, r.editDate');
         $this->db->from(TBL_REQUISITIONS.' as r ');
         $this->db->join(TBL_COMPANIES.' as c ', 'c.companyId=r.companyId');
@@ -20,25 +48,30 @@ class Requisition_List_Model extends CI_Model {
         $this->db->join(TBL_USERS.' as reqFor ', 'reqFor.userId=r.userId', 'left');
         $this->db->join(TBL_USERS.' as creator ', 'creator.userId=r.creatorId', 'left');
         $this->db->join(TBL_USERS.' as editor ', 'editor.userId=r.editorId', 'left');
-        $db=$this->db->get();
+        return $this->db->get();
+    }
+
+    function get_data($filters=array()){
+        $db = !count($filters) ? $this->_data_without_filter():$this->_data_with_filter($filters);
         if(!$db->num_rows()) return array();
         $array= array(); $i=0;
         foreach($db->result() as $row):
             $reqFor= $row->departmentId ? $row->departmentName : $row->userId ? ($row->rFirstName.' '.$row->rMiddleName.' '.$row->rLastName): $row->companyName;
             $array[]= array(
-                'SL'=> ++$i,
-                'Req. No.'=> $row->requisitionNumber,
-                'Req. Title'=> $row->requisitionTitle,
-                'Description'=> $row->requisitionDescription,
-                'Req. Date'=> $row->requisitionCreateDate,
-                'Company Name'=> $row->companyName,
-                'Req. For'=> $reqFor,
-                'Created By'=>$row->cFirstName.' '.$row->cMiddleName.' '.$row->cLastName,
-                'Create Date'=> $row->createDate,
-                'Edited By'=> $row->eFirstName.' '.$row->eMiddleName.' '.$row->eLastName,
-                'Edit Date'=> $row->editDate
+                ++$i,
+                $row->requisitionNumber,
+                $row->requisitionTitle,
+                $row->requisitionDescription,
+                $row->requisitionCreateDate,
+                $row->companyName,
+                $reqFor,
+                $row->cFirstName.' '.$row->cMiddleName.' '.$row->cLastName,
+                $row->createDate,
+                $row->eFirstName.' '.$row->eMiddleName.' '.$row->eLastName,
+                $row->editDate
             );
         endforeach;
+        //if(count($filters))return !$filters['to_date'] ? mdate('%y-%m-%d', time()): mdate('%y-%m-%d', strtotime($filters['to_date']));
         return $array;
     }
 

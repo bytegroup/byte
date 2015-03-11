@@ -38,6 +38,7 @@ class Requisition_List extends MX_Controller {
             $output['data']= $rows;
             $output['css'] = "";
             $output['js'] = "";
+            $output['table_js']= base_url(REPORT_ASSETS.'dataTable.config.js');
             $output['pageTitle'] = "Requisition List";
             $output['base_url'] = base_url();
             $output['body_template'] = "requisition_list_view.php";
@@ -49,6 +50,11 @@ class Requisition_List extends MX_Controller {
     }
 
     /*****************************************************************************************************/
+    function ajax_get_data(){
+        echo json_encode($this->model->get_data($_POST));
+        exit;
+    }
+
     function get_excel(){
         $this->load->library('excel');
 

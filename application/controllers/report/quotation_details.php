@@ -37,6 +37,7 @@ class Quotation_Details extends MX_Controller {
             $output['data']= $rows;
             $output['css'] = "";
             $output['js'] = "";
+            $output['table_js']= base_url(REPORT_ASSETS.'dataTable.config.js');
             $output['pageTitle'] = "Quotation Details";
             $output['base_url'] = base_url();
             $output['body_template'] = "quotation_details_view.php";

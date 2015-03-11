@@ -24,6 +24,7 @@ class Filter_Form{
         foreach($this->fields as $field=>$type){
             $this->set_type($field, $type);
         }
+        $this->_buttons();
         $this->end_form();
         $this->set_css();
         $this->set_js();
@@ -87,6 +88,13 @@ class Filter_Form{
 
     }
 
+    private function _buttons(){
+        $this->html .= '<div class="control-group row pagination-centered">';
+
+        $this->html .= '<input type="button" id="filter-button" class="btn span2" value="Filter"/>&nbsp;&nbsp;';
+        $this->html .= '<input type="reset" id="filter-reset" class="btn span2" value="Clear">';
+        $this->html .= '</div>';
+    }
     private function init_form(){
         $this->html .= '<form class="form-inline" id="filter-form">';
     }
@@ -112,7 +120,10 @@ class Filter_Form{
                     showButtonPanel: true,
                     closeText: "Close"
                 });
-                $("select").chosen({allow_single_deselect: true});
+                $("#filter-form select").chosen({allow_single_deselect: true});
+                $("#filter-form #filter-reset").click(function(){
+                    $("#filter-form select").val("").trigger("chosen:updated");
+                });
             });
         </script>
         ';

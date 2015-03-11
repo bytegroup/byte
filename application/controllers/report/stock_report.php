@@ -35,6 +35,7 @@ class Stock_Report extends MX_Controller {
             $output['data']= $rows;
             $output['css'] = "";
             $output['js'] = "";
+            $output['table_js']= base_url(REPORT_ASSETS.'dataTable.config.js');
             $output['pageTitle'] = "Stock Information";
             $output['base_url'] = base_url();
             $output['body_template'] = "stock_report_view.php";

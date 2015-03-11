@@ -34,6 +34,7 @@ class Company_Budget extends MX_Controller {
             $output['data']= $this->model->get_data();
             $output['css'] = "";
             $output['js'] = "";
+            $output['table_js']= base_url(REPORT_ASSETS.'dataTable.config.js');
             $output['pageTitle'] = "Budget Information of Companies";
             $output['base_url'] = base_url();
             $output['body_template'] = "company_budget_view.php";

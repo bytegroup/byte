@@ -45,44 +45,53 @@ $rows= $data;
 
     </tbody>
 </table>
-
+<script type="text/javascript" src="<?php echo $table_js;?>"></script>
 <script language="JavaScript">
     $(document).ready(function(e){
         $("#collapseReport").removeClass("in").addClass("in");
-        $('#report-table tfoot th').each( function () {
-            var title = $('#report-table thead th.report-header').eq( $(this).index() ).text();
-            $(this).html( '<input type="text" placeholder="'+title+'" />' );
-        } );
-
-        var table = $('#report-table').DataTable({
-            //"scrollX": true
-        });
-        table.columns().eq( 0 ).each( function ( colIdx ) {
-            $( 'input', table.column( colIdx ).footer() ).on( 'keyup change', function () {
-                table
-                    .column( colIdx )
-                    .search( this.value )
-                    .draw();
-            } );
-        } );
-        var tt = new $.fn.dataTable.TableTools(table, {
-            "sSwfPath": "<?php echo base_url(REPORT_ASSETS.'TableTools/swf/copy_csv_xls_pdf.swf');?>",
-            "aButtons": [
-                "copy",
-                "print"
-            ]
-        });
-        $( tt.fnContainer() ).insertBefore('div.dataTables_filter');
 
         $('div.DTTT_container').append(
             '<a id="dlink"  style="display:none;"></a>' +
             '<a id="excelDownload" class="DTTT_button DTTT_button_ExcelDownload">Excel</a>'
         );
         $('div.DTTT_container a#excelDownload').click(function(){
-            var oTable =  $('#report-table'). dataTable();
-            var oData = oTable.fnGetData();
             window.location= '<?php echo base_url(REPORT_FOLDER.'requisition_list/get_excel');?>';
+        });
+
+        var dataTable= $('#report-table').dataTable();
+        var url= '<?php echo base_url(REPORT_FOLDER.'requisition_list/ajax_get_data');?>';
+        $('#filter-button').click(function(){
+            filterDataTable(url, dataTable);
         });
     });
 
+    function filterOptions(source, target, url){
+        var ID= $('#' + source).val();
+        var $el = $('#' + target);
+        if(ID==null || ID=='')ID=0;
+        $('#'+source).append('<img src="<?php echo base_url()?>ajax-loader.gif" border="0" id="'+source+'_ajax_loader" class="dd_ajax_loader" style="display: none;">');
+        $('#'+source+'_ajax_loader').show();
+        $el.empty();
+        $.post(
+            url + ID,
+            {},
+            function(data){
+                $el.append('<option value=""></option>');
+                if(data != null){
+                    $.each(data, function(key, val) {
+                        $el.append($('<option></option>')
+                            .attr('value', val.value).text(val.property));
+                    });
+                }
+            },
+            'json'
+        )
+            .fail(function() {
+                //alert( "error" );
+            })
+            .always(function() {
+                $('#'+source+'_ajax_loader').hide();
+                $el.chosen().trigger('liszt:updated');
+            });
+    }
 </script>

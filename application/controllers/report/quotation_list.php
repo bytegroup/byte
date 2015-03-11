@@ -35,7 +35,8 @@ class Quotation_List extends MX_Controller {
             $output['data']= $rows;
             $output['css'] = "";
             $output['js'] = "";
-            $output['pageTitle'] = "quotation List";
+            $output['table_js']= base_url(REPORT_ASSETS.'dataTable.config.js');
+            $output['pageTitle'] = "Quotation List";
             $output['base_url'] = base_url();
             $output['body_template'] = "quotation_list_view.php";
             $this->load->view(REPORT_LAYOUT, $output);

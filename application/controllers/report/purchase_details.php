@@ -37,6 +37,7 @@ class Purchase_Details extends MX_Controller {
             $output['data']= $rows;
             $output['css'] = "";
             $output['js'] = "";
+            $output['table_js']= base_url(REPORT_ASSETS.'dataTable.config.js');
             $output['pageTitle'] = "Purchase Details";
             $output['base_url'] = base_url();
             $output['body_template'] = "purchase_details_view.php";
