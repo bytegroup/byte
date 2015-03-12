@@ -11,7 +11,12 @@ $("#tabs").tabs( {
     }
 } );
 
-var table = $('#report-table').DataTable();
+var table = $('#report-table').DataTable({
+    "scrollX"       : true,
+    "scrollCollapse": true,
+    "scrollY"       : '500px',
+    "jqueryUI"      : true
+});
 
 table.columns().eq( 0 ).each( function ( colIdx ) {
     $( 'input', table.column( colIdx ).footer() ).on( 'keyup change', function () {
@@ -29,6 +34,10 @@ var tt = new $.fn.dataTable.TableTools(table, {
     ]
 });
 $( tt.fnContainer() ).insertBefore('div.dataTables_filter');
+/*$('div.DTTT_container').append(
+    '<a id="dlink"  style="display:none;"></a>' +
+    '<a id="excelDownload" class="DTTT_button DTTT_button_ExcelDownload">Excel</a>'
+);*/
 
 function filterDataTable(url, tableObj){
     $('#filter-button').append('<img src="ajax-loader.gif" border="0" id="filter_ajax_loader" class="dd_ajax_loader" style="display: none;">');
@@ -48,6 +57,6 @@ function filterDataTable(url, tableObj){
             //alert( "error" );
         })
         .always(function() {
-            $('#filter_ajax_loader').hide();
+            $('#filter_ajax_loader').remove();
         });
 }

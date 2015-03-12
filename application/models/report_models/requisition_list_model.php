@@ -15,7 +15,7 @@ class Requisition_List_Model extends CI_Model {
     private function _data_with_filter($filters){
         $fromDate= !$filters['from_date'] ? '': mdate('%y-%m-%d', strtotime($filters['from_date']));
         $toDate  = !$filters['to_date'] ? mdate('%y-%m-%d', time()): mdate('%y-%m-%d', strtotime($filters['to_date']));
-        $this->db->select('c.companyName, r.requisitionNumber, r.requisitionTitle, r.requisitionDescription, r.requisitionCreateDate, r.departmentId, r.userId, d.departmentName, reqFor.firstName rFirstName, reqFor.middleName rMiddleName, reqFor.lastName rLastName, creator.firstName cFirstName, creator.middleName cMiddleName, creator.lastName cLastName, editor.firstName eFirstName, editor.middleName eMiddleName, editor.lastName eLastName, r.createDate, r.editDate');
+        $this->db->select('c.companyName, r.requisitionId, r.requisitionNumber, r.requisitionTitle, r.requisitionDescription, r.requisitionCreateDate, r.departmentId, r.userId, d.departmentName, reqFor.firstName rFirstName, reqFor.middleName rMiddleName, reqFor.lastName rLastName, creator.firstName cFirstName, creator.middleName cMiddleName, creator.lastName cLastName, editor.firstName eFirstName, editor.middleName eMiddleName, editor.lastName eLastName, r.createDate, r.editDate');
         $this->db->from(TBL_REQUISITIONS.' as r ');
         $this->db->join(TBL_COMPANIES.' as c ', 'c.companyId=r.companyId');
 
@@ -41,7 +41,7 @@ class Requisition_List_Model extends CI_Model {
         return $this->db->get();
     }
     private function _data_without_filter(){
-        $this->db->select('c.companyName, r.requisitionNumber, r.requisitionTitle, r.requisitionDescription, r.requisitionCreateDate, r.departmentId, r.userId, d.departmentName, reqFor.firstName rFirstName, reqFor.middleName rMiddleName, reqFor.lastName rLastName, creator.firstName cFirstName, creator.middleName cMiddleName, creator.lastName cLastName, editor.firstName eFirstName, editor.middleName eMiddleName, editor.lastName eLastName, r.createDate, r.editDate');
+        $this->db->select('c.companyName, r.requisitionId, r.requisitionNumber, r.requisitionTitle, r.requisitionDescription, r.requisitionCreateDate, r.departmentId, r.userId, d.departmentName, reqFor.firstName rFirstName, reqFor.middleName rMiddleName, reqFor.lastName rLastName, creator.firstName cFirstName, creator.middleName cMiddleName, creator.lastName cLastName, editor.firstName eFirstName, editor.middleName eMiddleName, editor.lastName eLastName, r.createDate, r.editDate');
         $this->db->from(TBL_REQUISITIONS.' as r ');
         $this->db->join(TBL_COMPANIES.' as c ', 'c.companyId=r.companyId');
         $this->db->join(TBL_DEPARTMENTS.' as d ', 'd.departmentId=r.departmentId', 'left');
@@ -57,7 +57,7 @@ class Requisition_List_Model extends CI_Model {
         $array= array(); $i=0;
         foreach($db->result() as $row):
             $reqFor= $row->departmentId ? $row->departmentName : $row->userId ? ($row->rFirstName.' '.$row->rMiddleName.' '.$row->rLastName): $row->companyName;
-            $array[]= array(
+            $array[$row->requisitionId]= array(
                 ++$i,
                 $row->requisitionNumber,
                 $row->requisitionTitle,
@@ -71,7 +71,6 @@ class Requisition_List_Model extends CI_Model {
                 $row->editDate
             );
         endforeach;
-        //if(count($filters))return !$filters['to_date'] ? mdate('%y-%m-%d', time()): mdate('%y-%m-%d', strtotime($filters['to_date']));
         return $array;
     }
 
@@ -100,8 +99,11 @@ class Requisition_List_Model extends CI_Model {
         }
         return $array;
     }
-    function get_department_list(){
-        $db= $this->db->get(TBL_DEPARTMENTS);
+    function get_department_list($companyId=0){
+        $db= !$companyId ?
+            $this->db->get(TBL_DEPARTMENTS)
+            :
+            $this->db->get_where(TBL_DEPARTMENTS, array('companyId'=>$companyId));
         if(!$db->num_rows())return array();
         $array=array();
         foreach($db->result() as $row){
@@ -118,8 +120,11 @@ class Requisition_List_Model extends CI_Model {
         }
         return $array;
     }
-    function get_item_list(){
-        $db= $this->db->get(TBL_ITEMS_MASTER);
+    function get_item_list($catId=0){
+        $db= !$catId ?
+            $this->db->get(TBL_ITEMS_MASTER)
+            :
+            $this->db->get_where(TBL_ITEMS_MASTER, array('categoryId'=>$catId));
         if(!$db->num_rows())return array();
         $array=array();
         foreach($db->result() as $row){

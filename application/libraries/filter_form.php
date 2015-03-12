@@ -91,8 +91,9 @@ class Filter_Form{
     private function _buttons(){
         $this->html .= '<div class="control-group row pagination-centered">';
 
-        $this->html .= '<input type="button" id="filter-button" class="btn span2" value="Filter"/>&nbsp;&nbsp;';
-        $this->html .= '<input type="reset" id="filter-reset" class="btn span2" value="Clear">';
+        $this->html .= '<input type="button" id="filter-button" class="btn span2" value="Filter Table"/>&nbsp;&nbsp;';
+        $this->html .= '<input type="reset" id="filter-reset" class="btn span2" value="Clear"/>&nbsp;&nbsp;';
+        $this->html .= '<input type="button" id="filter-excel" class="btn span2" value="Excel"/>';
         $this->html .= '</div>';
     }
     private function init_form(){
@@ -110,9 +111,9 @@ class Filter_Form{
         $this->html .= $this->css;
     }
     private function set_js(){
-        $this->js .= '
-        <script type="text/javascript">
-            $(document).ready(function() {
+        $loaderImg= '<img src="'.base_url('ajax-loader.gif').'" border="0" id= "\'+source+\'"_ajax-_loader" class="dd_ajax_loader" style="display: none;"/>';
+        $this->js .= '<script type="text/javascript">';
+        $this->js .= '$(document).ready(function() {
                 $("#filter-form input.datepicker").datepicker({
                     changeYear: true,
                     changeMonth: true,
@@ -125,8 +126,39 @@ class Filter_Form{
                     $("#filter-form select").val("").trigger("chosen:updated");
                 });
             });
-        </script>
-        ';
+            ';
+        $this->js .= "
+            function get_dependent_options(source, target, url){
+                var ID= $('#' + source).val();
+                var el = $('#' + target);
+                if(ID==null || ID=='')ID=0;
+                $('#'+source).append('$loaderImg');
+                $('#'+source+'_ajax_loader').show();
+                el.empty();
+                $.post(
+                    url + ID,
+                    {},
+                    function(data){
+                        el.append('<option></option>');
+                        if(data != null){
+                            $.each(data, function(key, val) {
+                                el.append($('<option></option>')
+                                    .attr('value', key).text(val));
+                            });
+                        }
+                    },
+                    'json'
+                )
+                .fail(function() {
+                    //alert( 'error' );
+                })
+                .always(function() {
+                    $('#'+source+'_ajax_loader').hide();
+                    el.chosen().trigger('chosen:updated');
+                });
+            }
+        ";
+        $this->js .= '</script>';
         $this->html .= $this->js;
     }
 }
