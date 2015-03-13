@@ -57,7 +57,7 @@ class Requisition_List_Model extends CI_Model {
         $array= array(); $i=0;
         foreach($db->result() as $row):
             $reqFor= $row->departmentId ? $row->departmentName : $row->userId ? ($row->rFirstName.' '.$row->rMiddleName.' '.$row->rLastName): $row->companyName;
-            $array[$row->requisitionId]= array(
+            $array[]= array(
                 ++$i,
                 $row->requisitionNumber,
                 $row->requisitionTitle,

@@ -53,6 +53,14 @@ $rows= $data;
     $(document).ready(function(e){
         $("#collapseReport").removeClass("in").addClass("in");
 
+        $('div.DTTT_container a#excelDownload').click(function(){
+            $('form#filter-form')
+                .attr('action', '<?php echo base_url(REPORT_FOLDER.'requisition_list/get_excel');?>')
+                .attr('method', 'post')
+                .attr('target', '_blank')
+                .submit();
+        });
+
         $('form#filter-form input#filter-excel').click(function(){
             $('form#filter-form')
                 .attr('action', '<?php echo base_url(REPORT_FOLDER.'requisition_list/get_excel');?>')
