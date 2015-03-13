@@ -21,9 +21,11 @@ class Filter_Form{
     }
     public function get_filter_form(){
         $this->init_form();
+        $this->html .= '<div class="row">';
         foreach($this->fields as $field=>$type){
             $this->set_type($field, $type);
         }
+        $this->html .= '</div>';
         $this->_buttons();
         $this->end_form();
         $this->set_css();

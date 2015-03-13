@@ -57,7 +57,7 @@ class Requisition_List_Model extends CI_Model {
         $array= array(); $i=0;
         foreach($db->result() as $row):
             $reqFor= $row->departmentId ? $row->departmentName : $row->userId ? ($row->rFirstName.' '.$row->rMiddleName.' '.$row->rLastName): $row->companyName;
-            $array[]= array(
+            $array[$row->requisitionId]= array(
                 ++$i,
                 $row->requisitionNumber,
                 $row->requisitionTitle,
@@ -135,12 +135,12 @@ class Requisition_List_Model extends CI_Model {
 
     function get_filters(){
         return array(
-            'From Date' => 'date',
-            'To Date' => 'date',
-            'Company' => array('select', $this->get_company_list()),
-            'Department' => array('select', $this->get_department_list()),
-            'Category' => array('select', $this->get_categories_list()),
-            'Item' => array('select', $this->get_item_list())
+            'From Date'     => 'date',
+            'To Date'       => 'date',
+            'Company'       => array('select', $this->get_company_list()),
+            'Department'    => array('select', $this->get_department_list()),
+            'Category'      => array('select', $this->get_categories_list()),
+            'Item'          => array('select', $this->get_item_list())
         );
     }
 }

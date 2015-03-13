@@ -9,6 +9,7 @@
 <?php if ( ! defined('BASEPATH')) exit('No direct script access allowed');
 
 class Quotation_Details extends MX_Controller {
+    var $quotationId= 0;
     function __construct(){
         parent::__construct();
         $this->load->helper('url');
@@ -24,20 +25,27 @@ class Quotation_Details extends MX_Controller {
         }
     }
 
-    function index(){
+    function index($quotId){
+        if(!$quotId){
+            redirect(base_url(REPORT_FOLDER.'quotation_list'));
+            die();
+        }
+        $this->quotationId= $quotId;
         try{
             $dateString = "%d-%m-%y :: %h:%i %a";
             $time = time();
             $time= mdate($dateString, $time);
 
             $output['metaTitle']= $this->model->get_meta_data_title();
-            $output['metadata']= $this->model->get_meta_data(84);
+            $output['metadata']= $this->model->get_meta_data($quotId);
             $output['headers']= $this->model->get_headers();
-            $rows= $this->model->get_data(84);
+            $rows= $this->model->get_data($quotId);
             $output['data']= $rows;
+            $output['quotationId']=$quotId;
             $output['css'] = "";
             $output['js'] = "";
             $output['table_js']= base_url(REPORT_ASSETS.'dataTable.config.js');
+            $output['backToList']= base_url(REPORT_FOLDER.'quotation_list');
             $output['pageTitle'] = "Quotation Details";
             $output['base_url'] = base_url();
             $output['body_template'] = "quotation_details_view.php";
@@ -49,7 +57,11 @@ class Quotation_Details extends MX_Controller {
     }
 
     /*****************************************************************************************************/
-    function get_excel(){
+    function get_excel($quotId){
+        if(!$quotId){
+            redirect(base_url(REPORT_FOLDER.'quotation_list'));
+            die();
+        }
         $this->load->library('excel');
 
         $this->excel->getProperties()->setCreator($this->my_session->userName);
@@ -69,8 +81,8 @@ class Quotation_Details extends MX_Controller {
         $sheet->mergeCells('A1:'.$endColumn.'1');
         $sheet->getRowDimension('1')->setRowHeight(30);
 
-        $this->excel->set_meta_data($sheet, $this->model->get_meta_data(84), 2, 'A', 3, (count($this->model->get_headers())-3));
-        $this->excel->set_table($sheet, $this->model->get_headers(), $this->model->get_data(84), $sheet->getHighestRow()+2);
+        $this->excel->set_meta_data($sheet, $this->model->get_meta_data($quotId), 2, 'A', 3, (count($this->model->get_headers())-3));
+        $this->excel->set_table($sheet, $this->model->get_headers(), $this->model->get_data($quotId), $sheet->getHighestRow()+2);
         $this->excel->set_column_width_auto($sheet);
         $this->excel->set_all_borders($sheet);
 

@@ -9,6 +9,7 @@
 <?php if ( ! defined('BASEPATH')) exit('No direct script access allowed');
 
 class Requisition_Details extends MX_Controller {
+    var $requisitionId=0;
     function __construct(){
         parent::__construct();
         $this->load->helper('url');
@@ -24,16 +25,23 @@ class Requisition_Details extends MX_Controller {
         }
     }
 
-    function index(){
+    function index($reqId){
+        if(!$reqId){
+            redirect(base_url(REPORT_FOLDER.'requisition_list'));
+            die();
+        }
+        $this->requisitionId= $reqId;
         try{
             $dateString = "%d-%m-%y :: %h:%i %a";
             $time = time();
             $time= mdate($dateString, $time);
 
             $output['metaTitle']= $this->model->get_meta_data_title();
-            $output['metadata']= $this->model->get_meta_data(100);
+            $output['metadata']= $this->model->get_meta_data($reqId);
             $output['headers']= $this->model->get_headers();
-            $rows= $this->model->get_data(100);
+            $rows= $this->model->get_data($reqId);
+            $output['requisitionId']= $reqId;
+            $output['backToList'] = base_url(REPORT_FOLDER.'requisition_list');
             $output['data']= $rows;
             $output['css'] = "";
             $output['js'] = "";
@@ -49,7 +57,11 @@ class Requisition_Details extends MX_Controller {
     }
 
     /*****************************************************************************************************/
-    function get_excel(){
+    function get_excel($reqId){
+        if(!$reqId){
+            redirect(base_url(REPORT_FOLDER.'requisition_list'));
+            die();
+        }
         $this->load->library('excel');
 
         $this->excel->getProperties()->setCreator($this->my_session->userName);
@@ -69,8 +81,8 @@ class Requisition_Details extends MX_Controller {
         $sheet->mergeCells('A1:'.$endColumn.'1');
         $sheet->getRowDimension('1')->setRowHeight(30);
 
-        $this->excel->set_meta_data($sheet, $this->model->get_meta_data(100), 2, 'A', 3, 5);
-        $this->excel->set_table($sheet, $this->model->get_headers(), $this->model->get_data(100), $sheet->getHighestRow()+2);
+        $this->excel->set_meta_data($sheet, $this->model->get_meta_data($reqId), 2, 'A', 3, 5);
+        $this->excel->set_table($sheet, $this->model->get_headers(), $this->model->get_data($reqId), $sheet->getHighestRow()+2);
         $this->excel->set_column_width_auto($sheet);
         $this->excel->set_all_borders($sheet);
 

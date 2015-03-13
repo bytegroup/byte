@@ -39,16 +39,15 @@ $('div.DTTT_container').append(
     '<a id="excelDownload" class="DTTT_button DTTT_button_ExcelDownload">Excel</a>'
 );
 
-function filterDataTable(url, tableObj){
+function filterDataTable(url, fnCallBack){
     $('#filter-button').append('<img src="../ajax-loader.gif" border="0" id="filter_ajax_loader" class="dd_ajax_loader" style="display: none;">');
     $('#filter_ajax_loader').show();
     $.post(
         url,
         $( "#filter-form" ).serialize(),
         function(data){
-            tableObj.fnClearTable();
-            if(data != null && data.length!=0){
-                tableObj.fnAddData(data);
+            if(data != null){
+                fnCallBack(data);
             }
         },
         'json'

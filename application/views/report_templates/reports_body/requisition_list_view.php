@@ -25,21 +25,21 @@ $rows= $data;
 <table id="report-table" class="display" width="100%" cellspacing="0">
     <thead>
     <tr>
-        <th class="report-header"></th>
+        <th class="report-header">Action</th>
         <?php foreach($headers as $header){?><th class="report-header"><?php echo $header;?></th><?php } ?>
     </tr>
     </thead>
     <tfoot>
     <tr>
-        <th class="report-header"></th>
+        <th class="report-header">Action</th>
         <?php foreach($headers as $header){?><th><?php echo $header;?></th><?php } ?>
     </tr>
     </tfoot>
 
     <tbody>
-    <?php foreach($rows as $fields): ?>
+    <?php foreach($rows as $reqId => $fields): ?>
         <tr>
-            <td><a role="button" href="" class="ui-button">Details</a></td>
+            <td><a role="button" href="<?php echo base_url(REPORT_FOLDER.'requisition_details/index/'.$reqId);?>" class="ui-button">Details</a></td>
             <?php foreach($fields as $field){?>
                 <td><?php echo $field;?></td>
             <?php } ?>
@@ -52,10 +52,11 @@ $rows= $data;
 <script language="JavaScript">
     $(document).ready(function(e){
         $("#collapseReport").removeClass("in").addClass("in");
+        var baseURL= '<?php echo base_url(REPORT_FOLDER);?>/';
 
         $('div.DTTT_container a#excelDownload').click(function(){
             $('form#filter-form')
-                .attr('action', '<?php echo base_url(REPORT_FOLDER.'requisition_list/get_excel');?>')
+                .attr('action', baseURL+'requisition_list/get_excel')
                 .attr('method', 'post')
                 .attr('target', '_blank')
                 .submit();
@@ -63,21 +64,32 @@ $rows= $data;
 
         $('form#filter-form input#filter-excel').click(function(){
             $('form#filter-form')
-                .attr('action', '<?php echo base_url(REPORT_FOLDER.'requisition_list/get_excel');?>')
+                .attr('action', baseURL+'requisition_list/get_excel')
                 .attr('method', 'post')
                 .attr('target', '_blank')
                 .submit();
         });
 
         var dataTable= $('#report-table').dataTable();
-        var url= '<?php echo base_url(REPORT_FOLDER.'requisition_list/ajax_get_data');?>';
-        $('#filter-button').click(function(){filterDataTable(url, dataTable);});
+        $('#filter-button').click(function(){
+            filterDataTable(baseURL+'requisition_list/ajax_get_data', filterDT);
+        });
+
         $('#company').change(function(){
-            get_dependent_options('company', 'department', '<?php echo base_url(REPORT_FOLDER.'requisition_list/ajax_get_department');?>/');
+            get_dependent_options('company', 'department', baseURL+'requisition_list/ajax_get_department/');
         });
         $('#category').change(function(){
-            get_dependent_options('category', 'item', '<?php echo base_url(REPORT_FOLDER.'requisition_list/ajax_get_items');?>/');
+            get_dependent_options('category', 'item', baseURL+'requisition_list/ajax_get_items/');
         });
+
+        var filterDT = function(data){
+            dataTable.fnClearTable();
+            if(data.length ==0 )return false;
+            $.each(data, function(id, val){
+                val.unshift('<a role="button" href="'+baseURL+'requisition_details/index/'+id+'" class="ui-button">Details</a>');
+                dataTable.fnAddData(val);
+            });
+        }
     });
 
 </script>
