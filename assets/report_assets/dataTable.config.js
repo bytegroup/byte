@@ -30,7 +30,8 @@ var tt = new $.fn.dataTable.TableTools(table, {
     "sSwfPath": "../assets/report_assets/TableTools/swf/copy_csv_xls_pdf.swf",
     "aButtons": [
         "copy",
-        "print"
+        "print",
+        "pdf"
     ]
 });
 $( tt.fnContainer() ).insertBefore('div.dataTables_filter');

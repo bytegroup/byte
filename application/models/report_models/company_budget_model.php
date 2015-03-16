@@ -12,24 +12,44 @@ class Company_Budget_Model extends CI_Model {
         parent::__construct();
     }
 
-    function get_data(){
-        $this->db->select('c.companyName, b.budgetHead, b.budgetQuantity, b.budgetDescription, b.BudgetQuantity, b.budgetAmount, b.budgetUtilization');
+    private function _data_with_filter($filters){
+        $fromDate= !$filters['from_date'] ? '': mdate('%y', strtotime($filters['from_date']));
+        $toDate  = !$filters['to_date'] ? mdate('%y', time()): mdate('%y', strtotime($filters['to_date']));
+        $this->db->select('c.companyName, b.budgetId, b.budgetHead, b.budgetQuantity, b.budgetDescription, b.BudgetQuantity, b.budgetAmount, b.budgetUtilization');
         $this->db->from(TBL_BUDGET.' as b ');
         $this->db->join(TBL_COMPANIES.' as c ', 'c.companyId=b.companyId');
-        $db=$this->db->get();
+
+        if(!$fromDate)$this->db->where('b.budgetYear <= ', $toDate);
+        else $this->db->where('b.budgetYear BETWEEN "'.$fromDate.'" AND "'.$toDate.'" ');
+
+        if($filters['company'])$this->db->where('b.companyId', $filters['company']);
+        if($filters['budget_head'])$this->db->where('b.budgetHead', $filters['budget_head']);
+        if($filters['budget_type'])$this->db->where('b.budgetType', $filters['budget_type']);
+
+        return $db=$this->db->get();
+    }
+    private function _data_without_filter(){
+        $this->db->select('c.companyName, b.budgetId, b.budgetHead, b.budgetQuantity, b.budgetDescription, b.BudgetQuantity, b.budgetAmount, b.budgetUtilization');
+        $this->db->from(TBL_BUDGET.' as b ');
+        $this->db->join(TBL_COMPANIES.' as c ', 'c.companyId=b.companyId');
+        return $db=$this->db->get();
+    }
+
+    function get_data($filters= array()){
+        $db = !count($filters) ? $this->_data_without_filter():$this->_data_with_filter($filters);
         if(!$db->num_rows()) return array();
         $array= array(); $i=0;
         foreach($db->result() as $row):
-            $array[]= array(
-                'SL'                => ++$i,
-                'Company Name'      => $row->companyName,
-                'Budget Head'       => $row->budgetHead,
-                'Budget Quantity'   => $row->budgetQuantity,
-                'Budget Purpose'    => $row->budgetDescription,
-                'Purchase Quantity' => $row->budgetQuantity,
-                'Budget Amount'     => $row->budgetAmount,
-                'Utilization'       => $row->budgetUtilization,
-                'Remaining Budget'  => $row->budgetAmount - $row->budgetUtilization
+            $array[$row->budgetId]= array(
+                ++$i,
+                $row->companyName,
+                $row->budgetHead,
+                $row->budgetQuantity,
+                $row->budgetDescription,
+                $row->budgetQuantity,
+                $row->budgetAmount,
+                $row->budgetUtilization,
+                $row->budgetAmount - $row->budgetUtilization
             );
         endforeach;
         return $array;
@@ -46,6 +66,38 @@ class Company_Budget_Model extends CI_Model {
             'Budget Amount',
             'Utilization',
             'Remaining Budget'
+        );
+    }
+
+    function get_company_list(){
+        $db= $this->db->get(TBL_COMPANIES);
+        if(!$db->num_rows())return array();
+        $array=array();
+        foreach($db->result() as $row){
+            $array[$row->companyId]= $row->companyName;
+        }
+        return $array;
+    }
+    function get_budget_head_list($companyId=0){
+        $db= !$companyId ?
+            $this->db->group_by('budgetHead')->get(TBL_BUDGET)
+            :
+            $this->db->group_by('budgetHead')->get_where(TBL_BUDGET, array('companyId'=>$companyId));
+        if(!$db->num_rows())return array();
+        $array=array();
+        foreach($db->result() as $row){
+            $array[$row->budgetHead]= $row->budgetHead;
+        }
+        return $array;
+    }
+
+    public function get_filters(){
+        return array(
+            'From Date'     => 'date',
+            'To Date'       => 'date',
+            'Company'       => array('select', $this->get_company_list()),
+            'Budget Head'    => array('select', $this->get_budget_head_list()),
+            'Budget Type'      => array('select', array('Capital'=> 'CAPITAL', 'Revenue'=> 'REVENUE'))
         );
     }
 }

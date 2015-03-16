@@ -16,24 +16,30 @@
     .dataTable tfoot input {  width: 100%;  padding: 3px;  box-sizing: border-box;  }
 </style>
 <h3><?php echo $pageTitle; ?></h3>
+<div class="ui-corner-all" style="background-color: #f1f1f1; padding-top: 20px; margin-bottom: 20px; border: 1px #999 solid;">
+    <?php echo $filter_form;?>
+</div>
 <?php
 $rows= $data;
 ?>
 <table id="report-table" class="display" width="100%" cellspacing="0">
     <thead>
     <tr>
+        <th class="report-header">Action</th>
         <?php foreach($headers as $header){?><th class="report-header"><?php echo $header;?></th><?php } ?>
     </tr>
     </thead>
     <tfoot>
     <tr>
+        <th class="report-header">Action</th>
         <?php foreach($headers as $header){?><th><?php echo $header;?></th><?php } ?>
     </tr>
     </tfoot>
 
     <tbody>
-    <?php foreach($rows as $fields): ?>
+    <?php foreach($rows as $recId=>$fields): ?>
         <tr>
+            <td><a role="button" href="<?php echo base_url(REPORT_FOLDER.'purchase_details/index/'.$recId);?>" class="ui-button">Details</a></td>
             <?php foreach($fields as $field){?>
                 <td><?php echo $field;?></td>
             <?php } ?>
@@ -46,15 +52,44 @@ $rows= $data;
 <script language="JavaScript">
     $(document).ready(function(e){
         $("#collapseReport").removeClass("in").addClass("in");
+        var baseURL= '<?php echo base_url(REPORT_FOLDER);?>/';
 
-        $('div.DTTT_container').append(
-            '<a id="dlink"  style="display:none;"></a>' +
-            '<a id="excelDownload" class="DTTT_button DTTT_button_ExcelDownload">Excel</a>'
-        );
         $('div.DTTT_container a#excelDownload').click(function(){
-            window.location= '<?php echo base_url(REPORT_FOLDER.'purchase_list/get_excel');?>';
-
+            $('form#filter-form')
+                .attr('action', baseURL+'purchase_list/get_excel')
+                .attr('method', 'post')
+                .attr('target', '_blank')
+                .submit();
         });
+
+        $('form#filter-form input#filter-excel').click(function(){
+            $('form#filter-form')
+                .attr('action', baseURL+'purchase_list/get_excel')
+                .attr('method', 'post')
+                .attr('target', '_blank')
+                .submit();
+        });
+
+        var dataTable= $('#report-table').dataTable();
+        $('#filter-button').click(function(){
+            filterDataTable(baseURL+'purchase_list/ajax_get_data', filterDT);
+        });
+
+        $('#company').change(function(){
+            get_dependent_options('company', 'department', baseURL+'purchase_list/ajax_get_department/');
+        });
+        $('#category').change(function(){
+            get_dependent_options('category', 'item', baseURL+'purchase_list/ajax_get_items/');
+        });
+
+        var filterDT = function(data){
+            dataTable.fnClearTable();
+            if(data.length ==0 )return false;
+            $.each(data, function(id, val){
+                val.unshift('<a role="button" href="' + baseURL+ 'purchase_details/index/'+id+'" class="ui-button">Details</a>');
+                dataTable.fnAddData(val);
+            });
+        }
     });
 
 </script>

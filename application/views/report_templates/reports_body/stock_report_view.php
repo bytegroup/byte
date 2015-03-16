@@ -16,6 +16,9 @@
     .dataTable tfoot input {  width: 100%;  padding: 3px;  box-sizing: border-box;  }
 </style>
 <h3><?php echo $pageTitle; ?></h3>
+<div class="ui-corner-all" style="background-color: #f1f1f1; padding-top: 20px; margin-bottom: 20px; border: 1px #999 solid;">
+    <?php echo $filter_form;?>
+</div>
 <?php
 $rows= $data;
 ?>
@@ -55,13 +58,43 @@ $rows= $data;
 <script language="JavaScript">
     $(document).ready(function(e){
         $("#collapseReport").removeClass("in").addClass("in");
-        $('div.DTTT_container').append(
-            '<a id="dlink"  style="display:none;"></a>' +
-            '<a id="excelDownload" class="DTTT_button DTTT_button_ExcelDownload">Excel</a>'
-        );
+        var baseURL= '<?php echo base_url(REPORT_FOLDER);?>/';
+
         $('div.DTTT_container a#excelDownload').click(function(){
-            window.location= '<?php echo base_url(REPORT_FOLDER.'stock_report/get_excel');?>';
+            $('form#filter-form')
+                .attr('action', baseURL+'stock_report/get_excel')
+                .attr('method', 'post')
+                .attr('target', '_blank')
+                .submit();
         });
+
+        $('form#filter-form input#filter-excel').click(function(){
+            $('form#filter-form')
+                .attr('action', baseURL+'stock_report/get_excel')
+                .attr('method', 'post')
+                .attr('target', '_blank')
+                .submit();
+        });
+
+        var dataTable= $('#report-table').dataTable();
+        $('#filter-button').click(function(){
+            filterDataTable(baseURL+'stock_report/ajax_get_data', filterDT);
+        });
+
+        $('#company').change(function(){
+            get_dependent_options('company', 'department', baseURL+'stock_report/ajax_get_department/');
+        });
+        $('#category').change(function(){
+            get_dependent_options('category', 'item', baseURL+'stock_report/ajax_get_items/');
+        });
+
+        var filterDT = function(data){
+            dataTable.fnClearTable();
+            if(data.length ==0 )return false;
+            $.each(data, function(id, val){
+                dataTable.fnAddData(val);
+            });
+        }
     });
 
 </script>

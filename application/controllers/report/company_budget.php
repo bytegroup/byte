@@ -16,6 +16,7 @@ class Company_Budget extends MX_Controller {
 
         /* ------------------ */
         $this->load->model(REPORT_MODELS.'company_budget_model', 'model');
+        $this->load->library('filter_form');
         $this->load->library("my_session");
         $this->my_session->checkSession();
 
@@ -30,6 +31,8 @@ class Company_Budget extends MX_Controller {
             $time = time();
             $time= mdate($dateString, $time);
 
+            $this->filter_form->set_filter_fields($this->model->get_filters());
+            $output['filter_form']= $this->filter_form->get_filter_form();
             $output['headers']= $this->model->get_headers();
             $output['data']= $this->model->get_data();
             $output['css'] = "";
@@ -46,8 +49,19 @@ class Company_Budget extends MX_Controller {
     }
 
     /*****************************************************************************************************/
+    function ajax_get_data(){
+        echo json_encode($this->model->get_data($_POST));
+        exit;
+    }
+    function ajax_get_budget_head($companyId){
+        echo json_encode($this->model->get_budget_head_list($companyId));
+        exit;
+    }
+
     function get_excel(){
         $this->load->library('excel');
+
+        $post= (isset($_POST) && count($_POST)) ? $_POST : array();
 
         $this->excel->getProperties()->setCreator($this->my_session->userName);
         $this->excel->setActiveSheetIndex(0);
@@ -66,7 +80,7 @@ class Company_Budget extends MX_Controller {
         $sheet->mergeCells('A1:'.$endColumn.'1');
         $sheet->getRowDimension('1')->setRowHeight(30);
 
-        $this->excel->set_table($sheet, $this->model->get_headers(), $this->model->get_data(), 2);
+        $this->excel->set_table($sheet, $this->model->get_headers(), $this->model->get_data($post), 2);
         $this->excel->set_column_width_auto($sheet);
         $this->excel->set_all_borders($sheet);
 

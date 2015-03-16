@@ -15,6 +15,11 @@
     .dataTable tfoot tr th{border-bottom:1px #000 solid;}
     .dataTable tfoot input {  width: 100%;  padding: 3px;  box-sizing: border-box;  }
 </style>
+<div class="" style="width: auto; height: auto; border: 0px #999 solid; float: right">
+    <div class="form-button-box">
+        <input type="button" value="Back to Purchase List" onclick="window.location='<?php echo $backToList; ?>'" class="ui-input-button" id="">
+    </div>
+</div>
 <h3><?php echo $pageTitle; ?></h3>
 <?php
 $rows= $data;
@@ -54,12 +59,8 @@ $rows= $data;
 <script language="JavaScript">
     $(document).ready(function(e){
         $("#collapseReport").removeClass("in").addClass("in");
-        $('div.DTTT_container').append(
-            '<a id="dlink"  style="display:none;"></a>' +
-            '<a id="excelDownload" class="DTTT_button DTTT_button_ExcelDownload">Excel</a>'
-        );
         $('div.DTTT_container a#excelDownload').click(function(){
-            window.location= '<?php echo base_url(REPORT_FOLDER.'purchase_details/get_excel');?>';
+            window.location= '<?php echo base_url(REPORT_FOLDER.'purchase_details/get_excel/'.$receiveId);?>';
         });
     });
 

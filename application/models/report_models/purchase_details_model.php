@@ -16,7 +16,7 @@ class Purchase_Details_Model extends CI_Model {
         if(!$id)return array();
         $this->db->select('rec.receiveNumber, rec.receiveDate, b.billNumber, q.quotationNumber, q.quotationDate, v.vendorsName, r.requisitionNumber, r.requisitionTitle, r.requisitionCreateDate, c.companyName, r.requisitionFor, r.departmentId, r.userId, d.departmentName, reqFor.firstName rFirstName, reqFor.middleName rMiddleName, reqFor.lastName rLastName, creator.firstName cFirstName, creator.middleName cMiddleName, creator.lastName cLastName, editor.firstName eFirstName, editor.middleName eMiddleName, editor.lastName eLastName, r.createDate, r.editDate');
         $this->db->from(TBL_RECEIVES.' as rec ');
-        $this->db->join(TBL_BILL.' as b ', 'b.receiveId=rec.receiveId');
+        $this->db->join(TBL_BILL.' as b ', 'b.receiveId=rec.receiveId', 'left');
         $this->db->join(TBL_QUOTATIONS.' as q ', 'q.quotationId=rec.quotationId');
         $this->db->join(TBL_VENDORS.' as v ', 'v.vendorsId=q.vendorsId');
         $this->db->join(TBL_REQUISITIONS.' as r ', 'r.requisitionId=q.requisitionId');
@@ -28,7 +28,6 @@ class Purchase_Details_Model extends CI_Model {
         $this->db->where('rec.receiveId', $id);
         $db= $this->db->get();
         if(!$db->num_rows())return array();
-        $array= array();
         $row = $db->result()[0];
         $reqFor= $row->departmentId ? $row->departmentName : $row->userId ? ($row->rFirstName.' '.$row->rMiddleName.' '.$row->rLastName): $row->companyName;
         return array(
