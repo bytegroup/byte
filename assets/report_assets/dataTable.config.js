@@ -12,9 +12,6 @@ $("#tabs").tabs( {
 } );
 
 var table = $('#report-table').DataTable({
-    "scrollX"       : true,
-    "scrollCollapse": true,
-    "scrollY"       : '500px',
     "jqueryUI"      : true
 });
 
@@ -27,7 +24,7 @@ table.columns().eq( 0 ).each( function ( colIdx ) {
     } );
 } );
 var tt = new $.fn.dataTable.TableTools(table, {
-    "sSwfPath": "../assets/report_assets/TableTools/swf/copy_csv_xls_pdf.swf",
+    "sSwfPath": "",
     "aButtons": [
         "copy",
         "print",

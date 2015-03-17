@@ -14,6 +14,7 @@
     .dataTable thead tr:first-child th{border-top:1px #000 solid;}
     .dataTable tfoot tr th{border-bottom:1px #000 solid;}
     .dataTable tfoot input {  width: 100%;  padding: 3px;  box-sizing: border-box;  }
+    .dataTable td div.btn-group ul.dropdown-menu{border-radius: 0!important;}
 </style>
 <h3><?php echo $pageTitle; ?></h3>
 <div class="ui-corner-all" style="background-color: #f1f1f1; padding-top: 20px; margin-bottom: 20px; border: 1px #999 solid;">
@@ -25,13 +26,13 @@ $rows= $data;
 <table id="report-table" class="display" width="100%" cellspacing="0">
     <thead>
     <tr>
-        <th class="report-header">Action</th>
+        <th class="report-header">Actions</th>
         <?php foreach($headers as $header){?><th class="report-header"><?php echo $header;?></th><?php } ?>
     </tr>
     </thead>
     <tfoot>
     <tr>
-        <th class="report-header">Action</th>
+        <th class="report-header">Actions</th>
         <?php foreach($headers as $header){?><th><?php echo $header;?></th><?php } ?>
     </tr>
     </tfoot>
@@ -39,7 +40,15 @@ $rows= $data;
     <tbody>
     <?php foreach($rows as $reqId => $fields): ?>
         <tr>
-            <td><a role="button" href="<?php echo base_url(REPORT_FOLDER.'requisition_details/index/'.$reqId);?>" class="ui-button">Details</a></td>
+            <td>
+                <div class="btn-group">
+                    <a class="btn btn-mini dropdown-toggle" data-toggle="dropdown" href="#"><span class="caret"></span></a>
+                    <ul class="dropdown-menu">
+                        <li><a href="<?php echo base_url(REPORT_FOLDER.'requisition_details/index/'.$reqId);?>">Requisition Details</a></li>
+                        <li><a href="<?php echo base_url(REPORT_FOLDER.'quotation_comparison/index/'.$reqId);?>">Quotation Comparison</a></li>
+                    </ul>
+                </div>
+            </td>
             <?php foreach($fields as $field){?>
                 <td><?php echo $field;?></td>
             <?php } ?>
@@ -86,7 +95,15 @@ $rows= $data;
             dataTable.fnClearTable();
             if(data.length ==0 )return false;
             $.each(data, function(id, val){
-                val.unshift('<a role="button" href="'+baseURL+'requisition_details/index/'+id+'" class="ui-button">Details</a>');
+                val.unshift('' +
+                '<div class="btn-group">' +
+                '<a class="btn btn-mini dropdown-toggle" data-toggle="dropdown" href="#"><span class="caret"></span></a>' +
+                '<ul class="dropdown-menu"> ' +
+                '<li><a href="'+baseURL+'requisition_details/index/'+id+'">Requisition Details</a></li>' +
+                '<li><a href="'+baseURL+'quotation_comparison/index/'+id+'">Quotation Comparison</a></li>' +
+                '</ul>' +
+                '</div>' +
+                '');
                 dataTable.fnAddData(val);
             });
         }
