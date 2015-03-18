@@ -60,13 +60,14 @@ class Bill extends MX_Controller {
                 ->display_as('billParticulars', 'Particulars')
                 ->display_as('billDescription', 'Descriptions')
                 ->display_as('billCheckedById', 'Bill Checked By');
-            $crud->add_fields('receiveId', 'budgetType', 'budgetId', 'billingDate', 'billReceiveDate', 'billType', 'billAmount', 'billPaymentType', 'billCheckedById', 'billSubmittedById', 'billParticulars', 'billDescription', 'creatorId', 'createDate');
+            $crud->add_fields('receiveId', 'companyId', 'budgetType', 'budgetId', 'billingDate', 'billReceiveDate', 'billType', 'billAmount', 'billPaymentType', 'billCheckedById', 'billSubmittedById', 'billParticulars', 'billDescription', 'creatorId', 'createDate');
             $crud->edit_fields('receiveId', 'billNumber', 'budgetType', 'budgetId', 'billingDate', 'billReceiveDate', 'billType', 'billAmount', 'billPaymentType', 'billCheckedById', 'billSubmittedById', 'billParticulars', 'billDescription', 'billPaymentById', 'editorId', 'editDate');
             $crud->required_fields('receiveId', 'budgetId', 'billingDate', 'billReceiveDate', 'billPaymentType', 'billCheckedById', 'billSubmittedById');
             $crud->unset_texteditor('billDescription', 'billParticulars');
             $crud->field_type('billNumber', 'readonly');
             $crud->field_type('billPaymentById', 'readonly');
             $crud->field_type('receiveId', 'hidden', $receiveId);
+            $crud->field_type('companyId', 'hidden', $this->companyId);
             $crud->field_type('creatorId', 'hidden', $this->my_session->userId);
             $crud->field_type('createDate', 'hidden', $time);
             $crud->field_type('editorId', 'hidden', $this->my_session->userId);

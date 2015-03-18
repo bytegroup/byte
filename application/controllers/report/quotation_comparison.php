@@ -85,18 +85,20 @@ class Quotation_Comparison extends MX_Controller {
         $sheet->getRowDimension('1')->setRowHeight(30);
 
         $this->excel->set_meta_data($sheet, $this->model->get_meta_data($reqId), 2, 'A', 3, count($this->model->get_headers())-3);
+        $startRow= $sheet->getHighestRow()+2;
         $endColumn= chr(ord('A') + 3);
-        $sheet->setCellValue('A'.($sheet->getHighestRow()+1), '');
-        $sheet->mergeCells('A'.($sheet->getHighestRow()+1).':'.$endColumn.($sheet->getHighestRow()+1));
+        $sheet->setCellValue('A'.$startRow, '');
+        $sheet->getStyle('A'.$startRow)->applyFromArray($style);
+        $sheet->mergeCells('A'.$startRow.':'.$endColumn.$startRow);
         foreach($vendors as $vendor){
             $startColumn= chr(ord($endColumn) + 1);
-            $endColumn= chr(ord($startColumn) + 9);
-            $sheet->setCellValue($startColumn.($sheet->getHighestRow()+1), $vendor);
-            $sheet->mergeCells($startColumn.($sheet->getHighestRow()+1).':'.$endColumn.($sheet->getHighestRow()+1));
+            $endColumn= chr(ord($startColumn) + 8);
+            $sheet->setCellValue($startColumn.$startRow, $vendor);
+            $sheet->getStyle($startColumn.$startRow)->applyFromArray($style);
+            $sheet->mergeCells($startColumn.$startRow.':'.$endColumn.$startRow);
         }
 
-
-        $this->excel->set_table($sheet, $this->model->get_headers(), $this->model->get_data($reqId), $sheet->getHighestRow()+2);
+        $this->excel->set_table($sheet, $this->model->get_headers(), $this->model->get_data($reqId), $sheet->getHighestRow()+1);
         $this->excel->set_column_width_auto($sheet);
         $this->excel->set_all_borders($sheet);
 
