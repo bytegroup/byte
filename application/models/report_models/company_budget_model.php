@@ -13,15 +13,11 @@ class Company_Budget_Model extends CI_Model {
     }
 
     private function _data_with_filter($filters){
-        $fromDate= !$filters['from_date'] ? '': mdate('%y', strtotime($filters['from_date']));
-        $toDate  = !$filters['to_date'] ? mdate('%y', time()): mdate('%y', strtotime($filters['to_date']));
         $this->db->select('c.companyName, b.budgetId, b.budgetHead, b.budgetQuantity, b.budgetDescription, b.BudgetQuantity, b.budgetAmount, b.budgetUtilization');
         $this->db->from(TBL_BUDGET.' as b ');
         $this->db->join(TBL_COMPANIES.' as c ', 'c.companyId=b.companyId');
 
-        if(!$fromDate)$this->db->where('b.budgetYear <= ', $toDate);
-        else $this->db->where('b.budgetYear BETWEEN "'.$fromDate.'" AND "'.$toDate.'" ');
-
+        if($filters['year']) $this->db->where('b.budgetYear', $filters['year']);
         if($filters['company'])$this->db->where('b.companyId', $filters['company']);
         if($filters['budget_head'])$this->db->where('b.budgetHead', $filters['budget_head']);
         if($filters['budget_type'])$this->db->where('b.budgetType', $filters['budget_type']);
@@ -93,12 +89,16 @@ class Company_Budget_Model extends CI_Model {
 
     public function get_filters(){
         return array(
-            'From Date'     => 'date',
-            'To Date'       => 'date',
+            'Year'       => array('select', $this->year_generator(2010, 20)),
+            'Budget Type'      => array('select', array('Capital'=> 'CAPITAL', 'Revenue'=> 'REVENUE')),
             'Company'       => array('select', $this->get_company_list()),
-            'Budget Head'    => array('select', $this->get_budget_head_list()),
-            'Budget Type'      => array('select', array('Capital'=> 'CAPITAL', 'Revenue'=> 'REVENUE'))
+            'Budget Head'    => array('select', $this->get_budget_head_list())
         );
+    }
+    function year_generator($start, $noOfYear){
+        $year= array();
+        for($i=0; $i<=$noOfYear; $i++){$year[$start + $i]=$start+$i;}
+        return $year;
     }
 }
 ?>

@@ -38,6 +38,7 @@ class Bill_Report_Model extends CI_Model {
         if(!$fromDate)$this->db->where('b.billReceiveDate <= ', $toDate);
         else $this->db->where('b.billReceiveDate BETWEEN "'.$fromDate.'" AND "'.$toDate.'" ');
 
+        if($filters['bill_no'])$this->db->where('b.billNumber', $filters['bill_no']);
         if($filters['company'])$this->db->where('b.companyId', $filters['company']);
         if($filters['budget_head']) $this->db->where('bgt.budgetHead', $filters['budget_head']);
         if($filters['budget_type']) $this->db->where('b.budgetType', $filters['budget_type']);
@@ -154,7 +155,7 @@ class Bill_Report_Model extends CI_Model {
             'Budget Type'   => array('select', array('Capital'=> 'CAPITAL', 'Revenue'=> 'REVENUE')),
             'Budget Head'   => array('select', $this->get_budget_head()),
             'Vendor'        => array('select', $this->get_vendor_list()),
-            'Bill No.'      => 'text'
+            'Bill No'      => 'text'
         );
     }
 }

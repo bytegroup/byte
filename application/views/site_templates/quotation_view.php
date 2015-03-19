@@ -8,13 +8,14 @@
 ?>
 <style type="text/css">
     #items_input_box ul{width: 100%;list-style: none; margin: 0;}
-    #items_input_box ul li ul li{display: inline-block;padding: 0 4px; width: 100px; }
+    #items_input_box ul li ul li{display: inline-block;padding: 0 4px; width: 80px; }
     #items_input_box ul li ul li:first-child{width: 180px;}
     #items_input_box ul li:last-child{font-weight: bold; text-align: right; color: #356635;}
     #items_input_box ul li ul{border-bottom: 1px #9acc9a solid;}
     #items_input_box ul li ul.items-table-header{text-align: center;}
 
-    #items_input_box ul ul li input[type="number"]{width: 90px; margin-top: 8px;}
+    #items_input_box ul ul li input[type="number"]{width: 73px; margin-top: 5px;}
+    #items_input_box ul ul li input[type="text"]{width: 75px; margin-top: 8px;}
     td span{display: inline-block!important;}
     #items_input_box ul.read li ul.items-table-header{text-align: left; background-color: #9acc9a;}
     #items_input_box ul.read li ul li:nth-child(2){width: 220px;}
@@ -38,6 +39,11 @@
         $("#collapseIT-Inventory").removeClass("in").addClass("in");
         var checkbox=$('#items_input_box input[type="checkbox"]');
         var numberbox= $('#items_input_box input[type="number"]');
+        $('#items_input_box input[type="text"].warranty-date').datepicker({
+            changeMonth: true,
+            changeYear: true,
+            dateFormat: "yy-mm-dd"
+        });
         $(numberbox).numeric();
         checkbox.each(function(){
             if(state==='add')$(this).attr("checked","checked");

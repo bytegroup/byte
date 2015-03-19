@@ -55,7 +55,7 @@ class Requisition_Details_Model extends CI_Model {
     }
 
     public function get_data($id){
-        $this->db->select('c.categoryName, i.itemName, i.itemCode, rd.orderedQuantity, u.unitName, s.stockQuantity');
+        $this->db->select('c.categoryName, i.itemName, i.itemCode, i.minimumQuantity, rd.orderedQuantity, u.unitName, s.stockQuantity');
         $this->db->from(TBL_REQUISITIONS_DETAIL.' as rd ');
         $this->db->join(TBL_ITEMS_MASTER.' as i ', 'i.itemMasterId=rd.itemMasterId');
         $this->db->join(TBL_CATEGORIES.' as c ', 'c.categoryId=i.categoryId');
@@ -67,13 +67,13 @@ class Requisition_Details_Model extends CI_Model {
         $array= array(); $i=0;
         foreach($db->result() as $row):
             $array[]= array(
-                'SL'=> ++$i,
-                'Category' => $row->categoryName,
-                'Item Name' => $row->itemName,
-                'Item Code' => $row->itemCode,
-                'Qty' => $row->orderedQuantity,
-                'Unit' => $row->unitName,
-                'Minimum Stock' => 0,
+                'SL'            => ++$i,
+                'Category'      => $row->categoryName,
+                'Item Name'     => $row->itemName,
+                'Item Code'     => $row->itemCode,
+                'Qty'           => $row->orderedQuantity,
+                'Unit'          => $row->unitName,
+                'Minimum Stock' => $row->minimumQuantity,
                 'Current Stock' => $row->stockQuantity
             );
         endforeach;

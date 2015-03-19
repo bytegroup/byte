@@ -68,10 +68,11 @@ class Purchase_Details_Model extends CI_Model {
     }
 
     public function get_data($id){
-        $this->db->select('c.categoryName, i.itemName, i.itemCode, rd.receiveQuantity, qd.unitPrice, u.unitName');
+        $this->db->select('c.categoryName, i.itemName, i.itemCode, r.receiveDate, rd.warrantyEndDate, qd.productBrand, qd.productOrigin, qd.productType, qd.productRemarks, rd.receiveQuantity, qd.unitPrice, u.unitName, q.paymentType');
         $this->db->from(TBL_RECEIVES_DETAIL.' as rd ');
         $this->db->join(TBL_RECEIVES.' as r ', 'r.receiveId=rd.receiveId');
         $this->db->join(TBL_QUOTATIONS_DETAIL.' as qd ', 'qd.quotationId=r.quotationId');
+        $this->db->join(TBL_QUOTATIONS.' as q ', 'q.quotationId=r.quotationId');
         $this->db->join(TBL_ITEMS_MASTER.' as i ', 'i.itemMasterId=rd.itemMasterId');
         $this->db->join(TBL_CATEGORIES.' as c ', 'c.categoryId=i.categoryId');
         $this->db->join(TBL_UNITS.' as u ', 'u.unitId=i.unitId');
@@ -81,6 +82,10 @@ class Purchase_Details_Model extends CI_Model {
         if(!$db->num_rows()) return array();
         $array= array(); $i=0;
         foreach($db->result() as $row):
+            $startDate  = date_create($row->receiveDate);
+            $endDate    = date_create($row->warrantyEndDate);
+            $period   = $endDate > $startDate ? date_diff($startDate, $endDate)->format('%a days') : '0 days';
+
             $array[]= array(
                 'SL'=> ++$i,
                 'Category'          => $row->categoryName,
@@ -90,12 +95,13 @@ class Purchase_Details_Model extends CI_Model {
                 'Unit'              => $row->unitName,
                 'Unit Price'        => $row->unitPrice,
                 'Total Amount'      => $row->unitPrice * $row->receiveQuantity,
-                'Product Brand'     => '',
-                'Product Origin'    => '',
-                'Product Type'      => '',
-                'Product Warranty'  => '',
-                'Payment Type'      => '',
-                'Product Remarks'   => ''
+                'Product Brand'     => $row->productBrand,
+                'Product Origin'    => $row->productOrigin,
+                'Product Type'      => $row->productType,
+                'Warranty Period'   => $period,
+                'Warranty End Date' => $row->warrantyEndDate,
+                'Payment Type'      => $row->paymentType,
+                'Product Remarks'   => $row->productRemarks
             );
         endforeach;
         return $array;
@@ -114,7 +120,8 @@ class Purchase_Details_Model extends CI_Model {
             'Product Brand',
             'Product Origin',
             'Product Type',
-            'Product Warranty',
+            'Warranty Period',
+            'Warranty End Date',
             'Payment Type',
             'Product Remarks'
         );

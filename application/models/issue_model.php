@@ -138,6 +138,16 @@ Class Issue_model extends CI_Model {
         }
         return $array;
     }
+    function get_company_code_stockId($stockId){
+        if(!$stockId) return '';
+        $this->db->select('c.companyCode');
+        $this->db->from(TBL_STOCK.' as s ');
+        $this->db->join(TBL_COMPANIES.' as c ', 'c.companyId=s.companyId');
+        $this->db->where('s.stockId', $stockId);
+        $qry= $this->db->get();
+        if(!$qry->num_rows()) return '';
+        return $qry->result()[0]->companyCode;
+    }
 }
 
 ?>

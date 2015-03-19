@@ -27,7 +27,7 @@ class Stock_Report_Model extends CI_Model {
         return $db=$this->db->get();
     }
     private function _data_without_filter(){
-        $this->db->select('c.companyName, cat.categoryName, i.itemName, i.itemCode, i.itemDescription, s.stockId, s.stockQuantity, s.issueQuantity, s.damageQuantity');
+        $this->db->select('c.companyName, cat.categoryName, i.itemName, i.itemCode, i.minimumQuantity, i.itemDescription, s.stockId, s.stockQuantity, s.issueQuantity, s.damageQuantity');
         $this->db->from(TBL_STOCK.' as s ');
         $this->db->join(TBL_COMPANIES.' as c ', 'c.companyId=s.companyId');
         $this->db->join(TBL_ITEMS_MASTER.' as i ', 'i.itemMasterId=s.itemMasterId');
@@ -36,6 +36,10 @@ class Stock_Report_Model extends CI_Model {
         return $db=$this->db->get();
     }
 
+    /*TODO - NEW Stock calculation*/
+    /*TODO - Repaired Stock calculation*/
+    /*TODO - Repairable Damage stock calculation*/
+    /*TODO - Permanent Damage stock calculation*/
     function get_data($filters=array()){
         $db = !count($filters) ? $this->_data_without_filter():$this->_data_with_filter($filters);
         if(!$db->num_rows()) return array();
@@ -48,7 +52,7 @@ class Stock_Report_Model extends CI_Model {
                 $row->itemName,
                 $row->itemCode,
                 $row->itemDescription,
-                0,
+                $row->minimumQuantity,
                 $row->stockQuantity,
                 0,
                 $row->issueQuantity,
@@ -124,8 +128,7 @@ class Stock_Report_Model extends CI_Model {
             'Company'       => array('select', $this->get_company_list()),
             'Department'    => array('select', $this->get_department_list()),
             'Category'      => array('select', $this->get_categories_list()),
-            'Item'          => array('select', $this->get_item_list()),
-            'Date'     => 'date'
+            'Item'          => array('select', $this->get_item_list())
         );
     }
 }

@@ -56,6 +56,8 @@ class Others_Bill extends MX_Controller {
                 ->display_as('billType', 'Bill Type')
                 ->display_as('billAmount', 'Bill Amount')
                 ->display_as('billPaymentType', 'Payment Type')
+                ->display_as('invoiceNumber', 'Invoice No.')
+                ->display_as('invoiceDate', 'Invoice Date')
                 ->display_as('billSubmittedById', 'Bill Submitted By')
                 ->display_as('billPaymentById', 'Bill Payment By')
                 ->display_as('billParticulars', 'Particulars')
@@ -64,9 +66,9 @@ class Others_Bill extends MX_Controller {
                 ->display_as('serviceAgreementId', 'Bill Type')
                 ->display_as('vendorsId', 'Vendor Name')
                 ->display_as('companyId', 'Company Name');
-            $crud->add_fields('companyId', 'budgetType', 'budgetId', 'billingDate', 'billReceiveDate', 'billType', 'serviceAgreementId', 'vendorsId', 'billAmount', 'billPaymentType', 'billCheckedById', 'billSubmittedById', 'billParticulars', 'billDescription', 'creatorId', 'createDate');
-            $crud->edit_fields('companyId', 'billNumber', 'budgetType', 'budgetId', 'billingDate', 'billReceiveDate', 'billType', 'serviceAgreementId', 'vendorsId', 'billAmount', 'billPaymentType', 'billCheckedById', 'billSubmittedById', 'billParticulars', 'billDescription', 'billPaymentById', 'editorId', 'editDate');
-            $crud->set_read_fields('companyId', 'billNumber', 'budgetType', 'budgetId', 'billingDate', 'billReceiveDate', 'billType', 'serviceAgreementId', 'vendorsId', 'billAmount', 'billPaymentType', 'billCheckedById', 'billSubmittedById', 'billParticulars', 'billDescription', 'billPaymentById');
+            $crud->add_fields('companyId', 'budgetType', 'budgetId', 'billingDate', 'billReceiveDate', 'billType', 'serviceAgreementId', 'vendorsId', 'billAmount', 'billPaymentType', 'invoiceNumber', 'invoiceDate', 'billCheckedById', 'billSubmittedById', 'billParticulars', 'billDescription', 'creatorId', 'createDate');
+            $crud->edit_fields('companyId', 'billNumber', 'budgetType', 'budgetId', 'billingDate', 'billReceiveDate', 'billType', 'serviceAgreementId', 'vendorsId', 'billAmount', 'billPaymentType', 'invoiceNumber', 'invoiceDate', 'billCheckedById', 'billSubmittedById', 'billParticulars', 'billDescription', 'billPaymentById', 'editorId', 'editDate');
+            $crud->set_read_fields('companyId', 'billNumber', 'budgetType', 'budgetId', 'billingDate', 'billReceiveDate', 'billType', 'serviceAgreementId', 'vendorsId', 'billAmount', 'billPaymentType', 'invoiceNumber', 'invoiceDate', 'billCheckedById', 'billSubmittedById', 'billParticulars', 'billDescription', 'billPaymentById');
             $crud->required_fields('companyId', 'budgetId', 'billingDate', 'billReceiveDate', 'billPaymentType', 'billCheckedById', 'billSubmittedById', 'serviceAgreementId', 'vendorsId');
             $crud->unset_texteditor('billDescription', 'billParticulars');
             $crud->field_type('billNumber', 'readonly');

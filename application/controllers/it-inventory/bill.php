@@ -55,13 +55,15 @@ class Bill extends MX_Controller {
                 ->display_as('billType', 'Bill Type')
                 ->display_as('billAmount', 'Bill Amount')
                 ->display_as('billPaymentType', 'Payment Type')
+                ->display_as('invoiceNumber', 'Invoice No.')
+                ->display_as('invoiceDate', 'Invoice Date')
                 ->display_as('billSubmittedById', 'Bill Submitted By')
                 ->display_as('billPaymentById', 'Bill Payment By')
                 ->display_as('billParticulars', 'Particulars')
                 ->display_as('billDescription', 'Descriptions')
                 ->display_as('billCheckedById', 'Bill Checked By');
-            $crud->add_fields('receiveId', 'companyId', 'budgetType', 'budgetId', 'billingDate', 'billReceiveDate', 'billType', 'billAmount', 'billPaymentType', 'billCheckedById', 'billSubmittedById', 'billParticulars', 'billDescription', 'creatorId', 'createDate');
-            $crud->edit_fields('receiveId', 'billNumber', 'budgetType', 'budgetId', 'billingDate', 'billReceiveDate', 'billType', 'billAmount', 'billPaymentType', 'billCheckedById', 'billSubmittedById', 'billParticulars', 'billDescription', 'billPaymentById', 'editorId', 'editDate');
+            $crud->add_fields('receiveId', 'companyId', 'budgetType', 'budgetId', 'billingDate', 'billReceiveDate', 'billType', 'billAmount', 'billPaymentType', 'invoiceNumber', 'invoiceDate', 'billCheckedById', 'billSubmittedById', 'billParticulars', 'billDescription', 'creatorId', 'createDate');
+            $crud->edit_fields('receiveId', 'billNumber', 'budgetType', 'budgetId', 'billingDate', 'billReceiveDate', 'billType', 'billAmount', 'billPaymentType', 'invoiceNumber', 'invoiceDate', 'billCheckedById', 'billSubmittedById', 'billParticulars', 'billDescription', 'billPaymentById', 'editorId', 'editDate');
             $crud->required_fields('receiveId', 'budgetId', 'billingDate', 'billReceiveDate', 'billPaymentType', 'billCheckedById', 'billSubmittedById');
             $crud->unset_texteditor('billDescription', 'billParticulars');
             $crud->field_type('billNumber', 'readonly');

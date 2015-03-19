@@ -58,12 +58,13 @@ class Quotation extends MX_Controller {
                 ->display_as('quotationTitle', 'Quotation Title')
                 ->display_as('quotationFile', 'Attachment')
                 ->display_as('quotationDescription', 'Description')
+                ->display_as('paymentType', 'Payment Type')
                 ->display_as('finalTotalPrice', 'Total Price')
                 ->display_as('quotationDate','Date');
 
-            $crud->add_fields('requisitionId', 'quotationTitle', 'quotationDescription', 'vendorsId', 'quotationDate', 'quotationFile', 'items', 'creatorId', 'createDate');
-            $crud->edit_fields('requisitionId', 'quotationNumber', 'quotationTitle', 'quotationDescription', 'vendorsId', 'quotationDate', 'quotationFile', 'items', 'editorId', 'editDate');
-            $crud->set_read_fields('requisitionId', 'quotationNumber', 'quotationTitle', 'quotationDescription', 'vendorsId', 'quotationDate', 'quotationFile', 'items');
+            $crud->add_fields('requisitionId', 'quotationTitle', 'quotationDescription', 'vendorsId', 'quotationDate', 'paymentType', 'quotationFile', 'items', 'creatorId', 'createDate');
+            $crud->edit_fields('requisitionId', 'quotationNumber', 'quotationTitle', 'quotationDescription', 'vendorsId', 'quotationDate', 'paymentType', 'quotationFile', 'items', 'editorId', 'editDate');
+            $crud->set_read_fields('requisitionId', 'quotationNumber', 'quotationTitle', 'quotationDescription', 'vendorsId', 'quotationDate', 'paymentType', 'quotationFile', 'items');
             $crud->required_fields(array('requisitionId','quotationTitle', 'vendorsId', 'quotationDate'));
             $crud->unique_fields('quotationTitle');
             $crud->unset_texteditor('quotationDescription');
@@ -179,11 +180,16 @@ class Quotation extends MX_Controller {
         $items= $post['items'];
         foreach($items as $item){
             $data= array(
-                'quotationId'    => $key,
-                'itemMasterId'   => $item,
-                'orderedQuantity'=> $post['quantity-item-'.$item],
-                'unitPrice'      => $post['unitprice-item-'.$item],
-                'quotationPrice' => $post['totalprice-item-'.$item]
+                'quotationId'       => $key,
+                'itemMasterId'      => $item,
+                'productBrand'      => $post['brand-item-'.$item],
+                'productOrigin'     => $post['origin-item-'.$item],
+                'productType'       => $post['type-item-'.$item],
+                'productWarranty'   => $post['warranty-item-'.$item],
+                'productRemarks'    => $post['remarks-item-'.$item],
+                'orderedQuantity'   => $post['quantity-item-'.$item],
+                'unitPrice'         => $post['unitprice-item-'.$item],
+                'quotationPrice'    => $post['totalprice-item-'.$item]
             );
             $this->db->insert(TBL_QUOTATIONS_DETAIL, $data);
         }
@@ -205,10 +211,15 @@ class Quotation extends MX_Controller {
         }
         foreach($items as $item){
             $data= array(
-                //'quotationId'  => $key,
-                'orderedQuantity'=> $post['quantity-item-'.$item],
-                'unitPrice'      => $post['unitprice-item-'.$item],
-                'quotationPrice' => $post['totalprice-item-'.$item]
+                //'quotationId'     => $key,
+                'productBrand'      => $post['brand-item-'.$item],
+                'productOrigin'     => $post['origin-item-'.$item],
+                'productType'       => $post['type-item-'.$item],
+                'productWarranty'   => $post['warranty-item-'.$item],
+                'productRemarks'    => $post['remarks-item-'.$item],
+                'orderedQuantity'   => $post['quantity-item-'.$item],
+                'unitPrice'         => $post['unitprice-item-'.$item],
+                'quotationPrice'    => $post['totalprice-item-'.$item]
             );
             $ql = $this->db->select('quotationId, itemMasterId')
                 ->from(TBL_QUOTATIONS_DETAIL)
@@ -219,11 +230,16 @@ class Quotation extends MX_Controller {
             }
             else {
                 $data= array(
-                    'quotationId'    => $key,
-                    'itemMasterId'   => $item,
-                    'orderedQuantity'=> $post['quantity-item-'.$item],
-                    'unitPrice'      => $post['unitprice-item-'.$item],
-                    'quotationPrice' => $post['totalprice-item-'.$item]
+                    'quotationId'       => $key,
+                    'itemMasterId'      => $item,
+                    'productBrand'      => $post['brand-item-'.$item],
+                    'productOrigin'     => $post['origin-item-'.$item],
+                    'productType'       => $post['type-item-'.$item],
+                    'productWarranty'   => $post['warranty-item-'.$item],
+                    'productRemarks'    => $post['remarks-item-'.$item],
+                    'orderedQuantity'   => $post['quantity-item-'.$item],
+                    'unitPrice'         => $post['unitprice-item-'.$item],
+                    'quotationPrice'    => $post['totalprice-item-'.$item]
                 );
                 $this->db->insert(TBL_QUOTATIONS_DETAIL, $data);
             }
@@ -238,18 +254,31 @@ class Quotation extends MX_Controller {
         $productsCheckbox=''
             .'<ul>'
             .'<li><ul class="items-table-header">'
-            .'<li>&nbsp</li><li>Quantity</li><li>Unit Price</li><li>Total Price</li>'
+            .'<li>&nbsp</li><li>Brand</li><li>Origin</li><li>Type</li><li>Warranty</li><li>Remarks</li><li>Quantity</li><li>Unit Price</li><li>Total Price</li>'
             .'</ul></li>'
             .'';
         foreach($orderedProducts as $id=>$item){
-            $flag= isset($quotationDetails[$item['itemMasterId']])? true : false;
-            $total+= $flag ? $quotationDetails[$item['itemMasterId']]['totalPrice']: 0;
-            $checked= $flag ? 'checked="true"' : '';
-            $unitPrice= $flag ? $quotationDetails[$item['itemMasterId']]['unitPrice'] : '';
-            $totalPrice= $flag ? $quotationDetails[$item['itemMasterId']]['totalPrice'] : '';
-            $productsCheckbox.='<li><ul id="'.$item['itemMasterId'].'">'
-            .'<li><input type="checkbox" '.$checked.' name="items[]" id="item-'.$item['itemMasterId'].'" value="'.$item['itemMasterId'].'"/> '.$item['itemMasterName'].'</li>'
-            .'<li><input type="number" placeholder="Quantity" name="quantity-item-'.$item['itemMasterId'].'" min="0" id="quantity-item-'.$item['itemMasterId'].'" readonly value="'.$item['orderedQuantity'].'"/></li>';
+            $flag       = isset($quotationDetails[$item['itemMasterId']])? true : false;
+            $total     += $flag ? $quotationDetails[$item['itemMasterId']]['totalPrice']: 0;
+            $checked    = $flag ? 'checked="true"' : '';
+            $brand      = $flag ? $quotationDetails[$item['itemMasterId']]['brand'] : '';
+            $origin     = $flag ? $quotationDetails[$item['itemMasterId']]['origin'] : '';
+            $type       = $flag ? $quotationDetails[$item['itemMasterId']]['type'] : '';
+            $warranty   = $flag ? $quotationDetails[$item['itemMasterId']]['warranty'] : '';
+            $remarks    = $flag ? $quotationDetails[$item['itemMasterId']]['remarks'] : '';
+            $unitPrice  = $flag ? $quotationDetails[$item['itemMasterId']]['unitPrice'] : '';
+            $totalPrice = $flag ? $quotationDetails[$item['itemMasterId']]['totalPrice'] : '';
+
+            $productsCheckbox.='<li><ul id="'.$item['itemMasterId'].'">';
+            $productsCheckbox.='<li><input type="checkbox" '.$checked.' name="items[]" id="item-'.$item['itemMasterId'].'" value="'.$item['itemMasterId'].'"/> '.$item['itemMasterName'].'</li>';
+
+            $productsCheckbox.='<li><input type="text" placeholder="Brand" name="brand-item-'.$item['itemMasterId'].'" id="brand-item-'.$item['itemMasterId'].'" value="'.$brand.'"/></li>';
+            $productsCheckbox.='<li><input type="text" placeholder="Origin" name="origin-item-'.$item['itemMasterId'].'" id="origin-item-'.$item['itemMasterId'].'" value="'.$origin.'"/></li>';
+            $productsCheckbox.='<li><input type="text" placeholder="Type" name="type-item-'.$item['itemMasterId'].'" id="type-item-'.$item['itemMasterId'].'" value="'.$type.'"/></li>';
+            $productsCheckbox.='<li><input type="text" class="warranty-date" placeholder="Warranty" name="warranty-item-'.$item['itemMasterId'].'" id="warranty-item-'.$item['itemMasterId'].'" value="'.$warranty.'"/></li>';
+            $productsCheckbox.='<li><input type="text" placeholder="Remarks" name="remarks-item-'.$item['itemMasterId'].'" id="remarks-item-'.$item['itemMasterId'].'" value="'.$remarks.'"/></li>';
+
+            $productsCheckbox.='<li><input type="number" placeholder="Quantity" name="quantity-item-'.$item['itemMasterId'].'" min="0" id="quantity-item-'.$item['itemMasterId'].'" readonly value="'.$item['orderedQuantity'].'"/></li>';
 
             $productsCheckbox.='<li><input type="number" placeholder="Unit Price" name="unitprice-item-'.$item['itemMasterId'].'" min="0" id="unitprice-item-'.$item['itemMasterId'].'" value="'.$unitPrice.'"/></li>';
 
@@ -311,7 +340,15 @@ class Quotation extends MX_Controller {
         $db = $this->db->get();
         $array = array();
         foreach($db->result() as $row):
-            $array[$row->itemMasterId] = array("unitPrice" => $row->unitPrice, 'totalPrice'=> $row->quotationPrice);
+            $array[$row->itemMasterId] = array(
+                'brand'     => $row->productBrand,
+                'origin'    => $row->productOrigin,
+                'type'      => $row->productType,
+                'warranty'  => $row->productWarranty,
+                'remarks'   => $row->productRemarks,
+                'unitPrice' => $row->unitPrice,
+                'totalPrice'=> $row->quotationPrice
+            );
         endforeach;
         return $array;
     }

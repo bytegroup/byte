@@ -76,20 +76,21 @@ class Quotation_Comparison_Model extends CI_Model {
         return $array;
     }
     private function _comparison_data($quotId){
-        $this->db->select('qd.itemMasterId, qd.orderedQuantity, qd.unitPrice, qd.quotationPrice');
+        $this->db->select('qd.*, q.paymentType');
         $this->db->from(TBL_QUOTATIONS_DETAIL.' as qd ');
-        $this->db->where('quotationId', $quotId);
+        $this->db->join(TBL_QUOTATIONS.' as q ', 'q.quotationId=qd.quotationId');
+        $this->db->where('qd.quotationId', $quotId);
         $db=$this->db->get();
         if(!$db->num_rows()) return array();
         $array= array(); $i=0;
         foreach($db->result() as $row):
             $array[$row->itemMasterId]= array(
-                '',
-                '',
-                '',
-                '',
-                '',
-                '',
+                $row->productBrand,
+                $row->productOrigin,
+                $row->productType,
+                $row->productWarranty,
+                $row->paymentType,
+                $row->productRemarks,
                 $row->orderedQuantity,
                 $row->unitPrice,
                 $row->quotationPrice

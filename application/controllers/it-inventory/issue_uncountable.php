@@ -38,6 +38,10 @@ class Issue_Uncountable extends MX_Controller {
         }
         $this->stockId=$stockId;
         $this->isCountable= $this->itModel->isCountableStock($stockId);
+        if($this->isCountable){
+            redirect(base_url(IT_MODULE_FOLDER.'issue/index').'/'.$stockId);
+            die();
+        }
 
         try{
             $this->load->library('grocery_CRUD');
@@ -52,6 +56,7 @@ class Issue_Uncountable extends MX_Controller {
             $crud->set_table(TBL_ISSUES);
             $crud->set_relation("departmentId", TBL_DEPARTMENTS, '{departmentName}');
             $crud->set_relation("issueUserId", TBL_USERS, '{firstName} {middleName} {lastName}');
+            $crud->set_relation('issueById', TBL_USERS, '{firstName} {middleName} {lastName}');
             $crud->where('stockId', $stockId);
             $crud->set_subject('Issue');
 
@@ -62,13 +67,16 @@ class Issue_Uncountable extends MX_Controller {
                 ->display_as('issueUserId', 'Employee')
                 ->display_as('issueDescription', 'Description')
                 ->display_as('stockQuantity', 'Stock Quantity')
-                ->display_as('issueQuantity','Issue Quantity');
+                ->display_as('issueQuantity','Issue Quantity')
+                ->display_as('issueById', 'Issue By')
+                ->display_as('issueNumber', 'Issue No.');
 
-            $crud->add_fields('stockId', 'company', 'issueTo', 'departmentId', 'issueUserId', 'issueDate',  'issueDescription', 'stockQuantity', 'issueQuantity', 'items', 'creatorId', 'createDate');
-            $crud->edit_fields('stockId', 'company', 'issueTo', 'departmentId', 'issueUserId', 'issueDate',  'issueDescription', 'stockQuantity', 'issueQuantity', 'items', 'editorId', 'editDate');
-            $crud->set_read_fields('company', 'issueTo', 'departmentId', 'issueUserId', 'issueDate',  'issueDescription', 'stockQuantity', 'issueQuantity', 'items');
+            $crud->add_fields('stockId', 'company', 'issueTo', 'departmentId', 'issueUserId', 'issueDate', 'issueById',  'issueDescription', 'stockQuantity', 'issueQuantity', 'items', 'creatorId', 'createDate');
+            $crud->edit_fields('issueNumber', 'stockId', 'company', 'issueTo', 'departmentId', 'issueUserId', 'issueDate', 'issueById',  'issueDescription', 'stockQuantity', 'issueQuantity', 'items', 'editorId', 'editDate');
+            $crud->set_read_fields('issueNumber', 'company', 'issueTo', 'departmentId', 'issueUserId', 'issueDate', 'issueById',  'issueDescription', 'stockQuantity', 'issueQuantity', 'items');
             $crud->required_fields(array('issueTo', 'issueDate', 'issueQuantity'));
             $crud->unset_texteditor('issueDescription');
+            $crud->field_type('issueNumber', 'readonly');
             $crud->field_type('stockId', 'hidden', $stockId);
             $crud->field_type('creatorId', 'hidden', $this->my_session->userId);
             $crud->field_type('createDate', 'hidden', $time);
@@ -242,6 +250,12 @@ class Issue_Uncountable extends MX_Controller {
     }
     function callback_after_insert_issue($post, $key){
         $issuedItems= $post['selectedItems'];
+        $code= $this->issueModel->get_company_code($this->stockId);
+        $this->db->update(
+            TBL_ISSUES,
+            array('issueNumber' => '' . $code . '/issue/' . mdate("%y", time()) . '/' . $key),
+            array('issueId' => $key)
+        );
         foreach($issuedItems as $index=>$id):
             $this->db->insert(
                 TBL_ISSUE_UNCOUNTABLE_DETAIL,

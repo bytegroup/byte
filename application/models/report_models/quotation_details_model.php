@@ -30,10 +30,9 @@ class Quotation_Details_Model extends CI_Model {
         $row = $db->result()[0];
         $reqFor= $row->departmentId ? $row->departmentName : $row->userId ? ($row->rFirstName.' '.$row->rMiddleName.' '.$row->rLastName): $row->companyName;
         return array(
-            'Quotation No.' => $row->quotationNumber,
-            'Quotation Date'=> $row->quotationDate,
-            'Vendor' => $row->vendorsName,
-            'Res Person' => '',
+            'Quotation No.'     => $row->quotationNumber,
+            'Quotation Date'    => $row->quotationDate,
+            'Vendor'            => $row->vendorsName,
             'Requisition No.'   => $row->requisitionNumber,
             'Requisition Date'  => $row-> requisitionCreateDate,
             'Company Name'      => $row->companyName,
@@ -50,7 +49,6 @@ class Quotation_Details_Model extends CI_Model {
             'Quotation No.',
             'Quotation Date',
             'Vendor',
-            'Res Person',
             'Requisition No.',
             'Requisition Date',
             'Company Name',
@@ -63,12 +61,13 @@ class Quotation_Details_Model extends CI_Model {
     }
 
     public function get_data($id){
-        $this->db->select('c.categoryName, i.itemName, i.itemCode, qd.orderedQuantity, qd.unitPrice, qd.quotationPrice, u.unitName');
+        $this->db->select('c.categoryName, i.itemName, i.itemCode, qd.productBrand, q.paymentType, qd.productOrigin, qd.productType, qd.productWarranty, qd.productRemarks, , qd.orderedQuantity, qd.unitPrice, qd.quotationPrice, u.unitName');
         $this->db->from(TBL_QUOTATIONS_DETAIL.' as qd ');
+        $this->db->join(TBL_QUOTATIONS.' as q ', 'q.quotationId=qd.quotationId');
         $this->db->join(TBL_ITEMS_MASTER.' as i ', 'i.itemMasterId=qd.itemMasterId');
         $this->db->join(TBL_CATEGORIES.' as c ', 'c.categoryId=i.categoryId');
         $this->db->join(TBL_UNITS.' as u ', 'u.unitId=i.unitId');
-        $this->db->where('quotationId', $id);
+        $this->db->where('qd.quotationId', $id);
         $db=$this->db->get();
         if(!$db->num_rows()) return array();
         $array= array(); $i=0;
@@ -82,12 +81,12 @@ class Quotation_Details_Model extends CI_Model {
                 'Unit'              => $row->unitName,
                 'Unit Price'        => $row->unitPrice,
                 'Total Amount'      => $row->quotationPrice,
-                'Product Brand'     => '',
-                'Product Origin'    => '',
-                'Product Type'      => '',
-                'Product Warranty'  => '',
-                'Payment Type'      => '',
-                'Product Remarks'   => ''
+                'Product Brand'     => $row->productBrand,
+                'Product Origin'    => $row->productOrigin,
+                'Product Type'      => $row->productType,
+                'Product Warranty'  => $row->productWarranty,
+                'Payment Type'      => $row->paymentType,
+                'Product Remarks'   => $row->productRemarks
             );
         endforeach;
         return $array;

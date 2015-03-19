@@ -40,12 +40,14 @@ class Item_Master extends MX_Controller {
                 ->display_as('unitId','Unit')
                 ->display_as('categoryId','Category')
                 ->display_as('itemCode','Code')
+                ->display_as('minimumQuantity', 'Minimum Quantity')
                 ->display_as('itemDescription','Description')
                 ->display_as('serialNumber','Serial No.')
                 ->display_as('itemType','Item Type');
 
-            $crud->add_fields('categoryId', 'itemName', 'itemCode', 'itemType', 'unitId', 'itemDescription', 'active', 'creatorId', 'createDate');
-            $crud->edit_fields('categoryId', 'itemName', 'itemCode', 'itemType', 'unitId', 'itemDescription', 'active', 'editorId', 'editDate');
+            $crud->add_fields('categoryId', 'itemName', 'itemCode', 'minimumQuantity', 'itemType', 'unitId', 'itemDescription', 'active', 'creatorId', 'createDate');
+            $crud->edit_fields('categoryId', 'itemName', 'itemCode', 'minimumQuantity', 'itemType', 'unitId', 'itemDescription', 'active', 'editorId', 'editDate');
+            $crud->set_read_fields('categoryId', 'itemName', 'itemCode', 'minimumQuantity', 'itemType', 'unitId', 'itemDescription', 'active');
             $crud->required_fields(array('categoryId', 'itemName', 'itemCode', 'unitId', 'itemType'));
             $crud->unique_fields('itemName', 'itemCode');
             $crud->unset_texteditor('itemDescription');
