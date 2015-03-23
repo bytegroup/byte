@@ -114,6 +114,7 @@ define("TBL_REPAIR", DB_PREFIX."repair");
 
 define("TBL_BUDGET", DB_PREFIX."budget");
 define("TBL_BUDGET_DETAIL", DB_PREFIX."budget_detail");
+define("TBL_BUDGET_HEAD", DB_PREFIX."budget_head");
 
 define("TBL_BILL", DB_PREFIX."bill");
 define("TBL_SERVICE_AGREEMENTS", DB_PREFIX.'service_agreements');

@@ -2,8 +2,8 @@
 /**
  * Created by PhpStorm.
  * User: mizanur
- * Date: 3/20/15
- * Time: 7:33 PM
+ * Date: 3/23/15
+ * Time: 1:25 PM
  */
 ?>
 <style type="text/css">
@@ -53,7 +53,7 @@ $rows= $data;
 
         $('div.DTTT_container a#excelDownload').click(function(){
             $('form#filter-form')
-                .attr('action', baseURL+'repairable_damage/get_excel')
+                .attr('action', baseURL+'current_issue/get_excel')
                 .attr('method', 'post')
                 .attr('target', '_blank')
                 .submit();
@@ -61,7 +61,7 @@ $rows= $data;
 
         $('form#filter-form input#filter-excel').click(function(){
             $('form#filter-form')
-                .attr('action', baseURL+'repairable_damage/get_excel')
+                .attr('action', baseURL+'current_issue/get_excel')
                 .attr('method', 'post')
                 .attr('target', '_blank')
                 .submit();
@@ -69,14 +69,14 @@ $rows= $data;
 
         var dataTable= $('#report-table').dataTable();
         $('#filter-button').click(function(){
-            filterDataTable(baseURL+'repairable_damage/ajax_get_data', filterDT);
+            filterDataTable(baseURL+'current_issue/ajax_get_data', filterDT);
         });
 
         $('#company').change(function(){
-            get_dependent_options('company', 'department', baseURL+'repairable_damage/ajax_get_department/');
+            get_dependent_options('company', 'department', baseURL+'current_issue/ajax_get_department/');
         });
         $('#category').change(function(){
-            get_dependent_options('category', 'item', baseURL+'repairable_damage/ajax_get_items/');
+            get_dependent_options('category', 'item', baseURL+'current_issue/ajax_get_items/');
         });
 
         var filterDT = function(data){
