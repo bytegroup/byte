@@ -41,11 +41,12 @@ class Bill_List extends MX_Controller {
             $crud->set_relation("billCheckedById", TBL_USERS, '{firstName} {middleName} {LastName}');
             $crud->set_relation("billSubmittedById", TBL_USERS, '{firstName} {middleName} {LastName}');
             $crud->set_relation("billPaymentById", TBL_USERS, '{firstName} {middleName} {LastName}');
-            $crud->set_relation("budgetId", TBL_BUDGET, '{budgetHead}');
+            //$crud->set_relation("budgetId", TBL_BUDGET, '{budgetHead}');
             $crud->set_relation("receiveId", TBL_RECEIVES, '{receiveNumber}');
             $crud->set_subject('Bill');
 
             $crud->columns('billNumber','budgetId', 'billAmount', 'billType', 'billingDate');
+            $crud->callback_column('budgetId', array($this, 'callback_column_budgetId'));
             $crud->display_as('billNumber','Bill No.')
                 ->display_as('budgetId','Budget Head')
                 ->display_as('billingDate','Billing Date')
@@ -58,7 +59,7 @@ class Bill_List extends MX_Controller {
                 ->display_as('billDescription', 'Particulars')
                 //->display_as('billParticulars', 'Particulars')
                 ->display_as('billCheckedById', 'Bill Checked By');
-            $crud->add_fields('receiveId', 'budgetId', 'billingDate', 'billReceiveDate', 'billType', 'billAmount', 'billPaymentType', 'billCheckedById', 'billSubmittedById', 'billDescription', 'creatorId', 'createDate');
+            //$crud->add_fields('receiveId', 'budgetId', 'billingDate', 'billReceiveDate', 'billType', 'billAmount', 'billPaymentType', 'billCheckedById', 'billSubmittedById', 'billDescription', 'creatorId', 'createDate');
             $crud->edit_fields('receiveId', 'billNumber', 'budgetId', 'billingDate', 'billReceiveDate', 'billType', 'billAmount', 'billPaymentType', 'billCheckedById', 'billSubmittedById', 'billDescription', 'billPaymentById', 'editorId', 'editDate');
             $crud->unset_texteditor('billDescription', 'Particulars');
             $crud->set_read_fields('budgetId', 'billingDate', 'billReceiveDate', 'billType', 'billAmount', 'billPaymentType', 'billCheckedById', 'billSubmittedById', 'billDescription');
@@ -68,6 +69,7 @@ class Bill_List extends MX_Controller {
             $crud->field_type('createDate', 'hidden', $time);
             $crud->field_type('editorId', 'hidden', $this->my_session->userId);
             $crud->field_type('editDate', 'hidden', $time);
+            $crud->callback_field('budgetId', array($this, 'callback_field_budgetId'));
             $crud->field_type('billPaymentType', 'dropdown', array('Cash'=>'Cash', 'Cheque'=>'Cheque'));
             //$crud->callback_field('billType', array($this, 'callback_field_billType'));
             //$crud->callback_after_insert(array($this, 'callback_after_insert_bill'));
@@ -95,6 +97,26 @@ class Bill_List extends MX_Controller {
     /*****************************/
     /*** call back functions ***/
     /*****************************/
+    function callback_column_budgetId($value, $row){
+        $this->db->select('bh.budgetHead');
+        $this->db->from(TBL_BUDGET_DETAIL.' as bd ');
+        $this->db->join(TBL_BUDGET.' as b ', 'b.budgetId=bd.budgetId');
+        $this->db->join(TBL_BUDGET_HEAD.' as bh ', 'bh.budgetHeadId=b.budgetHeadId');
+        $this->db->where('bd.budgetDetailId', $row->budgetId);
+        $db= $this->db->get();
+        if(!$db->num_rows()) return '';
+        return $db->result()[0]->budgetHead;
+    }
+    function callback_field_budgetId($value, $key){
+        $this->db->select('bh.budgetHead');
+        $this->db->from(TBL_BUDGET_DETAIL.' as bd ');
+        $this->db->join(TBL_BUDGET.' as b ', 'b.budgetId=bd.budgetId');
+        $this->db->join(TBL_BUDGET_HEAD.' as bh ', 'bh.budgetHeadId=b.budgetHeadId');
+        $this->db->where('bd.budgetDetailId', $value);
+        $db= $this->db->get();
+        if(!$db->num_rows()) return '';
+        return $db->result()[0]->budgetHead;
+    }
     /**
      * @param $primary_key
      */

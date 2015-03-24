@@ -47,13 +47,14 @@ class Repair_Bill extends MX_Controller{
             $crud->set_relation("billCheckedById", TBL_USERS, '{firstName} {middleName} {LastName}');
             $crud->set_relation("billSubmittedById", TBL_USERS, '{firstName} {middleName} {LastName}');
             $crud->set_relation("billPaymentById", TBL_USERS, '{firstName} {middleName} {LastName}');
-            $crud->set_relation("budgetId", TBL_BUDGET, '{budgetHead}');
+            //$crud->set_relation("budgetId", TBL_BUDGET, '{budgetHead}');
             $crud->set_subject('Repair Bill');
 
             $crud->columns('billNumber', 'budgetId', 'billingDate', 'billType', 'billAmount');
             $crud->display_as('billNumber','Bill No.')
                 ->display_as('budgetType', 'Budget Type')
                 ->display_as('budgetId','Budget Head')
+                ->display_as('budgetYear', 'Budget Year')
                 ->display_as('billingDate','Billing Date')
                 ->display_as('billReceiveDate', 'Bill Receive Date')
                 ->display_as('billType', 'Bill Type')
@@ -68,8 +69,8 @@ class Repair_Bill extends MX_Controller{
                 ->display_as('billCheckedById', 'Bill Checked By')
                 ->display_as('vendorsId', 'Vendor Name')
                 ->display_as('companyId', 'Company Name');
-            $crud->add_fields('companyId', 'budgetType', 'budgetId', 'billingDate', 'billReceiveDate', 'billType', 'billAmount', 'billPaymentType', 'invoiceNumber', 'invoiceDate', 'billCheckedById', 'billSubmittedById', 'billParticulars', 'billDescription', 'creatorId', 'createDate');
-            $crud->edit_fields('companyId', 'billNumber', 'budgetType', 'budgetId', 'billingDate', 'billReceiveDate', 'billType', 'billAmount', 'billPaymentType', 'invoiceNumber', 'invoiceDate', 'billCheckedById', 'billSubmittedById', 'billParticulars', 'billDescription', 'billPaymentById', 'editorId', 'editDate');
+            $crud->add_fields('companyId', 'budgetType', 'budgetYear', 'budgetId', 'billingDate', 'billReceiveDate', 'billType', 'billAmount', 'billPaymentType', 'invoiceNumber', 'invoiceDate', 'billCheckedById', 'billSubmittedById', 'billParticulars', 'billDescription', 'creatorId', 'createDate');
+            $crud->edit_fields('companyId', 'billNumber', 'budgetType', 'budgetYear', 'budgetId', 'billingDate', 'billReceiveDate', 'billType', 'billAmount', 'billPaymentType', 'invoiceNumber', 'invoiceDate', 'billCheckedById', 'billSubmittedById', 'billParticulars', 'billDescription', 'billPaymentById', 'editorId', 'editDate');
             $crud->required_fields('companyId', 'budgetId', 'billingDate', 'billReceiveDate', 'billPaymentType', 'billCheckedById', 'billSubmittedById');
             $crud->unset_texteditor('billDescription', 'billParticulars');
             $crud->field_type('creatorId', 'hidden', $this->my_session->userId);
@@ -77,6 +78,8 @@ class Repair_Bill extends MX_Controller{
             $crud->field_type('editorId', 'hidden', $this->my_session->userId);
             $crud->field_type('editDate', 'hidden', $time);
             $crud->field_type('companyId', 'hidden', $this->companyId);
+            $crud->field_type('budgetYear', 'dropdown', $this->year_generator(2010, 20));
+            $crud->field_type('budgetId', 'dropdown', array(''=>''));
             $crud->field_type('billNumber', 'readonly');
             $crud->field_type('billPaymentById', 'readonly');
             $crud->field_type('budgetType', 'dropdown', array('Capital'=>'Capital', 'Revenue'=>'Revenue'));
@@ -146,24 +149,24 @@ class Repair_Bill extends MX_Controller{
         foreach($this->repairIds as $repairId){
             $this->db->update(TBL_REPAIR, array('billId' => $key), array('repairId' => $repairId));
         }
-        
-        $this->db->where('budgetId', $post['budgetId']);
+
+        $this->db->where(array('budgetId'=>$post['budgetId'], 'companyId'=>$this->companyId));
         $this->db->set('budgetUtilization', 'budgetUtilization + '.$billAmount, FALSE);
-        $this->db->update(TBL_BUDGET);
+        $this->db->update(TBL_BUDGET_DETAIL);
     }
     function callback_before_update_bill($post, $key){
         $preBill= (float)$post['preBillAmount'];
         $bill= (float)$post['billAmount'];
         $billDifference= abs($preBill - $bill);
         if($preBill>$bill){
-            $this->db->where('budgetId', $post['budgetId']);
+            $this->db->where(array('budgetId'=>$post['budgetId'], 'companyId'=>$this->companyId));
             $this->db->set('budgetUtilization', 'budgetUtilization - '.$billDifference, FALSE);
-            $this->db->update(TBL_BUDGET);
+            $this->db->update(TBL_BUDGET_DETAIL);
         }
         else if($preBill<$bill){
-            $this->db->where('budgetId', $post['budgetId']);
+            $this->db->where(array('budgetId'=>$post['budgetId'], 'companyId'=>$this->companyId));
             $this->db->set('budgetUtilization', 'budgetUtilization + '.$billDifference, FALSE);
-            $this->db->update(TBL_BUDGET);
+            $this->db->update(TBL_BUDGET_DETAIL);
         }
         else{}
     }
@@ -175,16 +178,20 @@ class Repair_Bill extends MX_Controller{
      * @param $companyId
      * @param string $budgetType
      */
-    function ajax_get_budget_head($companyId, $budgetType=''){
-        $this->db->select('budgetId, budgetHead');
-        $this->db->from(TBL_BUDGET);
-        $this->db->where('companyId', $companyId);
-        if($budgetType !== '')$this->db->where('budgetType', $budgetType);
+    function ajax_get_budget_head($companyId=0, $budgetYear=0, $budgetType=''){
+        if(!$budgetYear){echo json_encode(array()); exit;}
+        $this->db->select('b.budgetDetailId, bh.budgetHead');
+        $this->db->from(TBL_BUDGET.' as b ');
+        $this->db->join(TBL_BUDGET_HEAD.' as bh ', 'bh.budgetHeadId=b.budgetHeadId');
+        $this->db->join(TBL_BUDGET_DETAIL.' as bd ', 'bd.budgetId=b.budgetId');
+        $this->db->where('bd.companyId', $companyId);
+        $this->db->where('b.budgetYear', $budgetYear);
+        if($budgetType !== '')$this->db->where('bh.budgetType', $budgetType);
         $db= $this->db->get();
         $array = array();
         if(!$db->num_rows()) {echo json_encode($array); exit;}
         foreach ($db->result() as $row):
-            $array[] = array("value" => $row->budgetId, "property" => $row->budgetHead);
+            $array[] = array("value" => $row->budgetDetailId, "property" => $row->budgetHead);
         endforeach;
         echo json_encode($array);
         exit;
@@ -218,5 +225,10 @@ class Repair_Bill extends MX_Controller{
         $db= $this->db->get();
         if(!$db->num_rows()) return 0;
         return $db->result()[0]->total;
+    }
+    function year_generator($start, $noOfYear){
+        $year= array();
+        for($i=0; $i<=$noOfYear; $i++){$year[$start + $i]=$start+$i;}
+        return $year;
     }
 }

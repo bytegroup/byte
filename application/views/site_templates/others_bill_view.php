@@ -19,10 +19,13 @@
 
         var budgetHeadURL= '<?php echo base_url(IT_MODULE_FOLDER.'/others_bill/ajax_get_budget_head');?>/';
         $('#field-companyId').change(function(){
-            filterOptions('budgetType', 'budgetId', budgetHeadURL+$(this).val()+'/');
+            filterOptions('budgetType', 'budgetId', budgetHeadURL+$(this).val()+'/'+$('#field-budgetYear').val()+'/');
         });
         $('#field-budgetType').change(function(){
-            filterOptions('budgetType', 'budgetId', budgetHeadURL+$("#field-companyId").val()+'/');
+            filterOptions('budgetType', 'budgetId', budgetHeadURL+$("#field-companyId").val()+'/'+$('#field-budgetYear').val()+'/');
+        });
+        $('#field-budgetYear').change(function(){
+            filterOptions('budgetType', 'budgetId', budgetHeadURL+$("#field-companyId").val()+'/'+$(this).val()+'/');
         });
         $('#field-serviceAgreementId').change(function(){
             populate_data($(this).val());
@@ -35,8 +38,8 @@
         var $el = $('#field-' + target);
         var preValue= $el.val();
         if(ID==null || ID=='')ID='';
-        $('#field'+source).append('<img src="<?php echo base_url()?>ajax-loader.gif" border="0" id="'+source+'_ajax_loader" class="dd_ajax_loader" style="display: none;">');
-        $('#'+source+'_ajax_loader').show();
+        $('#field'+target).append('<img src="<?php echo base_url()?>ajax-loader.gif" border="0" id="'+target+'_ajax_loader" class="dd_ajax_loader" style="display: none;">');
+        $('#'+target+'_ajax_loader').show();
         $el.empty();
         $.post(
             url + ID,
@@ -57,7 +60,7 @@
                 //alert( "error" );
             })
             .always(function() {
-                $('#'+source+'_ajax_loader').hide();
+                $('#'+target+'_ajax_loader').hide();
                 $el.chosen().trigger('liszt:updated');
             });
     }

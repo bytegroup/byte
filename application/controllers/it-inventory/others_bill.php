@@ -40,7 +40,7 @@ class Others_Bill extends MX_Controller {
             $crud->set_relation("billCheckedById", TBL_USERS, '{firstName} {middleName} {LastName}');
             $crud->set_relation("billSubmittedById", TBL_USERS, '{firstName} {middleName} {LastName}');
             $crud->set_relation("billPaymentById", TBL_USERS, '{firstName} {middleName} {LastName}');
-            $crud->set_relation("budgetId", TBL_BUDGET, '{budgetHead}');
+            //$crud->set_relation("budgetId", TBL_BUDGET, '{budgetHead}');
             //$crud->set_relation("serviceAgreementId", TBL_SERVICE_AGREEMENTS, '{serviceAgreementName}');
             $crud->set_relation("vendorsId", TBL_VENDORS, '{vendorsName}');
             $crud->set_relation("companyId", TBL_COMPANIES, '{companyName}');
@@ -51,6 +51,7 @@ class Others_Bill extends MX_Controller {
             $crud->display_as('billNumber','Bill No.')
                 ->display_as('budgetType', 'Budget Type')
                 ->display_as('budgetId','Budget Head')
+                ->display_as('budgetYear', 'Budget Year')
                 ->display_as('billingDate','Billing Date')
                 ->display_as('billReceiveDate', 'Bill Receive Date')
                 ->display_as('billType', 'Bill Type')
@@ -66,13 +67,15 @@ class Others_Bill extends MX_Controller {
                 ->display_as('serviceAgreementId', 'Bill Type')
                 ->display_as('vendorsId', 'Vendor Name')
                 ->display_as('companyId', 'Company Name');
-            $crud->add_fields('companyId', 'budgetType', 'budgetId', 'billingDate', 'billReceiveDate', 'billType', 'serviceAgreementId', 'vendorsId', 'billAmount', 'billPaymentType', 'invoiceNumber', 'invoiceDate', 'billCheckedById', 'billSubmittedById', 'billParticulars', 'billDescription', 'creatorId', 'createDate');
-            $crud->edit_fields('companyId', 'billNumber', 'budgetType', 'budgetId', 'billingDate', 'billReceiveDate', 'billType', 'serviceAgreementId', 'vendorsId', 'billAmount', 'billPaymentType', 'invoiceNumber', 'invoiceDate', 'billCheckedById', 'billSubmittedById', 'billParticulars', 'billDescription', 'billPaymentById', 'editorId', 'editDate');
-            $crud->set_read_fields('companyId', 'billNumber', 'budgetType', 'budgetId', 'billingDate', 'billReceiveDate', 'billType', 'serviceAgreementId', 'vendorsId', 'billAmount', 'billPaymentType', 'invoiceNumber', 'invoiceDate', 'billCheckedById', 'billSubmittedById', 'billParticulars', 'billDescription', 'billPaymentById');
+            $crud->add_fields('companyId', 'budgetType', 'budgetYear', 'budgetId', 'billingDate', 'billReceiveDate', 'billType', 'serviceAgreementId', 'vendorsId', 'billAmount', 'billPaymentType', 'invoiceNumber', 'invoiceDate', 'billCheckedById', 'billSubmittedById', 'billParticulars', 'billDescription', 'creatorId', 'createDate');
+            $crud->edit_fields('companyId', 'billNumber', 'budgetType', 'budgetYear', 'budgetId', 'billingDate', 'billReceiveDate', 'billType', 'serviceAgreementId', 'vendorsId', 'billAmount', 'billPaymentType', 'invoiceNumber', 'invoiceDate', 'billCheckedById', 'billSubmittedById', 'billParticulars', 'billDescription', 'billPaymentById', 'editorId', 'editDate');
+            $crud->set_read_fields('companyId', 'billNumber', 'budgetType', 'budgetYear', 'budgetId', 'billingDate', 'billReceiveDate', 'billType', 'serviceAgreementId', 'vendorsId', 'billAmount', 'billPaymentType', 'invoiceNumber', 'invoiceDate', 'billCheckedById', 'billSubmittedById', 'billParticulars', 'billDescription', 'billPaymentById');
             $crud->required_fields('companyId', 'budgetId', 'billingDate', 'billReceiveDate', 'billPaymentType', 'billCheckedById', 'billSubmittedById', 'serviceAgreementId', 'vendorsId');
             $crud->unset_texteditor('billDescription', 'billParticulars');
             $crud->field_type('billNumber', 'readonly');
             $crud->field_type('billPaymentById', 'readonly');
+            $crud->field_type('budgetYear', 'dropdown', $this->year_generator(2010, 20));
+            $crud->field_type('budgetId', 'dropdown', array(''=>''));
             $crud->field_type('creatorId', 'hidden', $this->my_session->userId);
             $crud->field_type('createDate', 'hidden', $time);
             $crud->field_type('editorId', 'hidden', $this->my_session->userId);
@@ -117,23 +120,23 @@ class Others_Bill extends MX_Controller {
             ),
             array('billId' => $key)
         );
-        $this->db->where('budgetId', $post['budgetId']);
+        $this->db->where(array('budgetId'=>$post['budgetId'], 'companyId'=>$post['companyId']));
         $this->db->set('budgetUtilization', 'budgetUtilization + '.$post['billAmount'], FALSE);
-        $this->db->update(TBL_BUDGET);
+        $this->db->update(TBL_BUDGET_DETAIL);
     }
     function callback_after_update_bill($post, $key){
         $preBill= (float)$post['preBillAmount'];
         $bill= (float)$post['billAmount'];
         $billDifference= abs($preBill - $bill);
         if($preBill>$bill){
-            $this->db->where('budgetId', $post['budgetId']);
+            $this->db->where(array('budgetId'=>$post['budgetId'], 'companyId'=>$post['companyId']));
             $this->db->set('budgetUtilization', 'budgetUtilization - '.$billDifference, FALSE);
-            $this->db->update(TBL_BUDGET);
+            $this->db->update(TBL_BUDGET_DETAIL);
         }
         else if($preBill<$bill){
-            $this->db->where('budgetId', $post['budgetId']);
+            $this->db->where(array('budgetId'=>$post['budgetId'], 'companyId'=>$post['companyId']));
             $this->db->set('budgetUtilization', 'budgetUtilization + '.$billDifference, FALSE);
-            $this->db->update(TBL_BUDGET);
+            $this->db->update(TBL_BUDGET_DETAIL);
         }
         else{}
     }
@@ -142,19 +145,24 @@ class Others_Bill extends MX_Controller {
     /*** ajax call functions ***/
     /*****************************/
     /**
-     * @param $companyId
+     * @param int $companyId
+     * @param int $budgetYear
      * @param string $budgetType
      */
-    function ajax_get_budget_head($companyId=0, $budgetType=''){
-        $this->db->select('budgetId, budgetHead');
-        $this->db->from(TBL_BUDGET);
-        $this->db->where('companyId', $companyId);
-        if($budgetType !== '')$this->db->where('budgetType', $budgetType);
+    function ajax_get_budget_head($companyId=0, $budgetYear=0, $budgetType=''){
+        if(!$budgetYear){echo json_encode(array()); exit;}
+        $this->db->select('bd.budgetDetailId, bh.budgetHead');
+        $this->db->from(TBL_BUDGET.' as b ');
+        $this->db->join(TBL_BUDGET_HEAD.' as bh ', 'bh.budgetHeadId=b.budgetHeadId');
+        $this->db->join(TBL_BUDGET_DETAIL.' as bd ', 'bd.budgetId=b.budgetId');
+        $this->db->where('bd.companyId', $companyId);
+        $this->db->where('b.budgetYear', $budgetYear);
+        if($budgetType !== '')$this->db->where('bh.budgetType', $budgetType);
         $db= $this->db->get();
         $array = array();
         if(!$db->num_rows()) {echo json_encode($array); exit;}
         foreach ($db->result() as $row):
-            $array[] = array("value" => $row->budgetId, "property" => $row->budgetHead);
+            $array[] = array("value" => $row->budgetDetailId, "property" => $row->budgetHead);
         endforeach;
         echo json_encode($array);
         exit;
@@ -195,5 +203,10 @@ class Others_Bill extends MX_Controller {
         $qry= $this->db->get();
         if(!$qry->num_rows()) return '';
         return $qry->result()[0]->companyCode;
+    }
+    function year_generator($start, $noOfYear){
+        $year= array();
+        for($i=0; $i<=$noOfYear; $i++){$year[$start + $i]=$start+$i;}
+        return $year;
     }
 }
