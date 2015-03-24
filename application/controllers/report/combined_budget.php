@@ -16,6 +16,7 @@ class Combined_Budget extends MX_Controller {
 
         /* ------------------ */
         $this->load->model(REPORT_MODELS.'combined_budget_model', 'model');
+        $this->load->library('filter_form');
         $this->load->library("my_session");
         $this->my_session->checkSession();
 

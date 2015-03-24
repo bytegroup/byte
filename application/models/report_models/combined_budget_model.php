@@ -43,18 +43,18 @@ class Combined_Budget_Model extends CI_Model {
     }
     function get_associative_headers(){
         $companies= $this->get_company_list();
-        $headers= array('SL', 'Budget Head', 'Budget Purpose');
-        foreach($this->common_headers() as $common) {
+        $headers['']= array('SL', 'Budget Head', 'Budget Purpose');
+        foreach($this->comparison_headers() as $head) {
+            $headers[$head]= array();
             foreach ($companies as $company) {
-                $headers[$common] = $company;
+                array_push($headers[$head], $company);
             }
-            $headers[] = 'Total';
+            array_push($headers[$head], 'Total');
         }
         return $headers;
     }
-    function common_headers(){
+    function comparison_headers(){
         return array(
-            '',
             'Budgeted Amount',
             'Utilization',
             'Remaining Budget',
