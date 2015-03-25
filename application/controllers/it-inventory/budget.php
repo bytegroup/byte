@@ -139,18 +139,8 @@ class Budget extends MX_Controller{
     function callback_after_update_budget($post, $key){
         $companyIds= $post['companyId'];
         foreach ($companyIds as $index => $companyId) {
-            $this->db->update(
-                TBL_BUDGET_DETAIL,
-                array(
-                    'budgetQuantity'=> $post['qty'][$index],
-                    'budgetAmount' => $post['amount'][$index]
-                ),
-                array(
-                    'budgetId'=>$key,
-                    'companyId'=>$companyId
-                )
-            );
-            if(!$this->db->affected_rows()){
+            $db= $this->db->get_where(TBL_BUDGET_DETAIL, array('budgetId'=>$key, 'companyId'=>$companyId));
+            if(!$db->num_rows()){
                 $this->db->insert(
                     TBL_BUDGET_DETAIL,
                     array(
@@ -158,6 +148,18 @@ class Budget extends MX_Controller{
                         'companyId' => $companyId,
                         'budgetQuantity'=> $post['qty'][$index],
                         'budgetAmount' => $post['amount'][$index]
+                    )
+                );
+            }else {
+                $this->db->update(
+                    TBL_BUDGET_DETAIL,
+                    array(
+                        'budgetQuantity'=> $post['qty'][$index],
+                        'budgetAmount' => $post['amount'][$index]
+                    ),
+                    array(
+                        'budgetId'=>$key,
+                        'companyId'=>$companyId
                     )
                 );
             }

@@ -8,30 +8,92 @@
 ?>
 <?php
 class Combined_Budget_Model extends CI_Model {
+    var $companyList= null;
     function __construct(){
         parent::__construct();
     }
 
-    private function _data_with_filter($filters){
-        return $db=$this->db->get();
+    public function set_companyList(){
+        $this->companyList= $this->get_company_list();
     }
-    private function _data_without_filter(){
-        $this->db->select('b.*');
+    public function get_companyList(){
+        return $this->companyList;
+    }
+
+    private function _common_data($year=0){
+        $this->db->select('b.budgetId, bh.budgetHead, bh.budgetPurpose');
         $this->db->from(TBL_BUDGET.' as b ');
-        return $db=$this->db->get();
+        $this->db->join(TBL_BUDGET_HEAD.' as bh ', 'bh.budgetHeadId=b.budgetHeadId');
+        if($year)$this->db->where('b.budgetYear', $year);
+        $db=$this->db->get();
+        if(!$db->num_rows()) return array();
+        $array= array();
+        foreach($db->result() as $row){
+            $array[$row->budgetId]= array('head'=> $row->budgetHead, 'purpose'=> $row->budgetPurpose);
+        }
+        return $array;
+    }
+    private function _comparison_data($companyId, $year=0){
+        $this->db->select('b.budgetId, bd.budgetAmount, bd.budgetUtilization');
+        $this->db->from(TBL_BUDGET.' as b ');
+        $this->db->join(TBL_BUDGET_DETAIL.' as bd ', 'bd.budgetId=b.budgetId');
+        $this->db->join(TBL_COMPANIES.' as c ', 'c.companyId=bd.companyId');
+        $this->db->where('bd.companyId', $companyId);
+        if($year)$this->db->where('b.budgetYear', $year);
+        $db=$this->db->get();
+        if(!$db->num_rows()) return null;
+        $array= array();
+        foreach($db->result() as $row){
+            $array[$row->budgetId]= array('amount'=> $row->budgetAmount, 'utilization'=> $row->budgetUtilization, 'remaining'=>$row->budgetAmount - $row->budgetUtilization);
+        }
+        return $array;
     }
 
     function get_data($filters= array()){
-        $db = !count($filters) ? $this->_data_without_filter():$this->_data_with_filter($filters);
-        if(!$db->num_rows()) return array();
-        $array= array(); $i=0;
-        foreach($db->result() as $row):
-            $array[$row->budgetId]= array(
-                ++$i,
-                
-            );
+        $tempArray= null;
+        $companyRows= null;
+        $commonRows= $this->_common_data(isset($filters['year'])? $filters['year']:0);
+        $i = 0;
+        foreach ($this->companyList as $id=>$company):
+            $companyRows[$id]= $this->_comparison_data($id, isset($filters['year'])? $filters['year']:0);
         endforeach;
-        return $array;
+        foreach($commonRows as $budgetId=>$row){
+            $total= 0.0;
+            $tempArray[$budgetId]=array();
+            array_push($tempArray[$budgetId], ++$i);
+            array_push($tempArray[$budgetId], $row['head']);
+            array_push($tempArray[$budgetId], $row['purpose']);
+            foreach($companyRows as $companyId=>$data){
+                if(isset($companyRows[$companyId][$budgetId])){
+                    array_push($tempArray[$budgetId], $companyRows[$companyId][$budgetId]['amount']);
+                    $total += $companyRows[$companyId][$budgetId]['amount'];
+                }else{
+                    array_push($tempArray[$budgetId], '');
+                }
+            }
+            array_push($tempArray[$budgetId], $total);
+            $total=0.0;
+            foreach($companyRows as $companyId=>$data){
+                if(isset($companyRows[$companyId][$budgetId])){
+                    array_push($tempArray[$budgetId], $companyRows[$companyId][$budgetId]['utilization']);
+                    $total += $companyRows[$companyId][$budgetId]['utilization'];
+                }else{
+                    array_push($tempArray[$budgetId], '');
+                }
+            }
+            array_push($tempArray[$budgetId], $total);
+            $total=0.0;
+            foreach($companyRows as $companyId=>$data){
+                if(isset($companyRows[$companyId][$budgetId])){
+                    array_push($tempArray[$budgetId], $companyRows[$companyId][$budgetId]['remaining']);
+                    $total += $companyRows[$companyId][$budgetId]['remaining'];
+                }else{
+                    array_push($tempArray[$budgetId], '');
+                }
+            }
+            array_push($tempArray[$budgetId], $total);
+        }
+        return $tempArray;
     }
 
     function get_headers(){
@@ -42,11 +104,10 @@ class Combined_Budget_Model extends CI_Model {
         return $headers;
     }
     function get_associative_headers(){
-        $companies= $this->get_company_list();
         $headers['']= array('SL', 'Budget Head', 'Budget Purpose');
         foreach($this->comparison_headers() as $head) {
             $headers[$head]= array();
-            foreach ($companies as $company) {
+            foreach ($this->companyList as $company) {
                 array_push($headers[$head], $company);
             }
             array_push($headers[$head], 'Total');

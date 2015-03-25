@@ -31,6 +31,7 @@ class Combined_Budget extends MX_Controller {
             $time = time();
             $time= mdate($dateString, $time);
 
+            $this->model->set_companyList();
             $this->filter_form->set_filter_fields($this->model->get_filters());
             $output['filter_form']= $this->filter_form->get_filter_form();
             $output['headers']= $this->model->get_headers();
@@ -51,20 +52,14 @@ class Combined_Budget extends MX_Controller {
 
     /*****************************************************************************************************/
     function ajax_get_data(){
+        $this->model->set_companyList();
         echo json_encode($this->model->get_data($_POST));
-        exit;
-    }
-    function ajax_get_department($companyId){
-        echo json_encode($this->model->get_department_list($companyId));
-        exit;
-    }
-    function ajax_get_items($catId){
-        echo json_encode($this->model->get_item_list($catId));
         exit;
     }
 
     function get_excel(){
         $this->load->library('excel');
+        $this->model->set_companyList();
 
         $post= (isset($_POST) && count($_POST)) ? $_POST : array();
 
@@ -85,7 +80,30 @@ class Combined_Budget extends MX_Controller {
         $sheet->mergeCells('A1:'.$endColumn.'1');
         $sheet->getRowDimension('1')->setRowHeight(30);
 
-        $this->excel->set_table($sheet, $this->model->get_headers(), $this->model->get_data($post), 2);
+        $style = array(
+            'font' => array('bold' => true, 'size' => 14),
+            'alignment' => array('horizontal' => \PHPExcel_Style_Alignment::HORIZONTAL_CENTER)
+        );
+
+        $sheet->setCellValue('A2', '');
+        $sheet->getStyle('A2')->applyFromArray($style);
+        $sheet->mergeCells('A2:C2');
+
+        $sheet->setCellValue('D2', 'Budgeted Amount');
+        $sheet->getStyle('D2')->applyFromArray($style);
+        $sheet->mergeCells('D2:F2');
+
+        $sheet->setCellValue('G2', 'Budget Utilization');
+        $sheet->getStyle('G2')->applyFromArray($style);
+        $sheet->mergeCells('G2:I2');
+
+        $sheet->setCellValue('J2', 'Remaining Budget');
+        $sheet->getStyle('J2')->applyFromArray($style);
+        $sheet->mergeCells('J2:L2');
+
+        $sheet->getRowDimension('2')->setRowHeight(20);
+
+        $this->excel->set_table($sheet, $this->model->get_headers(), $this->model->get_data($post), 3);
         $this->excel->set_column_width_auto($sheet);
         $this->excel->set_all_borders($sheet);
 
