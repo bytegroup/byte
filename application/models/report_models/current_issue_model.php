@@ -7,14 +7,13 @@
  */
 ?>
 <?php
-class Issue_report_Model extends CI_Model {
+class Current_Issue_Model extends CI_Model {
     function __construct(){
         parent::__construct();
     }
 
     private function _data_with_filter($filters){
-        $fromDate= !$filters['from_date'] ? '': mdate('%y-%m-%d', strtotime($filters['from_date']));
-        $toDate  = !$filters['to_date'] ? mdate('%y-%m-%d', time()): mdate('%y-%m-%d', strtotime($filters['to_date']));
+        $toDate  = !$filters['purchase_date'] ? '' : mdate('%y-%m-%d', strtotime($filters['to_date']));
         $this->db->select('i.issueId, i.issueNumber, i.issueDate, cat.categoryName, im.itemName, sd.productCode, iud.issueQuantity, rec.receiveDate, rd.warrantyEndDate, c.companyName, d.departmentName, issueFor.firstName rFirstName, issueFor.middleName rMiddleName, issueFor.lastName rLastName, issueBy.firstName bFirstName, issueBy.middleName bMiddleName, issueBy.lastName bLastName, creator.firstName cFirstName, creator.middleName cMiddleName, creator.lastName cLastName, editor.firstName eFirstName, editor.middleName eMiddleName, editor.lastName eLastName, i.createDate, i.editDate');
         $this->db->from(TBL_ISSUES.' as i ');
         $this->db->join(TBL_ISSUE_DETAIL.' as id ', 'id.issueId=i.issueId', 'left');
@@ -35,8 +34,7 @@ class Issue_report_Model extends CI_Model {
         $this->db->join(TBL_USERS.' as creator ', 'creator.userId=i.creatorId', 'left');
         $this->db->join(TBL_USERS.' as editor ', 'editor.userId=i.editorId', 'left');
 
-        if(!$fromDate)$this->db->where('i.issueDate <= ', $toDate);
-        else $this->db->where('i.issueDate BETWEEN "'.$fromDate.'" AND "'.$toDate.'" ');
+        if($toDate)$this->db->where('rec.receiveDate', $toDate);
 
         if($filters['company'])$this->db->where('c.companyId', $filters['company']);
         if($filters['category'])$this->db->where('cat.categoryId', $filters['category']);
@@ -163,13 +161,12 @@ class Issue_report_Model extends CI_Model {
 
     function get_filters(){
         return array(
-            'From Date'     => 'date',
-            'To Date'       => 'date',
+            'Purchase Date' => 'date',
+            'Tracking No'   => 'text',
             'Company'       => array('select', $this->get_company_list()),
             'Department'    => array('select', $this->get_department_list()),
             'Category'      => array('select', $this->get_categories_list()),
-            'Item'          => array('select', $this->get_item_list()),
-            'Tracking No'   => 'text'
+            'Item'          => array('select', $this->get_item_list())
         );
     }
 }

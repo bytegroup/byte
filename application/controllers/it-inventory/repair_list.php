@@ -51,6 +51,7 @@ class Repair_List extends MX_Controller {
                 ->display_as('vendorsId','Vendor')
                 ->display_as('repairVendorsId','Repair vendor')
                 ->display_as('repairQuantity','Quantity')
+                ->display_as('repairAmount', 'Repair Amount')
                 ->display_as('repairDetails', 'Description');
 
             $crud->set_read_fields('repairTypeId', 'repairAmount', 'vendorsId', 'repairDate', 'repairDetails');
