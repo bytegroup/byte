@@ -21,9 +21,9 @@ class Departments extends MX_Controller {
    function index(){
         try{
             $this->load->library('grocery_CRUD');
-            //$this->load->library('ajax_grocery_CRUD');
-            $crud = new grocery_CRUD($this);
-            //$crud = new ajax_grocery_CRUD();
+            $this->load->library('gc_extended_unique_validation');
+            //$crud = new grocery_CRUD($this);
+            $crud = new GC_Extended_unique_validation();
             $crud->unset_jquery();
 
             $dateString = "%d-%m-%y :: %h:%i %a";
@@ -62,9 +62,10 @@ class Departments extends MX_Controller {
             $crud->add_fields('organizationId','companyId','departmentName','HODUserId','departmentCode', 'sectionName','departmentPhone', 'departmentEmail','departmentDescription', 'active', 'creatorId', 'createDate');
             $crud->edit_fields('organizationId','companyId','departmentName','HODUserId','departmentCode', 'sectionName','departmentPhone', 'departmentEmail', 'departmentDescription', 'active', 'editorId', 'editDate');
             $crud->required_fields(array('organizationId','departmentName','companyId','departmentEmail','departmentCode','departmentPhone'));
-            $crud->unique_fields('departmentName', 'departmentEmail', 'departmentCode');
+            $crud->unique_fields('departmentEmail');
+            $crud->unique_field_in_group('departmentName/companyId', 'departmentCode/companyId');
+            //$crud->unique_field_in_group();
             $crud->set_rules("departmentEmail", "Email", "trim|valid_email");
-            //$crud->set_rules('departmentPhone','Phone','trim|xss_clean|numeric');
             $crud->unset_texteditor('departmentDescription');
             $crud->field_type('HODUserId', 'dropdown',  !count($HOD_array)? array(''=>''):$HOD_array);
             $crud->field_type('creatorId', 'hidden', $this->my_session->userId);

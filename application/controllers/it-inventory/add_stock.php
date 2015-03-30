@@ -14,6 +14,7 @@ class Add_Stock extends MX_Controller{
         parent::__construct();
         $this->load->database();
         $this->load->helper('url');
+        $this->load->helper('date');
         /* ------------------ */
         $this->load->library("my_session");
         $this->my_session->checkSession();
@@ -66,7 +67,7 @@ class Add_Stock extends MX_Controller{
             $crud->callback_field('quotation', array($this, 'callback_field_quotation'));
             $crud->callback_field('vendor', array($this, 'callback_field_vendor'));
             $crud->callback_field('items', array($this, 'callback_field_items'));
-            $crud->callback_after_update(array($this, 'callback_after_add_stock'));
+            $crud->callback_before_update(array($this, 'callback_after_add_stock'));
 
             if (!isset($this->my_session->permissions['canIT-InventoryAdd'])) {
                 $crud->unset_add();
@@ -154,48 +155,53 @@ class Add_Stock extends MX_Controller{
     }
 
     function callback_after_add_stock($post, $key){
-        $this->db->select("c.companyId, c.companyCode")
-            ->from(TBL_RECEIVES.' as rec ')
-            ->join(TBL_REQUISITIONS . ' as r ', 'r.requisitionId=rec.requisitionId')
-            ->join(TBL_COMPANIES . ' as c ', 'r.companyId=c.companyId')
-            ->where('receiveId', $key);
-        $db = $this->db->get();
-        if (!$db->num_rows()) {
-            $companyId = 0;
-            $code = '';
-        } else {
-            $row = $db->result();
-            $code = $row[0]->companyCode;
-            $companyId = $row[0]->companyId;
-        }
+        try {
+            $this->db->select("c.companyId, c.companyCode")
+                ->from(TBL_RECEIVES . ' as rec ')
+                ->join(TBL_REQUISITIONS . ' as r ', 'r.requisitionId=rec.requisitionId')
+                ->join(TBL_COMPANIES . ' as c ', 'r.companyId=c.companyId')
+                ->where('receiveId', $key);
+            $db = $this->db->get();
+            if (!$db->num_rows()) {
+                $companyId = 0;
+                $code = '';
+            } else {
+                $row = $db->result();
+                $code = $row[0]->companyCode;
+                $companyId = $row[0]->companyId;
+            }
 
-        $items= $this->get_receive_details($key);
-        foreach($items as $itemId=>$item) {
-            $stockId= $this->model->add_to_stock($key, $itemId, $companyId, $code, $item['qty']);
-            $itemCode= $this->model->get_item_code_by_itemId($itemId);
-            $data = array(
-                'receiveDetailId' => $item['receiveDetailId'],
-                'stockId' => $stockId
-            );
-            if ($this->model->isCountable($itemId)) {
-                for($i=1; $i<= $item['qty']; $i++){
+            $items = $this->get_receive_details($key);
+            foreach ($items as $itemId => $item) {
+                $stockId = $this->model->add_to_stock($key, $itemId, $companyId, $code, $item['qty']);
+                $itemCode = $this->model->get_item_code_by_itemId($itemId);
+                $data = array(
+                    'receiveDetailId'   => $item['receiveDetailId'],
+                    'stockId'           => $stockId,
+                    'active'            => true
+                );
+                if ($this->model->isCountable($itemId)) {
+                    for ($i = 1; $i <= $item['qty']; $i++) {
+                        $this->db->insert(TBL_STOCK_DETAIL, $data);
+                        $insertId = $this->db->insert_id();
+                        $this->db->update(
+                            TBL_STOCK_DETAIL,
+                            array('productCode' => '' . $code . '/' . $itemCode . '/' . $insertId),
+                            array('stockDetailId' => $insertId)
+                        );
+                    }
+                } else {
                     $this->db->insert(TBL_STOCK_DETAIL, $data);
-                    $insertId= $this->db->insert_id();
+                    $insertId = $this->db->insert_id();
                     $this->db->update(
                         TBL_STOCK_DETAIL,
-                        array('productCode'=> ''.$code.'/'.$itemCode.'/'.$insertId),
-                        array('stockDetailId'=>$insertId)
+                        array('productCode' => '' . $code . '/' . $itemCode . '/' . $insertId),
+                        array('stockDetailId' => $insertId)
                     );
                 }
-            }else{
-                $this->db->insert(TBL_STOCK_DETAIL, $data);
-                $insertId= $this->db->insert_id();
-                $this->db->update(
-                    TBL_STOCK_DETAIL,
-                    array('productCode'=> ''.$code.'/'.$itemCode.'/'.$insertId),
-                    array('stockDetailId'=>$insertId)
-                );
             }
+        } catch (Exception $e) {
+            show_error($e->getMessage() . ' --- ' . $e->getTraceAsString());
         }
     }
 

@@ -50,7 +50,7 @@ class Staff extends MX_Controller {
                 //->set_relation_dependency('departmentId', 'companyId', 'companyId')
                  ->set_subject('Employee');
 
-            $crud->columns('userId','fullName','email','mobile','companyId');
+            $crud->columns('employeeId', 'fullName','email','mobile', 'departmentId','companyId');
             $crud->callback_column('fullName', array($this, 'getFullName'));
             $crud->display_as('userId','No.')
                 ->display_as('companyId', 'Company')

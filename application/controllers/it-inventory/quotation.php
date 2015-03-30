@@ -280,7 +280,7 @@ class Quotation extends MX_Controller {
 
             $productsCheckbox.='<li><input type="number" placeholder="Quantity" name="quantity-item-'.$item['itemMasterId'].'" min="0" id="quantity-item-'.$item['itemMasterId'].'" readonly value="'.$item['orderedQuantity'].'"/></li>';
 
-            $productsCheckbox.='<li><input type="number" placeholder="Unit Price" name="unitprice-item-'.$item['itemMasterId'].'" min="0" id="unitprice-item-'.$item['itemMasterId'].'" value="'.$unitPrice.'"/></li>';
+            $productsCheckbox.='<li><input type="number" placeholder="Unit Price" name="unitprice-item-'.$item['itemMasterId'].'" min="0" id="unitprice-item-'.$item['itemMasterId'].'" value="'.$unitPrice.'" step=".01"/></li>';
 
             $productsCheckbox.='<li><input type="number" placeholder="Total Price" name="totalprice-item-'.$item['itemMasterId'].'" min="0" id="totalprice-item-'.$item['itemMasterId'].'" value="'.$totalPrice.'"/></li>';
 

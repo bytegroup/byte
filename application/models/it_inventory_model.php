@@ -6,7 +6,6 @@
  * Time: 3:56 PM
  */
 ?>
-
 <?php if ( ! defined('BASEPATH')) exit('No direct script access allowed');
 
 Class It_Inventory_Model extends CI_Model {

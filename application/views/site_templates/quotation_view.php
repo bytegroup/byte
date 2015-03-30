@@ -82,7 +82,7 @@
                     var unitprice= unitElem.val();
                     if(!unitprice || unitprice==0) {
                         error= true;
-                        unitElem.focus();
+                        //unitElem.focus();
                         $('div#report-error').show();
                         $('div#report-error').html('<p>Check unit price field</p>');
                         return false;
