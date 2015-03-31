@@ -175,12 +175,14 @@ class Add_Stock extends MX_Controller{
             foreach ($items as $itemId => $item) {
                 $stockId = $this->model->add_to_stock($key, $itemId, $companyId, $code, $item['qty']);
                 $itemCode = $this->model->get_item_code_by_itemId($itemId);
-                $data = array(
-                    'receiveDetailId'   => $item['receiveDetailId'],
-                    'stockId'           => $stockId,
-                    'active'            => true
-                );
+
                 if ($this->model->isCountable($itemId)) {
+                    $data = array(
+                        'receiveDetailId'   => $item['receiveDetailId'],
+                        'stockId'           => $stockId,
+                        'active'            => true,
+                        'activeAmount'      => 1
+                    );
                     for ($i = 1; $i <= $item['qty']; $i++) {
                         $this->db->insert(TBL_STOCK_DETAIL, $data);
                         $insertId = $this->db->insert_id();
@@ -191,6 +193,12 @@ class Add_Stock extends MX_Controller{
                         );
                     }
                 } else {
+                    $data = array(
+                        'receiveDetailId'   => $item['receiveDetailId'],
+                        'stockId'           => $stockId,
+                        'active'            => true,
+                        'activeAmount'      => $item['qty']
+                    );
                     $this->db->insert(TBL_STOCK_DETAIL, $data);
                     $insertId = $this->db->insert_id();
                     $this->db->update(

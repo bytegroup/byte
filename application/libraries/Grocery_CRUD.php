@@ -830,7 +830,7 @@ class grocery_CRUD_Model_Driver extends grocery_CRUD_Field_Types
 
 					$previous_field_name_value = $row->$field_name;
 
-					if(!empty($previous_field_name_value) && $previous_field_name_value != $field_name_value) {
+					if(!empty($previous_field_name_value) && strtolower($previous_field_name_value) != strtolower($field_name_value)) {
 						$form_validation->set_rules( $field_name,
 								$field_types[$field_name]->display_as,
 								'is_unique['.$this->basic_db_table.'.'.$field_name.']');

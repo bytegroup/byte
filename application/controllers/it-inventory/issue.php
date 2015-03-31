@@ -117,11 +117,11 @@ class Issue extends MX_Controller {
     }
     function callback_field_issueTo($value, $key){
         if(!$value)$value='';
-        $checkComp= $value==='Company'?'checked':'';
+        //$checkComp= $value==='Company'?'checked':'';
         $checkDpt = $value==='Department'?'checked':'';
         $checkEmp = $value==='Employee'?'checked':'';
         $html='';
-        $html .= '<input type="radio" name="issueTo" '.$checkComp.' value="Company"/> Company';
+        //$html .= '<input type="radio" name="issueTo" '.$checkComp.' value="Company"/> Company';
         $html .= '<input type="radio" name="issueTo" '.$checkDpt.' value="Department"/> Department';
         $html .= '<input type="radio" name="issueTo" '.$checkEmp.' value="Employee"/> Employee';
         return $html;
@@ -137,30 +137,39 @@ class Issue extends MX_Controller {
         return $html;
     }
     function callback_after_insert_issue($post, $key){
-        $issuedItems= $post['selectedItems'];
-        $code= $this->issueModel->get_company_code($this->stockId);
-        $this->db->update(
-            TBL_ISSUES,
-            array('issueNumber' => '' . $code . '/issue/' . mdate("%y", time()) . '/' . $key),
-            array('issueId' => $key)
-        );
+        try {
+            $issuedItems = $post['selectedItems'];
+            $code = $this->issueModel->get_company_code_stockId($this->stockId);
+            $this->db->update(
+                TBL_ISSUES,
+                array('issueNumber' => '' . $code . '/issue/' . mdate("%y", time()) . '/' . $key),
+                array('issueId' => $key)
+            );
 
-        foreach($issuedItems as $id):
-            $this->db->insert(TBL_ISSUE_DETAIL, array('issueId'=>$key, 'stockDetailId'=>$id));
-        endforeach;
+            foreach ($issuedItems as $id):
+                $this->db->insert(TBL_ISSUE_DETAIL, array('issueId' => $key, 'stockDetailId' => $id, 'active' => true));
+                $this->db->update(TBL_STOCK_DETAIL, array('active' => false, 'activeAmount' => 0), array('stockDetailId' => $id));
+            endforeach;
 
-        $this->db->where('stockId', $this->stockId);
-        $this->db->set('stockQuantity', 'stockQuantity - '.$post['issueQuantity'], FALSE);
-        $this->db->set('issueQuantity', 'issueQuantity + '.$post['issueQuantity'], FALSE);
-        $this->db->update(TBL_STOCK);
+            $this->db->where('stockId', $this->stockId);
+            $this->db->set('stockQuantity', 'stockQuantity - ' . $post['issueQuantity'], FALSE);
+            $this->db->set('issueQuantity', 'issueQuantity + ' . $post['issueQuantity'], FALSE);
+            $this->db->update(TBL_STOCK);
+        }catch (Exception $e){
+            show_error($e->getMessage() . ' --- ' . $e->getTraceAsString());
+        }
     }
     function callback_after_update_issue($post, $key){
         $issuedItems= $post['selectedItems'];
-
+        $currentlyIssuedItems = $this->issueModel->get_preIssued_items_by_issue_id($key);
+        foreach($currentlyIssuedItems as $item){
+            $this->db->update(TBL_STOCK_DETAIL, array('active'=>true, 'activeAmount'=>1), array('stockDetailId'=>$item['stockDetailId']));
+        }
         $this->db->delete(TBL_ISSUE_DETAIL, array('issueId'=>$key));
         $preIssueQty= $this->db->affected_rows();
         foreach($issuedItems as $id):
-            $this->db->insert(TBL_ISSUE_DETAIL, array('issueId'=>$key, 'stockDetailId'=>$id));
+            $this->db->insert(TBL_ISSUE_DETAIL, array('issueId'=>$key, 'stockDetailId'=>$id, 'active'=>true));
+            $this->db->update(TBL_STOCK_DETAIL, array('active'=>false, 'activeAmount'=>0), array('stockDetailId'=>$id));
         endforeach;
 
         $currentIssueQty= $post['issueQuantity'];

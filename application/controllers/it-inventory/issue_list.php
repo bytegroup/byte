@@ -131,7 +131,7 @@ class Issue_List extends MX_Controller{
     }
     function callback_read_field_uncountable_items($key){
         $issuedItems= $this->get_issued_uncountable_items($key);
-        $damageQty= $this->get_uncountable_damage_qty($key);
+        //$damageQty= $this->get_uncountable_damage_qty($key);
         $html = '';
         $html .= '<ul>';
         $html .= '<li>';
@@ -141,11 +141,12 @@ class Issue_List extends MX_Controller{
         $html .= '</li>';
         if(count($issuedItems))
             foreach($issuedItems as $items){
-                $damQty=isset($damageQty[$items['issuedId']])?$damageQty[$items['issuedId']]:0;
+                //$damQty=isset($damageQty[$items['issuedId']])?$damageQty[$items['issuedId']]:0;
                 $html .= '<li>';
                 $html .= '<ul>';
                 $html .= '<li>'.$items['productCode'].'</li>';
-                $html .= '<li>'.($items['issueQty']- $damQty).'</li>';
+                //$html .= '<li>'.($items['issueQty']- $damQty).'</li>';
+                $html .= '<li>'.$items['issueQty'].'</li>';
                 $html .= '<li>'.$items['warranty'].'</li>';
                 $html .= '<li>'.$items['vendor'].'</li>';
                 $html .= '</ul>';
@@ -163,7 +164,7 @@ class Issue_List extends MX_Controller{
         $this->db->from(TBL_ISSUES.' as i ');
         $this->db->join(TBL_STOCK.' as s ', 'i.stockId=s.stockId');
         $this->db->join(TBL_COMPANIES.' as c ', 's.companyId=c.companyId');
-        $this->db->where('issueId', $issueId);
+        $this->db->where('i.issueId', $issueId);
         $db= $this->db->get();
         if(!$db->num_rows()) return '';
         return $db->result()[0]->companyName;
@@ -179,7 +180,7 @@ class Issue_List extends MX_Controller{
         $this->db->join(TBL_QUOTATIONS . ' as q ', 'r.quotationId=q.quotationId');
         $this->db->join(TBL_VENDORS . ' as v ', 'q.vendorsId=v.vendorsId');
         $this->db->where('i.issueId', $issueId);
-        $this->db->where('id.stockDetailId NOT IN (SELECT stockDetailId FROM '.TBL_DAMAGE_DETAIL.')');
+        $this->db->where('id.active', true);
         $db = $this->db->get();
         if (!$db->num_rows()) return array();
         $array = array();
@@ -199,6 +200,7 @@ class Issue_List extends MX_Controller{
         $this->db->join(TBL_QUOTATIONS . ' as q ', 'r.quotationId=q.quotationId');
         $this->db->join(TBL_VENDORS . ' as v ', 'q.vendorsId=v.vendorsId');
         $this->db->where('i.issueId', $issueId);
+        $this->db->where('id.active', true);
         $db = $this->db->get();
         if (!$db->num_rows()) return array();
         $array = array();
@@ -207,7 +209,7 @@ class Issue_List extends MX_Controller{
         endforeach;
         return $array;
     }
-    public function get_uncountable_damage_qty($issueId){
+    /*public function get_uncountable_damage_qty($issueId){
         if(!$issueId)return array();
         $this->db->select('dd.stockDetailId, sum(dd.damageQuantity) as qty');
         $this->db->from(TBL_DAMAGE.' as d ');
@@ -221,6 +223,6 @@ class Issue_List extends MX_Controller{
             $array[$row->stockDetailId]=$row->qty;
         }
         return $array;
-    }
+    }*/
 }
 ?>

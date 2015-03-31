@@ -99,7 +99,7 @@ class Issue_Uncountable extends MX_Controller {
 
             $output = $crud->render();
 
-            $currentIssueId= isset($crud->getStateInfo()->primary_key)? $crud->getStateInfo()->primary_key: 0;
+            //$currentIssueId= isset($crud->getStateInfo()->primary_key)? $crud->getStateInfo()->primary_key: 0;
             //$output->issuedItems=json_encode($this->issueModel->get_issued_uncountable_stock($stockId, $currentIssueId));
             //$output->toBeIssuedItems=json_encode($this->issueModel->get_uncountable_stock($stockId));
             $output->state = $crud->getState();
@@ -133,11 +133,11 @@ class Issue_Uncountable extends MX_Controller {
     }
     function callback_field_issueTo($value, $key){
         if(!$value)$value='';
-        $checkComp= $value==='Company'?'checked':'';
+        //$checkComp= $value==='Company'?'checked':'';
         $checkDpt = $value==='Department'?'checked':'';
         $checkEmp = $value==='Employee'?'checked':'';
         $html='';
-        $html .= '<input type="radio" name="issueTo" '.$checkComp.' value="Company"/> Company';
+        //$html .= '<input type="radio" name="issueTo" '.$checkComp.' value="Company"/> Company';
         $html .= '<input type="radio" name="issueTo" '.$checkDpt.' value="Department"/> Department';
         $html .= '<input type="radio" name="issueTo" '.$checkEmp.' value="Employee"/> Employee';
         return $html;
@@ -150,8 +150,8 @@ class Issue_Uncountable extends MX_Controller {
     }
     function callback_add_field_items($row, $key){
         $stockItems=$this->issueModel->get_uncountable_stock($this->stockId);
-        $issuedItems= $this->issueModel->get_uncountable_issued_items_qty($this->stockId);
-        $damagedItems= $this->issueModel->get_uncountable_stockDamaged_items_qty($this->stockId);
+        //$issuedItems= $this->issueModel->get_uncountable_issued_items_qty($this->stockId);
+        //$damagedItems= $this->issueModel->get_uncountable_stockDamaged_items_qty($this->stockId);
         $html = '';
         $html .= '<ul>';
         $html .= '<li>';
@@ -160,10 +160,11 @@ class Issue_Uncountable extends MX_Controller {
         $html .= '</ul>';
         $html .= '</li>';
         foreach($stockItems as $item){
-            $issueQty= isset($issuedItems[$item['issuedId']])?$issuedItems[$item['issuedId']]:0;
-            $damageQty= isset($damagedItems[$item['issuedId']])?$damagedItems[$item['issuedId']]:0;
-            $remQty= $item['recQty']-($issueQty+$damageQty);
-            if(!$remQty)continue;
+            //$issueQty= isset($issuedItems[$item['issuedId']])?$issuedItems[$item['issuedId']]:0;
+            //$damageQty= isset($damagedItems[$item['issuedId']])?$damagedItems[$item['issuedId']]:0;
+            //$remQty= $item['recQty']-($issueQty+$damageQty);
+            $remQty= $item['qty'];
+            if($remQty < 1)continue;
             $html .= '<li>';
             $html .= '<ul>';
             $html .= '<li><input type="checkbox" id="items-'.$item['issuedId'].'" name="selectedItems[]" value="'.$item['issuedId'].'"/></li>';
@@ -182,9 +183,9 @@ class Issue_Uncountable extends MX_Controller {
     function callback_edit_field_items($row, $key){
         $stockItems=$this->issueModel->get_uncountable_stock($this->stockId, $key);
         $issuedItems= $this->issueModel->get_uncountable_issued_items_qty($this->stockId, $key);
-        $totalIssuedItems= $this->issueModel->get_uncountable_issued_items_qty($this->stockId);
-        $damagedItems= $this->issueModel->get_uncountable_stockDamaged_items_qty($this->stockId);
-        $issueDamagedItems= $this->issueModel->get_uncountable_issueDamaged_items_qty($this->stockId, $key);
+        //$totalIssuedItems= $this->issueModel->get_uncountable_issued_items_qty($this->stockId);
+        //$damagedItems= $this->issueModel->get_uncountable_stockDamaged_items_qty($this->stockId);
+        //$issueDamagedItems= $this->issueModel->get_uncountable_issueDamaged_items_qty($this->stockId, $key);
         $html = '';
         $html .= '<ul>';
         $html .= '<li>';
@@ -194,17 +195,19 @@ class Issue_Uncountable extends MX_Controller {
         $html .= '</li>';
         foreach($stockItems as $item){
             $issueQty= isset($issuedItems[$item['issuedId']])?$issuedItems[$item['issuedId']]:0;
-            $totalIssuedQty= isset($totalIssuedItems[$item['issuedId']])?$totalIssuedItems[$item['issuedId']]:0;
-            $damageQty= isset($damagedItems[$item['issuedId']])?$damagedItems[$item['issuedId']]:0;
-            $issueDamagedQty=isset($issueDamagedItems[$item['issuedId']])?$issueDamagedItems[$item['issuedId']]:0;
-            $remQty= $item['recQty']-($totalIssuedQty+$damageQty);
-            if(!$remQty && !($issueQty-$issueDamagedQty))continue;
+            //$totalIssuedQty= isset($totalIssuedItems[$item['issuedId']])?$totalIssuedItems[$item['issuedId']]:0;
+            //$damageQty= isset($damagedItems[$item['issuedId']])?$damagedItems[$item['issuedId']]:0;
+            //$issueDamagedQty=isset($issueDamagedItems[$item['issuedId']])?$issueDamagedItems[$item['issuedId']]:0;
+            ///$remQty= $item['recQty']-($totalIssuedQty+$damageQty);
+            $remQty= $item['qty'];
+            $checked= isset($issuedItems[$item['issuedId']]) ? 'checked' : '';
+            if(!$remQty && !$issueQty)continue;
             $html .= '<li>';
             $html .= '<ul>';
-            $html .= '<li><input type="checkbox" id="items-'.$item['issuedId'].'" name="selectedItems[]" value="'.$item['issuedId'].'"/></li>';
+            $html .= '<li><input type="checkbox" id="items-'.$item['issuedId'].'" name="selectedItems[]" '.$checked.' value="'.$item['issuedId'].'"/></li>';
             $html .= '<li>'.$item['productCode'].'</li>';
             $html .= '<li id="remQty-'.$item['issuedId'].'">'.$remQty.'</li>';
-            $html .= '<li><input type="number" id="qty-'.$item['issuedId'].'" name="qty[]" min="0" max="'.($remQty+($issueQty-$issueDamagedQty)).'" value="'.($issueQty-$issueDamagedQty).'"/></li>';
+            $html .= '<li><input type="number" id="qty-'.$item['issuedId'].'" name="qty[]" min="0" max="'.($remQty+$issueQty).'" value="'.$issueQty.'"/></li>';
             $html .= '<li>'.$item['warranty'] .'</li>';
             $html .= '<li>'.$item['vendor'] .'</li>';
             $html .= '<input type="hidden" name="issuedIds[]" value="'.$item['issuedId'].'"/>';
@@ -217,9 +220,9 @@ class Issue_Uncountable extends MX_Controller {
     function callback_read_field_items($row, $key){
         $stockItems=$this->issueModel->get_uncountable_stock($this->stockId, $key);
         $issuedItems= $this->issueModel->get_uncountable_issued_items_qty($this->stockId, $key);
-        $totalIssuedItems= $this->issueModel->get_uncountable_issued_items_qty($this->stockId);
-        $damagedItems= $this->issueModel->get_uncountable_stockDamaged_items_qty($this->stockId);
-        $issueDamagedItems= $this->issueModel->get_uncountable_issueDamaged_items_qty($this->stockId, $key);
+        //$totalIssuedItems= $this->issueModel->get_uncountable_issued_items_qty($this->stockId);
+        //$damagedItems= $this->issueModel->get_uncountable_stockDamaged_items_qty($this->stockId);
+        //$issueDamagedItems= $this->issueModel->get_uncountable_issueDamaged_items_qty($this->stockId, $key);
         $html = '';
         $html .= '<ul>';
         $html .= '<li>';
@@ -230,16 +233,17 @@ class Issue_Uncountable extends MX_Controller {
         foreach($stockItems as $item){
             if(!isset($issuedItems[$item['issuedId']]))continue;
             $issueQty= isset($issuedItems[$item['issuedId']])?$issuedItems[$item['issuedId']]:0;
-            $totalIssuedQty= isset($totalIssuedItems[$item['issuedId']])?$totalIssuedItems[$item['issuedId']]:0;
-            $damageQty= isset($damagedItems[$item['issuedId']])?$damagedItems[$item['issuedId']]:0;
-            $issueDamagedQty=isset($issueDamagedItems[$item['issuedId']])?$issueDamagedItems[$item['issuedId']]:0;
-            $remQty= $item['recQty']-($totalIssuedQty+$damageQty);
+            //$totalIssuedQty= isset($totalIssuedItems[$item['issuedId']])?$totalIssuedItems[$item['issuedId']]:0;
+            //$damageQty= isset($damagedItems[$item['issuedId']])?$damagedItems[$item['issuedId']]:0;
+            //$issueDamagedQty=isset($issueDamagedItems[$item['issuedId']])?$issueDamagedItems[$item['issuedId']]:0;
+            //$remQty= $item['recQty']-($totalIssuedQty+$damageQty);
+            $remQty= $item['qty'];
             $html .= '<li>';
             $html .= '<ul>';
             $html .= '<li>&nbsp;</li>';
             $html .= '<li>'.$item['productCode'].'</li>';
             $html .= '<li>'.$remQty.'</li>';
-            $html .= '<li>'.($issueQty-$issueDamagedQty).'</li>';
+            $html .= '<li>'.$issueQty.'</li>';
             $html .= '<li>'.$item['warranty'] .'</li>';
             $html .= '<li>'.$item['vendor'] .'</li>';
             $html .= '</ul>';
@@ -250,7 +254,7 @@ class Issue_Uncountable extends MX_Controller {
     }
     function callback_after_insert_issue($post, $key){
         $issuedItems= $post['selectedItems'];
-        $code= $this->issueModel->get_company_code($this->stockId);
+        $code= $this->issueModel->get_company_code_stockId($this->stockId);
         $this->db->update(
             TBL_ISSUES,
             array('issueNumber' => '' . $code . '/issue/' . mdate("%y", time()) . '/' . $key),
@@ -259,8 +263,11 @@ class Issue_Uncountable extends MX_Controller {
         foreach($issuedItems as $index=>$id):
             $this->db->insert(
                 TBL_ISSUE_UNCOUNTABLE_DETAIL,
-                array('issueId'=>$key, 'stockDetailId'=>$id, 'issueQuantity'=>$post['qty'][$index])
+                array('issueId'=>$key, 'stockDetailId'=>$id, 'issueQuantity'=>$post['qty'][$index], 'active'=>true)
             );
+            $this->db->where('stockDetailId', $id);
+            $this->db->set('activeAmount', 'activeAmount - '.$post['qty'][$index], FALSE);
+            $this->db->update(TBL_STOCK_DETAIL);
         endforeach;
 
         $this->db->where('stockId', $this->stockId);
@@ -274,6 +281,14 @@ class Issue_Uncountable extends MX_Controller {
     function callback_after_update_issue($post, $key){
         $issuedItems= $post['selectedItems'];
         $preIssueQty= $post['preIssueQty'];
+
+        $currentIssuedItems= $this->issueModel->get_uncountable_issued_items_qty($this->stockId, $key);
+        foreach($currentIssuedItems as $itemId=>$qty){
+            $this->db->where('stockDetailId', $itemId);
+            $this->db->set('activeAmount', 'activeAmount + '.$qty, FALSE);
+            $this->db->set('active', true, FALSE);
+            $this->db->update(TBL_STOCK_DETAIL);
+        }
         $this->db->delete(TBL_ISSUE_UNCOUNTABLE_DETAIL, array('issueId'=>$key));
 
         foreach($issuedItems as $index=>$id):
@@ -281,6 +296,10 @@ class Issue_Uncountable extends MX_Controller {
                 TBL_ISSUE_UNCOUNTABLE_DETAIL,
                 array('issueId'=>$key, 'stockDetailId'=>$id, 'issueQuantity'=>$post['qty'][$index])
             );
+            $this->db->where('stockDetailId', $id);
+            $this->db->set('activeAmount', 'activeAmount - '.$post['qty'][$index], FALSE);
+            $this->db->set('active', true, FALSE);
+            $this->db->update(TBL_STOCK_DETAIL);
         endforeach;
 
         $currentIssueQty= $post['issueQuantity'];

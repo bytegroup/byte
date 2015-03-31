@@ -19,7 +19,7 @@
 </style>
 <div class="" style="width: auto; height: auto; border: 0px #999 solid; float: right">
     <div class="form-button-box">
-        <input type="button" value="Back to Stock List" onclick="window.location='<?php echo $backToStockList?>'" class="ui-input-button" id="">
+        <input type="button" value="Back to Stock List" onclick="window.location='<?php echo $backToStockList;?>'" class="ui-input-button" id="">
     </div>
 </div>
 
@@ -44,8 +44,8 @@
 
         $("#field-issueQuantity").prop("readonly",true);
 
-        stockItems= $.parseJSON(stockItems);
-        remStockItems= $.parseJSON(remStockItems);
+        stockItems= $.parseJSON(stockItems);//currently issued Items
+        remStockItems= $.parseJSON(remStockItems);// remaining stock items, which to be issued.
 
         var issueQty= stockItems.length;
         if(state==='read'){

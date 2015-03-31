@@ -9,6 +9,7 @@ Class Issue_model extends CI_Model {
         $this->db->select('c.companyId, c.companyName');
         $this->db->from(TBL_STOCK.' as s ');
         $this->db->join(TBL_COMPANIES.' as c ', 's.companyId=c.companyId');
+        $this->db->where('s.stockId', $stockId);
         $db= $this->db->get();
         if(!$db->num_rows()) return array();
         return $db->result()[0]->companyName;
@@ -46,8 +47,8 @@ Class Issue_model extends CI_Model {
         $this->db->join(TBL_QUOTATIONS.' as q ', 'r.quotationId=q.quotationId');
         $this->db->join(TBL_VENDORS.' as v ', 'q.vendorsId=v.vendorsId');
         $this->db->where('s.stockId', $stockId);
-        if(!$issueId)$this->db->where('sd.stockDetailId NOT IN (select stockDetailId from '.TBL_ISSUE_DETAIL.')',NULL,FALSE);
-        $this->db->where('sd.stockDetailId NOT IN (SELECT stockDetailId FROM '.TBL_DAMAGE_DETAIL.')', NULL, FALSE);
+        if(!$issueId)$this->db->where('sd.active', true);
+        else $this->db->where('id.active', true);
         $db= $this->db->get();
         if(!$db->num_rows())return array();
         $array= array();
@@ -56,9 +57,22 @@ Class Issue_model extends CI_Model {
         endforeach;
         return $array;
     }
+    public function get_preIssued_items_by_issue_id($issueId){
+        if(!$issueId)return array();
+        $this->db->select('*');
+        $this->db->from(TBL_ISSUE_DETAIL.' as id ');
+        $this->db->where('id.issueId', $issueId);
+        $db= $this->db->get();
+        if(!$db->num_rows()) return array();
+        $array=array();
+        foreach($db->result() as $row){
+            $array[]= array('stockDetailId'=>$row->stockDetailId);
+        }
+        return $array;
+    }
     public function get_uncountable_stock($stockId){
         if(!$stockId)return array();
-        $this->db->select('sd.stockDetailId, v.vendorsName, sd.productCode, rd.warrantyEndDate, rd.receiveQuantity');
+        $this->db->select('sd.stockDetailId, v.vendorsName, sd.productCode, sd.activeAmount, rd.warrantyEndDate');
         $this->db->from(TBL_STOCK.' as s ');
         $this->db->join(TBL_STOCK_DETAIL.' as sd ', 'sd.stockId=s.stockId');
         $this->db->join(TBL_RECEIVES_DETAIL.' as rd ', 'rd.receiveDetailId=sd.receiveDetailId');
@@ -66,11 +80,13 @@ Class Issue_model extends CI_Model {
         $this->db->join(TBL_QUOTATIONS.' as q ', 'r.quotationId=q.quotationId');
         $this->db->join(TBL_VENDORS.' as v ', 'q.vendorsId=v.vendorsId');
         $this->db->where('s.stockId', $stockId);
+        $this->db->where('sd.active', true);
+        //$this->db->where('sd.activeAmount > 0');
         $db= $this->db->get();
         if(!$db->num_rows())return array();
         $array= array();
         foreach($db->result() as $row):
-            $array[]= array('issuedId'=>$row->stockDetailId, 'vendor'=>$row->vendorsName, 'productCode'=>$row->productCode, 'warranty'=>$row->warrantyEndDate, 'recQty'=>$row->receiveQuantity);
+            $array[]= array('issuedId'=>$row->stockDetailId, 'vendor'=>$row->vendorsName, 'productCode'=>$row->productCode, 'warranty'=>$row->warrantyEndDate, 'qty'=>$row->activeAmount);
         endforeach;
         return $array;
     }
@@ -82,6 +98,7 @@ Class Issue_model extends CI_Model {
         else $this->db->join(TBL_ISSUES.' as i ', 'i.stockId=s.stockId');
         $this->db->join(TBL_ISSUE_UNCOUNTABLE_DETAIL.' as id ', 'id.issueId=i.issueId');
         $this->db->where('s.stockId', $stockId);
+        $this->db->where('id.active', true);
         $this->db->group_by('id.stockDetailId');
         $db= $this->db->get();
         if(!$db->num_rows())return array();
