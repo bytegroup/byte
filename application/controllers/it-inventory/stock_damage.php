@@ -137,8 +137,15 @@ class Stock_Damage extends MX_Controller {
             $qty= $this->isCountable? 1: $post['qty'][$index];
             $this->db->insert(
                 TBL_DAMAGE_DETAIL,
-                array('damageId'=>$key, 'stockDetailId'=>$id, 'damageQuantity'=>$qty, 'damageType'=>$damageType[$index])
+                array('damageId'=>$key, 'stockDetailId'=>$id, 'damageQuantity'=>$qty, 'damageType'=>$damageType[$index], 'active'=>true)
             );
+            $this->db->where('stockDetailId', $id);
+            if(!$this->isCountable)$this->db->set('activeAmount', 'activeAmount - '.$qty, FALSE);
+            else {
+                $this->db->set('active', false);
+                $this->db->set('activeAmount', 0);
+            }
+            $this->db->update(TBL_STOCK_DETAIL);
         endforeach;
 
         $this->db->where('stockId', $this->stockId);
@@ -150,13 +157,32 @@ class Stock_Damage extends MX_Controller {
         $damageItems= $post['selectedItems'];
         $damageType= $post['damageType'];
         $preDamageQty= $post['preDamageQty']? $post['preDamageQty']:0;
+
+        $currentlyDamaged= $this->damageModel->get_damaged_items($key);
+        foreach($currentlyDamaged as $itemId=>$damageQty){
+            $this->db->where('stockDetailId', $itemId);
+            if(!$this->isCountable)$this->db->set('activeAmount', 'activeAmount + '.$damageQty, FALSE);
+            else {
+                $this->db->set('active', true);
+                $this->db->set('activeAmount', 1);
+            }
+            $this->db->update(TBL_STOCK_DETAIL);
+        }
         $this->db->delete(TBL_DAMAGE_DETAIL, array('damageId'=>$key));
+
         foreach($damageItems as $index=>$id):
             $qty= $this->isCountable? 1: $post['qty'][$index];
             $this->db->insert(
                 TBL_DAMAGE_DETAIL,
-                array('damageId'=>$key, 'stockDetailId'=>$id, 'damageQuantity'=>$qty, 'damageType'=>$damageType[$index])
+                array('damageId'=>$key, 'stockDetailId'=>$id, 'damageQuantity'=>$qty, 'damageType'=>$damageType[$index], 'active'=>true)
             );
+            $this->db->where('stockDetailId', $id);
+            if(!$this->isCountable)$this->db->set('activeAmount', 'activeAmount - '.$qty, FALSE);
+            else {
+                $this->db->set('active', false);
+                $this->db->set('activeAmount', 0);
+            }
+            $this->db->update(TBL_STOCK_DETAIL);
         endforeach;
 
         $currentDamageQty= $post['damageQuantity'];

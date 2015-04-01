@@ -7,7 +7,7 @@ Class Stock_Damage_model extends CI_Model {
 
     public function get_stock_items($stockId, $damageId=0, $isCountable=true){
         if(!$stockId) return array();
-        $this->db->select('sd.stockDetailId, sd.productCode, rd.receiveQuantity, rd.warrantyEndDate, v.vendorsName, dd.damageId, dd.damageQuantity, dd.damageType');
+        $this->db->select('sd.stockDetailId, sd.productCode, sd.active, rd.receiveQuantity, rd.warrantyEndDate, v.vendorsName, dd.damageId, dd.damageQuantity, dd.damageType');
         $this->db->from(TBL_STOCK.' as s ');
         $this->db->join(TBL_STOCK_DETAIL.' as sd ', 'sd.stockId=s.stockId');
         $this->db->join(TBL_DAMAGE_DETAIL.' as dd ', 'dd.stockDetailId=sd.stockDetailId', 'left', NULL);
@@ -16,18 +16,13 @@ Class Stock_Damage_model extends CI_Model {
         $this->db->join(TBL_QUOTATIONS.' as q ', 'q.quotationId=r.quotationId');
         $this->db->join(TBL_VENDORS.' as v ', 'v.vendorsId=q.vendorsId');
         $this->db->where('s.stockId', $stockId);
-        $this->db->where('sd.stockDetailId NOT IN (select stockDetailId from '.TBL_ISSUE_DETAIL.')', NULL, FALSE);
-        if($damageId){
-            $this->db->where('sd.stockDetailId NOT IN (select stockDetailId from '.TBL_DAMAGE_DETAIL.' where damageId!='.$damageId.')', NULL, FALSE);
-        }
-        else {
-            $this->db->where('sd.stockDetailId NOT IN (select stockDetailId from '.TBL_DAMAGE_DETAIL.')', NULL, FALSE);
-        }
+        if(!$damageId)$this->db->where('sd.active', true);
+        else $this->db->where('sd.active = true OR sd.stockDetailId IN (SELECT stockDetailId FROM '.TBL_DAMAGE_DETAIL.' WHERE damageId='.$damageId.' and active=true)');
         $db= $this->db->get();
         if(!$db->num_rows())return array();
         $array= array();
         foreach($db->result() as $row):
-            $array[]= array('stockDetailId'=>$row->stockDetailId ,'vendor'=>$row->vendorsName, 'productCode'=>$row->productCode, 'warranty'=>$row->warrantyEndDate, 'damageId'=>$row->damageId, 'recQty'=> $row->receiveQuantity, 'damageQty'=>$row->damageQuantity, 'type'=>$row->damageType);
+            $array[]= array('stockDetailId'=>$row->stockDetailId ,'vendor'=>$row->vendorsName, 'productCode'=>$row->productCode, 'warranty'=>$row->warrantyEndDate, 'damageId'=>$row->damageId, 'recQty'=> $row->receiveQuantity, 'damageQty'=>$row->damageQuantity, 'type'=>$row->damageType, 'active'=>$row->active);
         endforeach;
         return $array;
     }
@@ -147,7 +142,7 @@ Class Stock_Damage_model extends CI_Model {
         $html .= '</ul>';
         $html .= '</li>';
         foreach($items as $item):
-            $checked= $item['damageId']==$damageId ? 'checked':'';
+            $checked= !$item['active'] ? 'checked':'';
             $options= isset($item['type'])? $this->typeOptions($item['type']):$this->typeOptions('');
             $html .= '<li>';
             $html .= '<ul>';
@@ -253,6 +248,19 @@ Class Stock_Damage_model extends CI_Model {
             :
             '<option value="Permanent-Damage" selected >Permanent</option><option value="Repairable-Damage">Repairable</option>';
         return $options;
+    }
+    public function get_damaged_items($damageId=0){
+        $this->db->select('dd.stockDetailId, dd.damageQuantity');
+        $this->db->from(TBL_DAMAGE_DETAIL.' as dd ');
+        if($damageId)$this->db->where('dd.damageId', $damageId);
+        $this->db->where('dd.active', true);
+        $db= $this->db->get();
+        if(!$db->num_rows())return array();
+        $array=array();
+        foreach($db->result as $row){
+            $array[$row->stockDetailId]= $row->damageQuantity;
+        }
+        return $array;
     }
 }
 
