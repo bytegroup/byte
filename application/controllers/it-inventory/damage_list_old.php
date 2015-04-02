@@ -8,7 +8,7 @@
 ?>
 <?php if ( ! defined('BASEPATH')) exit('No direct script access allowed');
 
-class Issue_Damage extends MX_Controller {
+class Damage_list_old extends MX_Controller {
     var $issueId=0;
     var $stockId=0;
     var $isCountable= true;

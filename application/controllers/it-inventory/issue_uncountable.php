@@ -170,7 +170,7 @@ class Issue_Uncountable extends MX_Controller {
             $html .= '<li><input type="checkbox" id="items-'.$item['issuedId'].'" name="selectedItems[]" value="'.$item['issuedId'].'"/></li>';
             $html .= '<li>'.$item['productCode'].'</li>';
             $html .= '<li id="remQty-'.$item['issuedId'].'">'.$remQty.'</li>';
-            $html .= '<li><input type="number" id="qty-'.$item['issuedId'].'" name="qty[]" min="0" max="'.$remQty.'" value=""/></li>';
+            $html .= '<li><input type="number" id="qty-'.$item['issuedId'].'" name="qty['.$item['issuedId'].']" min="0" max="'.$remQty.'" value=""/></li>';
             $html .= '<li>'.$item['warranty'] .'</li>';
             $html .= '<li>'.$item['vendor'] .'</li>';
             $html .= '<input type="hidden" name="issuedIds[]" value="'.$item['issuedId'].'"/>';
@@ -207,7 +207,7 @@ class Issue_Uncountable extends MX_Controller {
             $html .= '<li><input type="checkbox" id="items-'.$item['issuedId'].'" name="selectedItems[]" '.$checked.' value="'.$item['issuedId'].'"/></li>';
             $html .= '<li>'.$item['productCode'].'</li>';
             $html .= '<li id="remQty-'.$item['issuedId'].'">'.$remQty.'</li>';
-            $html .= '<li><input type="number" id="qty-'.$item['issuedId'].'" name="qty[]" min="0" max="'.($remQty+$issueQty).'" value="'.$issueQty.'"/></li>';
+            $html .= '<li><input type="number" id="qty-'.$item['issuedId'].'" name="qty['.$item['issuedId'].']" min="0" max="'.($remQty+$issueQty).'" value="'.$issueQty.'"/></li>';
             $html .= '<li>'.$item['warranty'] .'</li>';
             $html .= '<li>'.$item['vendor'] .'</li>';
             $html .= '<input type="hidden" name="issuedIds[]" value="'.$item['issuedId'].'"/>';
@@ -263,10 +263,10 @@ class Issue_Uncountable extends MX_Controller {
         foreach($issuedItems as $index=>$id):
             $this->db->insert(
                 TBL_ISSUE_UNCOUNTABLE_DETAIL,
-                array('issueId'=>$key, 'stockDetailId'=>$id, 'issueQuantity'=>$post['qty'][$index], 'active'=>true)
+                array('issueId'=>$key, 'stockDetailId'=>$id, 'issueQuantity'=>$post['qty'][$id], 'active'=>true)
             );
             $this->db->where('stockDetailId', $id);
-            $this->db->set('activeAmount', 'activeAmount - '.$post['qty'][$index], FALSE);
+            $this->db->set('activeAmount', 'activeAmount - '.$post['qty'][$id], FALSE);
             $this->db->update(TBL_STOCK_DETAIL);
         endforeach;
 
@@ -294,10 +294,10 @@ class Issue_Uncountable extends MX_Controller {
         foreach($issuedItems as $index=>$id):
             $this->db->insert(
                 TBL_ISSUE_UNCOUNTABLE_DETAIL,
-                array('issueId'=>$key, 'stockDetailId'=>$id, 'issueQuantity'=>$post['qty'][$index])
+                array('issueId'=>$key, 'stockDetailId'=>$id, 'issueQuantity'=>$post['qty'][$id])
             );
             $this->db->where('stockDetailId', $id);
-            $this->db->set('activeAmount', 'activeAmount - '.$post['qty'][$index], FALSE);
+            $this->db->set('activeAmount', 'activeAmount - '.$post['qty'][$id], FALSE);
             $this->db->set('active', true, FALSE);
             $this->db->update(TBL_STOCK_DETAIL);
         endforeach;

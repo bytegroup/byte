@@ -61,15 +61,15 @@
         $("#collapseIT-Inventory").removeClass("in").addClass("in");
         $("#field-damageQuantity").prop("readonly",true);
         $("#items_input_box").append('<input type="hidden" name="preDamageQty" value="'+parseInt($("#field-damageQuantity").val())+'"/>');
-
+        var checkBox= $("#items_input_box input[type='checkbox']");
         if(isCountable){
-            $("#items_input_box input[type='checkbox']").change(function(){
+            checkBox.change(function(){
                 var damageQty= $("#items_input_box input[type='checkbox']:checked").length;
                 if(damageQty==0)$('#field-damageQuantity').val('');
                 else $('#field-damageQuantity').val(damageQty);
             });
         }else{
-            $("#items_input_box input[type='number']").on('input', function(){
+            /*$("#items_input_box input[type='number']").on('input', function(){
                 var max= parseInt($(this).attr('max'));
                 if(!$.isNumeric($(this).val()))$(this).val(0);
                 var currentId= $(this).attr('id').split('-')[1];
@@ -97,7 +97,23 @@
                     var currentId= $(this).attr('id').split('-')[1];
                     $('#items_input_box input#qty-'+currentId).val(0);
                 }
+            });*/
+            //$("#field-damageQuantity").val(get_total_damage());
+
+            checkBox.change(function(){
+               console.log(get_total_damage());
             });
+        }
+        function get_total_damage(){
+            var total= 0;
+            checkBox.each(function(){
+                if($(this).is('checked')){
+                    var itemId= 0;
+                    console.log($(this).val());
+                    total += parseInt($('input[type="hidden"]#qty-'+itemId).val());
+                }
+            });
+            return total;
         }
     });
 </script>

@@ -126,7 +126,6 @@ class Issue_Damage extends MX_Controller {
     function callback_edit_field_items($row, $key){
         if($this->isCountable)return $this->damageModel->html_for_countable_edit_field($this->issueId, $key);
         else return $this->damageModel->html_for_uncountable_edit_field($this->issueId, $key);
-
     }
     function callback_read_field_items($row, $key){
         if($this->isCountable)return $this->damageModel->html_for_countable_read_field($this->issueId, $key);
@@ -137,11 +136,14 @@ class Issue_Damage extends MX_Controller {
         $damageType= $post['damageType'];
 
         foreach($damagedItems as $index=>$id):
-            $qty= $this->isCountable? 1: $post['qty'][$index];
+            $qty= $this->isCountable? 1: $post['qty'][$id];
             $this->db->insert(
                 TBL_DAMAGE_DETAIL,
-                array('damageId'=>$key, 'stockDetailId'=>$id, 'damageQuantity'=>$qty, 'damageType'=>$damageType[$index], 'issueId'=>$this->issueId)
+                array('damageId'=>$key, 'stockDetailId'=>$id, 'damageQuantity'=>$qty, 'damageType'=>$damageType[$id], 'issueId'=>$this->issueId, 'active'=>true)
             );
+            if($this->isCountable)
+                $this->db->update(TBL_ISSUE_DETAIL, array('active'=>false), array('issueId'=>$this->issueId, 'stockDetailId'=>$id));
+            else $this->db->update(TBL_ISSUE_UNCOUNTABLE_DETAIL, array('active'=>false, 'issueQuantity'=>0), array('issueId'=>$this->issueId, 'stockDetailId'=>$id));
         endforeach;
 
         $this->db->where('stockId', $this->stockId);
@@ -155,15 +157,25 @@ class Issue_Damage extends MX_Controller {
     }
     function callback_after_update_damage($post, $key){
         $damageItems= $post['selectedItems'];
+        $damageType= $post['damageType'];
         $preDamageQty= $post['preDamageQty']? $post['preDamageQty']:0;
 
+        $currentlyDamagedItems= $this->damageModel->get_damage_from_issued_items($this->issueId, $key);
+        foreach($currentlyDamagedItems as $itemId=>$damageQty){
+            if($this->isCountable)$this->db->update(TBL_ISSUE_DETAIL, array('active'=>true), array('issueId'=>$this->issueId, 'stockDetailId'=>$itemId));
+            else $this->db->update(TBL_ISSUE_UNCOUNTABLE_DETAIL, array('active'=>true, 'issueQuantity'=>$damageQty), array('issueId'=>$this->issueId, 'stockDetailId'=>$itemId));
+        }
         $this->db->delete(TBL_DAMAGE_DETAIL, array('damageId'=>$key));
+
         foreach($damageItems as $index=>$id):
-            $qty= $this->isCountable? 1: $post['qty'][$index];
+            $qty= $this->isCountable? 1: $post['qty'][$id];
             $this->db->insert(
                 TBL_DAMAGE_DETAIL,
-                array('damageId'=>$key, 'stockDetailId'=>$id, 'damageQuantity'=>$qty)
+                array('damageId'=>$key, 'stockDetailId'=>$id, 'damageQuantity'=>$qty, 'damageType'=>$damageType[$id], 'issueId'=>$this->issueId, 'active'=>true)
             );
+            if($this->isCountable)
+                $this->db->update(TBL_ISSUE_DETAIL, array('active'=>false), array('issueId'=>$this->issueId, 'stockDetailId'=>$id));
+            else $this->db->update(TBL_ISSUE_UNCOUNTABLE_DETAIL, array('active'=>false, 'issueQuantity'=>0), array('issueId'=>$this->issueId, 'stockDetailId'=>$id));
         endforeach;
 
         $currentDamageQty= $post['damageQuantity'];

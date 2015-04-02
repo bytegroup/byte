@@ -134,10 +134,10 @@ class Stock_Damage extends MX_Controller {
         $damageType= $post['damageType'];
 
         foreach($damagedItems as $index=>$id):
-            $qty= $this->isCountable? 1: $post['qty'][$index];
+            $qty= $this->isCountable? 1: $post['qty'][$id];
             $this->db->insert(
                 TBL_DAMAGE_DETAIL,
-                array('damageId'=>$key, 'stockDetailId'=>$id, 'damageQuantity'=>$qty, 'damageType'=>$damageType[$index], 'active'=>true)
+                array('damageId'=>$key, 'stockDetailId'=>$id, 'damageQuantity'=>$qty, 'damageType'=>$damageType[$id], 'active'=>true)
             );
             $this->db->where('stockDetailId', $id);
             if(!$this->isCountable)$this->db->set('activeAmount', 'activeAmount - '.$qty, FALSE);
@@ -171,10 +171,10 @@ class Stock_Damage extends MX_Controller {
         $this->db->delete(TBL_DAMAGE_DETAIL, array('damageId'=>$key));
 
         foreach($damageItems as $index=>$id):
-            $qty= $this->isCountable? 1: $post['qty'][$index];
+            $qty= $this->isCountable? 1: $post['qty'][$id];
             $this->db->insert(
                 TBL_DAMAGE_DETAIL,
-                array('damageId'=>$key, 'stockDetailId'=>$id, 'damageQuantity'=>$qty, 'damageType'=>$damageType[$index], 'active'=>true)
+                array('damageId'=>$key, 'stockDetailId'=>$id, 'damageQuantity'=>$qty, 'damageType'=>$damageType[$id], 'active'=>true)
             );
             $this->db->where('stockDetailId', $id);
             if(!$this->isCountable)$this->db->set('activeAmount', 'activeAmount - '.$qty, FALSE);

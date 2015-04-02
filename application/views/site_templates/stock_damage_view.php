@@ -50,6 +50,8 @@
         var isCountable=<?php if($isCountable){ ?>true;<?php } else{ ?> false;<?php } ?>
 
         $("#collapseIT-Inventory").removeClass("in").addClass("in");
+        $("#form-button-save").hide()
+        $("#save-and-go-back-button").prop('value', 'Save');
         $("#field-damageQuantity").prop("readonly",true);
         $("#items_input_box").append('<input type="hidden" name="preDamageQty" value="'+$("#field-damageQuantity").val()+'"/>');
 
