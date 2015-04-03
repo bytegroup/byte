@@ -21,6 +21,13 @@
     #items_input_box ul li ul.items-table-header{text-align: center;}
     #items_input_box ul ul li input{width: 70px; margin-top: 8px;}
     #items_input_box ul li span{display: inline-block!important; width: 50px;}
+
+    #stock_input_box ul{width: 100%;list-style: none; margin: 0;}
+    #stock_input_box ul li ul.items-table-header{background-color: #a9dba9;}
+    #stock_input_box ul li ul li{display: inline-block;padding: 0 4px; width: 100px; text-align: center;}
+    #stock_input_box ul li ul li.item{width: 300px; text-align: left;}
+    #stock_input_box ul li ul li.code{width: 250px;}
+    #stock_input_box ul li ul{border-bottom: 1px #9acc9a solid;}
 </style>
 <h3><?=$pageTitle?></h3>
 <?=$output?>

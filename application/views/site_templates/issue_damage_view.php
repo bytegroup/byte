@@ -98,19 +98,20 @@
                     $('#items_input_box input#qty-'+currentId).val(0);
                 }
             });*/
-            //$("#field-damageQuantity").val(get_total_damage());
 
+            var totalDamageQty= get_total_damage()
+            $("#field-damageQuantity").val(totalDamageQty==0?'':totalDamageQty);
             checkBox.change(function(){
-               console.log(get_total_damage());
+                totalDamageQty = get_total_damage();
+                $("#field-damageQuantity").val(totalDamageQty==0?'':totalDamageQty);
             });
         }
         function get_total_damage(){
             var total= 0;
             checkBox.each(function(){
-                if($(this).is('checked')){
-                    var itemId= 0;
-                    console.log($(this).val());
-                    total += parseInt($('input[type="hidden"]#qty-'+itemId).val());
+                if($(this).is(':checked')){
+                    var itemId= $(this).val();
+                    total += parseInt($('input#qty-'+itemId).val());
                 }
             });
             return total;

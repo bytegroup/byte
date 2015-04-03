@@ -54,7 +54,8 @@ class Issue_Damage extends MX_Controller {
             $crud->where('issueId', $issueId);
             $crud->set_subject('Issue Damage');
 
-            $crud->columns('itemMasterId','damageType','damageQuantity','damageDate');
+            $crud->columns('itemMasterId', 'damageQuantity', 'damageDate', 'checkedById');
+            $crud->callback_column('itemMasterId', array($this, 'callback_column_itemMasterId'));
             $crud->display_as('itemMasterId','Product')
                 ->display_as('stockNumber', 'Stock No.')
                 ->display_as('damageType','Damage Type')
@@ -66,7 +67,7 @@ class Issue_Damage extends MX_Controller {
 
             $crud->add_fields('stockId', 'issueId', 'damageDate', 'checkedById', 'damageDetails', 'damageRemarks', 'damageQuantity', 'items', 'creatorId', 'createDate');
             $crud->edit_fields('stockId', 'damageDate', 'checkedById', 'damageDetails', 'damageRemarks', 'damageQuantity', 'items', 'editorId', 'editDate');
-            $crud->set_read_fields('stockId', 'damageType', 'damageDate', 'checkedById', 'damageDetails', 'damageRemarks', 'damageQuantity', 'items');
+            $crud->set_read_fields('stockId', 'damageDate', 'checkedById', 'damageDetails', 'damageRemarks', 'damageQuantity', 'items');
             $crud->required_fields('stockId', 'damageType', 'damageDate', 'checkedById', 'damageQuantity');
             $crud->unset_texteditor('damageDetails', 'damageRemarks');
             $crud->field_type('stockId', 'hidden', $this->stockId);
@@ -119,6 +120,9 @@ class Issue_Damage extends MX_Controller {
     /*****************************/
     /***  callback functions  ***/
     /*****************************/
+    function callback_column_itemMasterId($value, $row){
+        return $this->damageModel->get_itemName($this->issueId);
+    }
     function callback_add_field_items($row, $key){
         if($this->isCountable)return $this->damageModel->html_for_countable_add_field($this->issueId);
         else return $this->damageModel->html_for_uncountable_add_field($this->issueId);

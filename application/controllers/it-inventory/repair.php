@@ -49,7 +49,7 @@ class Repair extends MX_Controller {
                 ->display_as('repairDetails','Details')
                 ->display_as('repairAmount', 'Repair Amount');
 
-            $crud->add_fields('damageDetailId', 'repairTypeId', 'repairAmount', 'vendorsId', 'repairDate', 'repairDetails', 'creatorId', 'createDate');
+            $crud->add_fields('damageDetailId', 'repairTypeId', 'repairAmount', 'vendorsId', 'repairDate', 'repairDetails', 'active', 'creatorId', 'createDate');
             $crud->edit_fields('damageDetailId', 'repairTypeId', 'repairAmount', 'vendorsId', 'repairDate', 'repairDetails', 'editorId', 'editDate');
             //var_dump($this->repairModel->get_repair_types($damageDetailId, 5));
             $crud->unset_texteditor('repairDetails');
@@ -57,11 +57,13 @@ class Repair extends MX_Controller {
             $crud->field_type('damageDetailId', 'hidden', $damageDetailId);
             if($crud->getState()==='add')$crud->field_type('repairTypeId', 'dropdown', $this->repairModel->get_repair_types($damageDetailId));
             if($crud->getState()==='edit')$crud->field_type('repairTypeId', 'dropdown', $this->repairModel->get_repair_types($damageDetailId, $crud->getStateInfo()->primary_key));
+            $crud->field_type('active', 'hidden', true);
             $crud->field_type('creatorId', 'hidden', $this->my_session->userId);
             $crud->field_type('createDate', 'hidden', $time);
             $crud->field_type('editorId', 'hidden', $this->my_session->userId);
             $crud->field_type('editDate', 'hidden', $time);
             //$crud->field_type('repairAmount', array($this, 'callback_field_repairAmount'));
+            $crud->callback_after_insert(array($this, 'callback_after_insert_repair'));
 
             if(!isset($this->my_session->permissions['canIT-InventoryAdd'])){
                 $crud->unset_add();
@@ -112,6 +114,7 @@ class Repair extends MX_Controller {
             $this->load->view(MAIN_TEMPLATE_FILE,$output);
 
         }catch(Exception $e){
+            redirect(base_url(IT_MODULE_FOLDER.'repair_list'));
             show_error($e->getMessage().' --- '.$e->getTraceAsString());
         }
     }
@@ -119,6 +122,9 @@ class Repair extends MX_Controller {
     /*****************************/
     /***  callback functions  ***/
     /*****************************/
+    function callback_after_insert_repair($post, $key){
+        $this->db->update(TBL_DAMAGE_DETAIL, array('active'=>false), array('damageDetailId'=>$this->damageDetailId));
+    }
 
     /*****************************/
     /***  ajax call functions  ***/

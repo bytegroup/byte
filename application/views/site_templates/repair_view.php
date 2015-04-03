@@ -34,14 +34,7 @@
 <script language="JavaScript">
     $(document).ready(function(e){
         $("#collapseIT-Inventory").removeClass("in").addClass("in");
-        /*$(".form-content form div.buttons-box").prepend(
-            '<div class="form-button-box">'
-            + '<input type="button" value="Back to list" class="ui-input-button" id="cancel-repair">'
-            + '</div>'
-        );
-        $("input#cancel-repair").click(function(){
-            window.location = "<?php //echo $backToDamageList;?>";
-        });*/
+
         $("#field-repairAmount").numeric();
         $("#field-repairTypeId").change(function(){
             repair_amount($(this).val());
@@ -59,7 +52,13 @@
         '<a role="button" id="repair-bill" href="#" class="ui-button ui-state-default ui-button-text-icon-primary"> <span class="ui-button-icon-primary ui-icon ui-icon-calculator"></span> <span class="ui-button-text">Repair Bill</span> </a>' +
         '</li>' +
         '<li>' +
+        '<a role="button" href="#" class="ui-button ui-state-default ui-button-text-icon-primary"> <span class="ui-button-icon-primary ui-icon ui-icon-circle-plus"></span> <span class="ui-button-text">Add to Issue</span> </a>' +
+        '</li>' +
+        '<li>' +
         '<a role="button" href="#" class="ui-button ui-state-default ui-button-text-icon-primary"> <span class="ui-button-icon-primary ui-icon ui-icon-circle-plus"></span> <span class="ui-button-text">Add to Stock</span> </a>' +
+        '</li>' +
+        '<li>' +
+        '<a role="button" href="#" class="ui-button ui-state-default ui-button-text-icon-primary"> <span class="ui-button-icon-primary ui-icon ui-icon-circle-plus"></span> <span class="ui-button-text">Permanent Damage</span> </a>' +
         '</li>' +
         '</ul>' +
         '</div>' +
@@ -70,21 +69,13 @@
             $('div.repair-list input[type="checkbox"]').each(function(){
                 if($(this).is(':checked') && !$(this).is(':disabled')) ids += $(this).val() + ';';
             });
-            /*var form = document.createElement("form");
-            $(form).attr("action", "<?php //echo base_url(IT_MODULE_FOLDER.'repair_bill/index/add');?>").attr("method", "post");
-            $(form).html('<input type="hidden" name="repairIds" value="' + ids.slice(0,-1)+ '" />');
-            document.body.appendChild(form);
-            $(form).submit();
-            document.body.removeChild(form);*/
+
             if(ids==='' || ids===null){
                 alert('Please select at least one repair to add the repair bill.');
             }else{
                 ids= encodeURIComponent(ids.slice(0,-1));
                 window.location= '<?php echo base_url(IT_MODULE_FOLDER.'repair_bill/index');?>/'+ids+'/add';
             }
-
-            //window.close();
-            //console.log();
         });
     });
 

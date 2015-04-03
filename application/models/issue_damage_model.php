@@ -59,24 +59,23 @@ Class Issue_Damage_model extends CI_Model {
         return $array;
     }
 
-    public function get_uncountable_damage_from_issued_items($issueId, $damageId=0){
-        if(!$issueId) return array();
-        $this->db->select('id.stockDetailId, id.issueQuantity, sd.productCode, rd.warrantyEndDate, v.vendorsName');
-        $this->db->from(TBL_ISSUE_UNCOUNTABLE_DETAIL.' as id ');
-        $this->db->join(TBL_STOCK_DETAIL.' as sd ', 'sd.stockDetailId=id.stockDetailId');
+    public function get_uncountable_damage_from_issued_items($damageId=0){
+        $this->db->select('dd.stockDetailId, dd.damageQuantity, dd.damageType, sd.productCode, rd.warrantyEndDate, v.vendorsName');
+        $this->db->from(TBL_DAMAGE_DETAIL.' as dd ');
+        $this->db->join(TBL_STOCK_DETAIL.' as sd ', 'sd.stockDetailId=dd.stockDetailId');
         $this->db->join(TBL_RECEIVES_DETAIL.' as rd ', 'rd.receiveDetailId=sd.receiveDetailId');
         $this->db->join(TBL_RECEIVES.' as r ', 'r.receiveId=rd.receiveId');
         $this->db->join(TBL_QUOTATIONS.' as q ', 'q.quotationId=r.quotationId');
         $this->db->join(TBL_VENDORS.' as v ', 'v.vendorsId=q.vendorsId');
-        $this->db->where('id.issueId', $issueId);
-        $this->db->where('id.active', true);
+        $this->db->where('dd.damageId', $damageId);
+        $this->db->where('dd.active', true);
 
         $db = $this->db->get();
         if(!$db->num_rows())return array();
         $array= array();
 
         foreach($db->result() as $row):
-            $array[]= array('stockDetailId'=>$row->stockDetailId ,'vendor'=>$row->vendorsName, 'productCode'=>$row->productCode, 'warranty'=>$row->warrantyEndDate, 'issueQty'=>$row->issueQuantity, 'damageQty'=>$row->damageQuantity, 'type'=>$row->damageType);
+            $array[]= array('stockDetailId'=>$row->stockDetailId ,'vendor'=>$row->vendorsName, 'productCode'=>$row->productCode, 'warranty'=>$row->warrantyEndDate, 'damageQty'=>$row->damageQuantity, 'type'=>$row->damageType);
         endforeach;
 
         return $array;
@@ -137,7 +136,6 @@ Class Issue_Damage_model extends CI_Model {
     public function html_for_uncountable_add_field($issueId){
         $items= $this->get_uncountable_issued_items($issueId);
         //$damageQty= $this->get_damage_qty($issueId);
-        //var_dump($items);
         $html='';
         $html .= '<ul>';
         $html .= '<li>';
@@ -188,17 +186,17 @@ Class Issue_Damage_model extends CI_Model {
         return $html;
     }
     public function html_for_uncountable_edit_field($issueId, $damageId){
-        $items= $this->get_uncountable_issued_items($issueId, $damageId);
-        $damageQty= $this->get_damage_qty($issueId);
+        $items= $this->get_uncountable_damage_from_issued_items($damageId);
+        //var_dump($items);
+        //$damageQty= $this->get_damage_qty($issueId);
         $html='';
         $html .= '<ul>';
         $html .= '<li>';
         $html .= '<ul class="items-table-header">';
-        $html .= '<li>&nbsp;</li><li>Product Code</li><li>Rem. Quantity</li><li>Damage Quantity</li><li>Damage Type</li><li>Warranty</li><li>Vendor</li>';
+        $html .= '<li>&nbsp;</li><li>Product Code</li><li>Damage Quantity</li><li>Damage Type</li><li>Warranty</li><li>Vendor</li>';
         $html .= '</ul>';
         $html .= '</li>';
         foreach($items as $item):
-            $remQty= $item['issueQty']-((isset($issueQty[$item['stockDetailId']])? $issueQty[$item['stockDetailId']]:0) + (isset($damageQty[$item['stockDetailId']])? $damageQty[$item['stockDetailId']]:0));
             $checked= isset($item['damageQty'])?'checked=true':'';
             $damQty= isset($item['damageQty'])? $item['damageQty']:0;
             $options= isset($item['type'])?$this->typeOptions($item['type']):$this->typeOptions('');
@@ -206,8 +204,8 @@ Class Issue_Damage_model extends CI_Model {
             $html .= '<ul>';
             $html .= '<li><input type="checkbox" '.$checked.' id="items-'.$item['stockDetailId'].'" name="selectedItems[]" value="'.$item['stockDetailId'].'"/></li>';
             $html .= '<li>'.$item['productCode'].'</li>';
-            $html .= '<li id="remQty-'.$item['stockDetailId'].'">'.$remQty.'</li>';
-            $html .= '<li><input type="number" id="qty-'.$item['stockDetailId'].'" name="qty['.$item['stockDetailId'].']" min="0" max="'.($remQty+$damQty).'" value="'.$damQty.'" /></li>';
+            $html .= '<li id="remQty-'.$item['stockDetailId'].'">'.$damQty.'</li>';
+            $html .= '<input type="hidden" id="qty-'.$item['stockDetailId'].'" name="qty['.$item['stockDetailId'].']" min="0" max="'.$damQty.'" value="'.$damQty.'" />';
             $html .= '<li><select name="damageType['.$item['stockDetailId'].']">'.$options.'</select></li>';
             $html .= '<li>'.$item['warranty'].'</li>';
             $html .= '<li>'.$item['vendor'].'</li>';
@@ -242,22 +240,19 @@ Class Issue_Damage_model extends CI_Model {
         return $html;
     }
     public function html_for_uncountable_read_field($issueId, $damageId){
-        $items= $this->get_uncountable_issued_items($issueId, $damageId);
-        $damageQty= $this->get_damage_qty($issueId);
+        $items= $this->get_uncountable_damage_from_issued_items($damageId);
         $html='';
         $html .= '<ul>';
         $html .= '<li>';
         $html .= '<ul class="items-table-header">';
-        $html .= '<li>&nbsp;</li><li>Product Code</li><li>Rem. Quantity</li><li>Damage Quantity</li><li>Damage Type</li><li>Warranty</li><li>Vendor</li>';
+        $html .= '<li>&nbsp;</li><li>Product Code</li><li>Damage Quantity</li><li>Damage Type</li><li>Warranty</li><li>Vendor</li>';
         $html .= '</ul>';
         $html .= '</li>';
         foreach($items as $item):
-            $remQty= $item['issueQty']-((isset($issueQty[$item['stockDetailId']])? $issueQty[$item['stockDetailId']]:0) + (isset($damageQty[$item['stockDetailId']])? $damageQty[$item['stockDetailId']]:0));
             $html .= '<li>';
             $html .= '<ul>';
             $html .= '<li>&nbsp;</li>';
             $html .= '<li>'.$item['productCode'].'</li>';
-            $html .= '<li>'.$remQty.'</li>';
             $html .= '<li>'.$item['damageQty'].'</li>';
             $html .= '<li>'.explode('-',$item['type'])[0].'</li>';
             $html .= '<li>'.$item['warranty'].'</li>';
@@ -288,6 +283,18 @@ Class Issue_Damage_model extends CI_Model {
             $array[$row->stockDetailId]= $row->damageQuantity;
         }
         return $array;
+    }
+    public function get_itemName($issueId){
+        if(!$issueId) return '';
+        $this->db->select('im.itemName');
+        $this->db->from(TBL_ISSUES.' as i ');
+        $this->db->join(TBL_STOCK.' as s ', 's.stockId=i.stockId');
+        $this->db->join(TBL_ITEMS_MASTER.' as im ', 'im.itemMasterId=s.itemMasterId');
+        $this->db->where('i.issueId', $issueId);
+        $db = $this->db->get();
+        if(!$db->num_rows()) return '';
+
+        return $db->result()[0]->itemName;
     }
 }
 

@@ -106,14 +106,15 @@ class Repair_List extends MX_Controller {
         return $html;
     }
     function callback_column_items($value, $row){
-        $this->db->select('i.itemName');
+        $this->db->select('i.itemName, sd.productCode');
         $this->db->from(TBL_DAMAGE_DETAIL.' as dd ');
         $this->db->join(TBL_DAMAGE.' as d ', 'd.damageId=dd.damageId');
+        $this->db->join(TBL_STOCK_DETAIL.' as sd ', 'sd.stockDetailId=dd.stockDetailId');
         $this->db->join(TBL_STOCK.' as s ', 's.stockId=d.stockId');
         $this->db->join(TBL_ITEMS_MASTER.' as i ', 'i.itemMasterId=s.itemMasterId');
         $this->db->where('dd.damageDetailId', $row->damageDetailId);
         $db= $this->db->get();
         if(!$db->num_rows()) return '';
-        return $db->result()[0]->itemName;
+        return $db->result()[0]->itemName.' <small>['.$db->result()[0]->productCode.']</small>';
     }
 }
