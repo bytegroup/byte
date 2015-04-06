@@ -2,6 +2,7 @@
 
 class Repair extends MX_Controller {
     var $damageDetailId= 0;
+    var $isAlreadyInRepair= false;
     function __construct(){
         parent::__construct();
         $this->load->database();
@@ -51,7 +52,6 @@ class Repair extends MX_Controller {
 
             $crud->add_fields('damageDetailId', 'repairTypeId', 'repairAmount', 'vendorsId', 'repairDate', 'repairDetails', 'active', 'creatorId', 'createDate');
             $crud->edit_fields('damageDetailId', 'repairTypeId', 'repairAmount', 'vendorsId', 'repairDate', 'repairDetails', 'editorId', 'editDate');
-            //var_dump($this->repairModel->get_repair_types($damageDetailId, 5));
             $crud->unset_texteditor('repairDetails');
             $crud->required_fields('repairTypeId', 'repairAmount', 'vendorsId', 'repairDate');
             $crud->field_type('damageDetailId', 'hidden', $damageDetailId);
@@ -124,6 +124,7 @@ class Repair extends MX_Controller {
     /*****************************/
     function callback_after_insert_repair($post, $key){
         $this->db->update(TBL_DAMAGE_DETAIL, array('active'=>false), array('damageDetailId'=>$this->damageDetailId));
+
     }
 
     /*****************************/
@@ -142,4 +143,7 @@ class Repair extends MX_Controller {
     }
     /*************************************************************************/
 
+    function is_already_in_repair($damageDetailId){
+
+    }
 }

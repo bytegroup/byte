@@ -6,7 +6,6 @@
  * Time: 12:46 PM
  */
 ?>
-
 <?php if ( ! defined('BASEPATH')) exit('No direct script access allowed');
 
 class Repair_List extends MX_Controller {
@@ -94,6 +93,7 @@ class Repair_List extends MX_Controller {
             $this->load->view(MAIN_TEMPLATE_FILE,$output);
 
         }catch(Exception $e){
+            redirect(base_url(IT_MODULE_FOLDER.'repair_list'));
             show_error($e->getMessage().' --- '.$e->getTraceAsString());
         }
     }

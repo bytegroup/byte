@@ -111,6 +111,7 @@ define("TBL_DAMAGE_DETAIL", DB_PREFIX.'damage_details');
 
 define("TBL_REPAIR_TYPE", DB_PREFIX."repair_types");
 define("TBL_REPAIR", DB_PREFIX."repair");
+define("TBL_REPAIR_STATUS", DB_PREFIX."repair_status");
 
 define("TBL_BUDGET", DB_PREFIX."budget");
 define("TBL_BUDGET_DETAIL", DB_PREFIX."budget_detail");

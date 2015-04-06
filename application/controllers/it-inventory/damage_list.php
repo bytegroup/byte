@@ -6,7 +6,6 @@
  * Time: 2:11 PM
  */
 ?>
-
 <?php if ( ! defined('BASEPATH')) exit('No direct script access allowed');
 
 class Damage_List extends MX_Controller {

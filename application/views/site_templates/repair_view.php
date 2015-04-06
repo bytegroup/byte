@@ -58,7 +58,7 @@
         '<a role="button" href="#" class="ui-button ui-state-default ui-button-text-icon-primary"> <span class="ui-button-icon-primary ui-icon ui-icon-circle-plus"></span> <span class="ui-button-text">Add to Stock</span> </a>' +
         '</li>' +
         '<li>' +
-        '<a role="button" href="#" class="ui-button ui-state-default ui-button-text-icon-primary"> <span class="ui-button-icon-primary ui-icon ui-icon-circle-plus"></span> <span class="ui-button-text">Permanent Damage</span> </a>' +
+        '<a role="button" id="permanent-damage-button" href="#" class="ui-button ui-state-default ui-button-text-icon-primary"> <span class="ui-button-icon-primary ui-icon ui-icon-circle-plus"></span> <span class="ui-button-text">Permanent Damage</span> </a>' +
         '</li>' +
         '</ul>' +
         '</div>' +
