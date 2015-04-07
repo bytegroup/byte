@@ -3,6 +3,8 @@
 class Repair extends MX_Controller {
     var $damageDetailId= 0;
     var $isAlreadyInRepair= false;
+    var $isRepairComplete = false;
+    var $stockId= 0;
     function __construct(){
         parent::__construct();
         $this->load->database();
@@ -26,6 +28,8 @@ class Repair extends MX_Controller {
            die();
        }
        $this->damageDetailId= $damageDetailId;
+       $this->isAlreadyInRepair= $this->is_already_in_repair($damageDetailId);
+       $this->isRepairComplete = $this->is_repair_complete($damageDetailId);
         try{
             $this->load->library('grocery_CRUD');
             $crud = new grocery_CRUD($this);
@@ -105,6 +109,8 @@ class Repair extends MX_Controller {
 
             $output->state = $crud->getState();
             $output->damageDetailId= $damageDetailId;
+            $output->repairComplete= $this->isRepairComplete;
+            $output->alreadyInRepair=$this->isAlreadyInRepair;
             $output->css = "";            
             $output->js = "";
             $output->pageTitle = "Repair";
@@ -124,7 +130,10 @@ class Repair extends MX_Controller {
     /*****************************/
     function callback_after_insert_repair($post, $key){
         $this->db->update(TBL_DAMAGE_DETAIL, array('active'=>false), array('damageDetailId'=>$this->damageDetailId));
-
+        if($this->isAlreadyInRepair)
+            $this->db->insert(TBL_REPAIR_STATUS, array('damageDetailId'=>$this->damageDetailId, 'repairId'=>$key, 'active'=>true));
+        else
+            $this->db->update(TBL_REPAIR_STATUS, array('repairId'=>$key), array('damageDetailId'=>$this->damageDetailId));
     }
 
     /*****************************/
@@ -141,9 +150,83 @@ class Repair extends MX_Controller {
         echo json_encode($this->repairModel->get_repair_list($damageDetailId));
         exit;
     }
+    function ajax_permanent_damage_declare($damageDetailId){
+        $this->db->update(TBL_DAMAGE_DETAIL, array('damageType'=>'Permanent-Damage'), array('damageDetailId'=>$damageDetailId));
+        $this->db->update(TBL_REPAIR_STATUS, array('active'=>false), array('damageDetailId'=>$damageDetailId));
+        $this->db->update(TBL_REPAIR, array('active'=>false), array('damageDetailId'=>$this->damageDetailId));
+        $array= array(
+            'redirectURL'=>base_url(IT_MODULE_FOLDER.'damage_list').'',
+            'productCode'=> $this->get_product_code($damageDetailId)
+        );
+        echo json_encode($array);
+        exit;
+    }
+    function ajax_add_to_stock($damageDetailId){
+        $details= $this->get_stock_details($damageDetailId);
+
+        $this->db->where('stockDetailId', $details[0]['stockDetailId']);
+        $this->db->set('activeAmount', 'activeAmount + '.$details[0]['damageQty'], false);
+        $this->db->set('active', true, false);
+        $this->db->update(TBL_STOCK_DETAIL);
+
+        $this->db->where('stockId', $details[0]['stockId']);
+        $this->db->set('stockQuantity', 'stockQuantity + '.$details[0]['damageQty'], false);
+        $this->db->update(TBL_STOCK);
+
+        $this->db->update(TBL_REPAIR_STATUS, array('active'=>false), array('damageDetailId'=>$damageDetailId));
+        $this->db->update(TBL_REPAIR, array('active'=>false), array('damageDetailId'=>$this->damageDetailId));
+        $array= array(
+            'redirectURL'=>base_url(IT_MODULE_FOLDER.'stock').'',
+            'productCode'=> $details[0]['productCode']
+        );
+        echo json_encode($array);
+        exit;
+    }
     /*************************************************************************/
 
-    function is_already_in_repair($damageDetailId){
-
+    function is_already_in_repair($damageDetailId=0){
+        $db = $this->db->get_where(TBL_REPAIR_STATUS, array('damageDetailId'=>$damageDetailId));
+        if(!$db->num_rows())return false;
+        else return true;
+    }
+    function is_repair_complete($damageDetailId=0){
+        $db = $this->db->get_where(TBL_REPAIR_STATUS, array('damageDetailId'=>$damageDetailId, 'active'=>false));
+        if(!$db->num_rows())return false;
+        else return true;
+    }
+    function get_stock_details($damageDetailId=0){
+        $this->db->select('sd.productCode, sd.stockDetailId, s.stockId, dd.damageQuantity');
+        $this->db->from(TBL_DAMAGE_DETAIL.' as dd ');
+        $this->db->join(TBL_STOCK_DETAIL.' as sd ', 'sd.stockDetailId=dd.stockDetailId');
+        $this->db->join(TBL_STOCK.' as s ', 's.stockId=sd.stockId');
+        $this->db->where('dd.damageDetailId', $damageDetailId);
+        $db= $this->db->get();
+        if(!$db->num_rows())return array();
+        $array= array();
+        foreach($db->result() as $row){
+            $array[]=array('productCode'=>$row->productCode, 'stockDetailId'=>$row->stockDetailId, 'stockId'=>$row->stockId, 'damageQty'=>$row->damageQuantity);
+        }
+        return $array;
+    }
+    function get_product_code($damageDetailId=0){
+        $this->db->select('sd.productCode');
+        $this->db->from(TBL_DAMAGE_DETAIL.' as dd ');
+        $this->db->join(TBL_STOCK_DETAIL.' as sd ', 'sd.stockDetailId=dd.stockDetailId');
+        $this->db->where('dd.damageDetailId', $damageDetailId);
+        $db= $this->db->get();
+        if(!$db->num_rows())return '';
+        else return $db->result()[0]->productCode;
+    }
+    function is_countable($damageDetailId){
+        $this->db->select('im.itemType');
+        $this->db->from(TBL_DAMAGE_DETAIL.' as dd ');
+        $this->db->join(TBL_STOCK_DETAIL.' as sd ', 'sd.stockDetailId=dd.stockDetailId');
+        $this->db->join(TBL_STOCK.' as s ', 's.stockId=sd.stockId');
+        $this->db->join(TBL_ITEMS_MASTER.' as im ', 'im.itemMasterId=s.itemMasterId');
+        $this->db->where('dd.damageDetailId', $damageDetailId);
+        $db= $this->db->get();
+        if(!$db->num_rows())return false;
+        if($db->result()[0]->itemType==='Countable')return true;
+        else return false;
     }
 }

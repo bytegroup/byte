@@ -9,8 +9,9 @@
 
     <!-- Le styles -->
     <link href="<?=$base_url.ASSETS_FOLDER?>css/bootstrap.css" rel="stylesheet">    
-    <link href="<?=$base_url.ASSETS_FOLDER?>style.css" rel="stylesheet">    
-    <?=$css?>
+    <link href="<?=$base_url.ASSETS_FOLDER?>style.css" rel="stylesheet">
+      <link href="<?=$base_url.ASSETS_FOLDER?>sweetalert/lib/sweet-alert.css" rel="stylesheet">
+      <?=$css?>
     <?php
 
 foreach($css_files as $file): ?>
@@ -55,6 +56,7 @@ foreach($css_files as $file): ?>
       <script type="text/javascript" src="<?=$base_url.ASSETS_FOLDER?>js/jquery-ui.js"></script>
       <script type="text/javascript" src="<?=$base_url.ASSETS_FOLDER?>js/jquery.validate.min.js"></script>
       <script type="text/javascript" src="<?=$base_url.ASSETS_FOLDER?>js/jquery.numeric.min.js"></script>
+      <script type="text/javascript" src="<?=$base_url.ASSETS_FOLDER?>sweetalert/lib/sweet-alert.min.js"></script>
 
     <?php foreach($js_files as $file): ?>
 	<script src="<?php echo $file; ?>"></script>

@@ -35,6 +35,10 @@
     $(document).ready(function(e){
         $("#collapseIT-Inventory").removeClass("in").addClass("in");
 
+        var isRepairComplete = <?php  echo json_encode($repairComplete);?>;
+        var isAlreadyInRepair= <?php echo json_encode($alreadyInRepair);?>;
+        var damDetailId= <?php echo json_encode($damageDetailId);?>;
+
         $("#field-repairAmount").numeric();
         $("#field-repairTypeId").change(function(){
             repair_amount($(this).val());
@@ -42,41 +46,49 @@
         $("form#crudForm").append('<div class="repair-list"></div>');
         $("form#crudForm div.repair-list").html(list());
 
-        $("form#crudForm").append('' +
-        '<div class="repair-list-buttons">' +
-        '<ul>' +
-        '<li>' +
-        '<a role="button" href="<?php echo base_url(IT_MODULE_FOLDER.'repair/index/'.$damageDetailId).'/add';?>" class="ui-button ui-state-default ui-button-text-icon-primary"> <span class="ui-button-icon-primary ui-icon ui-icon-circle-plus"></span> <span class="ui-button-text">Add New Repair</span> </a>' +
-        '</li>' +
-        '<li>' +
-        '<a role="button" id="repair-bill" href="#" class="ui-button ui-state-default ui-button-text-icon-primary"> <span class="ui-button-icon-primary ui-icon ui-icon-calculator"></span> <span class="ui-button-text">Repair Bill</span> </a>' +
-        '</li>' +
-        '<li>' +
-        '<a role="button" href="#" class="ui-button ui-state-default ui-button-text-icon-primary"> <span class="ui-button-icon-primary ui-icon ui-icon-circle-plus"></span> <span class="ui-button-text">Add to Issue</span> </a>' +
-        '</li>' +
-        '<li>' +
-        '<a role="button" href="#" class="ui-button ui-state-default ui-button-text-icon-primary"> <span class="ui-button-icon-primary ui-icon ui-icon-circle-plus"></span> <span class="ui-button-text">Add to Stock</span> </a>' +
-        '</li>' +
-        '<li>' +
-        '<a role="button" id="permanent-damage-button" href="#" class="ui-button ui-state-default ui-button-text-icon-primary"> <span class="ui-button-icon-primary ui-icon ui-icon-circle-plus"></span> <span class="ui-button-text">Permanent Damage</span> </a>' +
-        '</li>' +
-        '</ul>' +
-        '</div>' +
-        '');
+        $("form#crudForm").append(button_list());
 
-        $('form#crudForm a#repair-bill').click(function(){
+        $('form#crudForm a#repair-bill-button').click(function(){
             var ids= '';
             $('div.repair-list input[type="checkbox"]').each(function(){
                 if($(this).is(':checked') && !$(this).is(':disabled')) ids += $(this).val() + ';';
             });
 
             if(ids==='' || ids===null){
-                alert('Please select at least one repair to add the repair bill.');
+                sweetAlert('Nop!', 'Please select at least one repair to add the repair bill.', 'warning');
             }else{
                 ids= encodeURIComponent(ids.slice(0,-1));
                 window.location= '<?php echo base_url(IT_MODULE_FOLDER.'repair_bill/index');?>/'+ids+'/add';
             }
         });
+        $('form#crudForm a#permanent-damage-button').click(function(){
+            permanent_damage(damDetailId);
+        });
+        $('form#crudForm a#add-to-stock-button').click(function(){
+            add_to_stock(damDetailId);
+        });
+
+        function button_list(){
+            var $html = '';
+            $html += '<div class="repair-list-buttons">';
+            $html += '<ul>';
+
+            if(!isRepairComplete){
+                $html += '<li>'+get_button('<?php echo base_url(IT_MODULE_FOLDER.'repair/index/'.$damageDetailId).'/add';?>', 'Add New Repair', 'ui-icon-circle-plus')+'</li>';
+                $html += '<li>'+get_button('#', 'Repair Bill', 'ui-icon-calculator')+'</li>';
+                $html += '<li>'+get_button('#', 'Add to Issue', 'ui-icon-circle-plus')+'</li>';
+                $html += '<li>'+get_button('#', 'Add to Stock', 'ui-icon-circle-plus')+'</li>';
+                $html += '<li>'+get_button('#', 'Permanent Damage', 'ui-icon-circle-plus')+ '</li>';
+            }else{
+                $('form#crudForm input#form-button-save').prop('disabled', true);
+                $html += '<li>'+get_button('#', 'Repair Bill', 'ui-icon-calculator')+'</li>';
+            }
+
+            $html += '</ul>';
+            $html += '</div>';
+            return $html;
+        }
+
     });
 
     function repair_amount(repairTypeId){
@@ -128,9 +140,7 @@
                     $html = '<li>';
                     $html += '<ul>';
                     $html += '<li>';
-                    //if(val.billId == 0 )
                     $html += '<input type="checkbox" name="repairIds[]" '+disabled+' value="'+key+'"/>&nbsp;&nbsp;';
-                    //else $html += '&nbsp;&nbsp;';
                     $html += '<a href="<?php echo base_url(IT_MODULE_FOLDER.'repair/index/'.$damageDetailId).'/edit/';?>'+key+'" class="ui-widget ui-state-default" role="button">' +
                     '&nbsp;Edit&nbsp;' +
                     '</a>' +
@@ -154,6 +164,81 @@
                 //alert('error');
             })
             .always(function() {
+            });
+    }
+    function get_button($href, value, iconClass){
+        var buttonId= value.toLowerCase().replace(/ /g, "-");
+        var $html='';
+        $html += '<a ';
+        $html += 'role="button" id="'+buttonId+'-button" ';
+        $html += 'href="'+$href+'" ';
+        $html += 'class="ui-button ui-state-default ui-button-text-icon-primary">';
+        $html += '<span class="ui-button-icon-primary ui-icon '+iconClass+'"></span>';
+        $html += '<span class="ui-button-text">'+value+'</span>';
+        $html += '</a>';
+
+        return $html;
+    }
+    function permanent_damage(damageDetailId){
+        var url='<?php echo base_url(IT_MODULE_FOLDER.'repair/ajax_permanent_damage_declare')?>/'+damageDetailId;
+        $('a#permanent-damage-button').append('<img src="<?php echo base_url()?>ajax-loader.gif" border="0" id="permanent-damage_ajax_loader" class="dd_ajax_loader" style="display: none;">');
+        $('#permanent-damage_ajax_loader').show();
+        $.post(
+            url,
+            {},
+            function(data){
+                swal({
+                    title: data.productCode,
+                    text: "Successfully declared as 'Permanently Damaged'",
+                    type: "success",
+                    showCancelButton: false,
+                    confirmButtonColor: "#9acc9a",
+                    confirmButtonText: "Ok",
+                    closeOnConfirm: false
+                },
+                function(){
+                    window.location=data.redirectURL;
+                });
+            }
+            ,
+            'json'
+        )
+            .fail(function() {
+                $("#field-repairAmount").val(parseFloat('0'));
+            })
+            .always(function() {
+                $('#permanent-damage_ajax_loader').hide();
+            });
+    }
+    function add_to_stock(damageDetailId){
+        var url='<?php echo base_url(IT_MODULE_FOLDER.'repair/ajax_add_to_stock')?>/'+damageDetailId;
+        $('a#add-to-stock-button').append('<img src="<?php echo base_url()?>ajax-loader.gif" border="0" id="add-to-stock_ajax_loader" class="dd_ajax_loader" style="display: none;">');
+        $('#add-to-stock_ajax_loader').show();
+        $.post(
+            url,
+            {},
+            function(data){
+                swal({
+                    title: data.productCode,
+                    text: "Successfully added to Stock",
+                    type: "success",
+                    showCancelButton: false,
+                    confirmButtonColor: "#9acc9a",
+                    confirmButtonText: "Ok",
+                    closeOnConfirm: true
+                },
+                function(){
+                    window.location=data.redirectURL;
+                });
+            }
+            ,
+            'json'
+        )
+            .fail(function() {
+                $("#field-repairAmount").val(parseFloat('0'));
+            })
+            .always(function() {
+                $('#add-to-stock_ajax_loader').hide();
             });
     }
 </script>

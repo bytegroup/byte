@@ -18,7 +18,7 @@
         $('form#crudForm div.buttons-box').before('<input type="hidden" name="preBillAmount" value="'+$('#field-billAmount').val()+'"/>');
         $(".form-content form div.buttons-box").prepend(
             '<div class="form-button-box">'
-            + '<input type="button" value="Back to Bill List" class="ui-input-button" id="cancel-bill">'
+            + '<input type="button" value="Back to Repair List" class="ui-input-button" id="cancel-bill">'
             + '</div>'
         );
         $("input#cancel-bill").click(function(){

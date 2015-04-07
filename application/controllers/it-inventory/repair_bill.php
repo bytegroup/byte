@@ -116,7 +116,7 @@ class Repair_Bill extends MX_Controller{
             $output->js = "";
             $output->pageTitle = "Repair Bill";
             $output->base_url = base_url();
-            $output->cancelURL=base_url(IT_MODULE_FOLDER.'bill_list');
+            $output->cancelURL=base_url(IT_MODULE_FOLDER.'repair_list');
 
             $output->body_template = "repair_bill_view.php";
             $this->load->view(MAIN_TEMPLATE_FILE,$output);
