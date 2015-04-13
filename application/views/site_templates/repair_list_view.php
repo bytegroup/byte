@@ -25,7 +25,7 @@
         $("div.dataTables_wrapper").prepend('' +
         '<div class="add-repair-bill-buttons">' +
 
-        '<a href="#" class="edit_button ui-button ui-widget ui-state-default ui-corner-all ui-button-text-icon-primary" role="button"> <span class="ui-button-icon-primary ui-icon ui-icon-circle-plus Sbfce27ff"></span><span class="ui-button-text">&nbsp;Add Repair Bill</span> </a>' +
+        '<a href="#" class="edit_button ui-button ui-widget ui-state-default ui-corner-all ui-button-text-icon-primary" role="button"> <span class="ui-button-icon-primary ui-icon ui-icon-circle-plus"></span><span class="ui-button-text">&nbsp;Add Repair Bill</span> </a>' +
         '</div>' +
         '');
         $('div.add-repair-bill-buttons a').click(function(){
