@@ -28,6 +28,6 @@ class Requisition_for_Damage extends MX_Controller {
 
     function index(){
         var_dump(json_decode($_POST['damagedItems']));
-    }
 
+    }
 }

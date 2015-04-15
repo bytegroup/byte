@@ -19,7 +19,7 @@
 
 <script language="JavaScript">
     $(document).ready(function(e){
-        var items = [];
+        var items = {};
         $("#collapseIT-Inventory").removeClass("in").addClass("in");
         $("table.dataTable input[name='check']").remove();
         $("table.dataTable button.refresh-data").remove();
@@ -61,10 +61,10 @@
         });
 
         $('.damage-process-buttons a').click(function(){
-            console.log(items);
-            console.log(JSON.stringify(items));
+            //console.log(items);
+            //console.log(JSON.stringify(items));
             $('#damage-container form input#damagedItems').val(JSON.stringify(items));
-            //$('#damage-container form').submit();
+            $('#damage-container form').submit();
         });
 
     });
