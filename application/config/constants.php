@@ -125,6 +125,8 @@ define("TBL_ACTIVE_USERS", DB_PREFIX."active_users");
 define("TBL_ADMIN_SETTINGS", DB_PREFIX."admin_settings");
 define("TBL_APPROVE_QUOTATION", DB_PREFIX."approve_quotation");
 
+define('TBL_DAMAGE_SOLD', DB_PREFIX.'damage_sold');
+
 /***************************************************************************************/
 define('ICONS', 'assets/images/icons/');
 

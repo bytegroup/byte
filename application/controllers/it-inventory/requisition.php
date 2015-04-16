@@ -38,6 +38,7 @@ class Requisition extends MX_Controller{
             $crud->set_relation("departmentId", TBL_DEPARTMENTS, '{departmentName}');
             $crud->set_relation("organizationId", TBL_ORGANIZATIONS, '{organizationName}');
             $crud->set_relation('companyId', TBL_COMPANIES, '{companyName}');
+            $crud->where(TBL_REQUISITIONS.'.requisitionType', 'Buy');
             $crud->set_subject('Requisition');
 
             $crud->columns('requisitionTitle', 'requisitionCreateDate', 'requisitionFor');

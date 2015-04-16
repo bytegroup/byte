@@ -39,14 +39,26 @@
             '<ul>' +
             '' +
             '</ul>' +
-            '<form method="post" action="<?php echo base_url(IT_MODULE_FOLDER.'requisition_for_damage/index');?>">' +
+            '<form method="post" action="<?php echo base_url(IT_MODULE_FOLDER.'requisition_for_damage/index/add');?>">' +
             '<input type="hidden" id="damagedItems" name="damagedItems" value=""/>' +
             '</form>' +
             '</div>'
         );
         var itemCheckBox = $('input[name="damageDetailIds[]"]');
         var itemContainer= $('div#damage-container ul');
+        populate_container();
         itemCheckBox.change(function(){
+           populate_container();
+        });
+
+        $('.damage-process-buttons a').click(function(){
+            //console.log(items);
+            //console.log(JSON.stringify(items));
+            $('#damage-container form input#damagedItems').val(JSON.stringify(items));
+            $('#damage-container form').submit();
+        });
+
+        function populate_container(){
             itemContainer.html('');
             items = {};
             itemCheckBox.each(function(){
@@ -58,14 +70,6 @@
                     '');
                 }
             });
-        });
-
-        $('.damage-process-buttons a').click(function(){
-            //console.log(items);
-            //console.log(JSON.stringify(items));
-            $('#damage-container form input#damagedItems').val(JSON.stringify(items));
-            $('#damage-container form').submit();
-        });
-
+        }
     });
 </script>
