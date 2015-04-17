@@ -55,6 +55,7 @@ class Requisition_for_Damage extends MX_Controller {
 
             $crud->add_fields('requisitionTitle', 'requisitionCreateDate', 'requisitionDescription', 'requisitionType', 'items', 'creatorId', 'createDate');
             $crud->edit_fields('requisitionTitle', 'requisitionCreateDate', 'requisitionDescription', 'items', 'editorId', 'editDate');
+            $crud->set_read_fields('requisitionTitle', 'requisitionCreateDate', 'requisitionDescription', 'items');
             $crud->required_fields('requisitionTitle', 'requisitionCreateDate');
             $crud->unset_texteditor('requisitionDescription');
             $crud->field_type('requisitionNumber', 'readonly');
@@ -65,6 +66,7 @@ class Requisition_for_Damage extends MX_Controller {
             $crud->field_type('requisitionType', 'hidden', 'Damage-Sell');
             $crud->callback_add_field('items', array($this, 'callback_add_field_items'));
             $crud->callback_edit_field('items', array($this, 'callback_edit_field_items'));
+            $crud->callback_read_field('items', array($this, 'callback_read_field_items'));
             $crud->callback_after_insert(array($this, 'callback_after_insert_requisition'));
 
             if (!isset($this->my_session->permissions['canIT-InventoryAdd'])) {
@@ -83,6 +85,7 @@ class Requisition_for_Damage extends MX_Controller {
             //$crud->unset_add()->unset_delete()->unset_list()->unset_export()->unset_print();
             //$crud->unset_back_to_list();
 
+            $crud->add_action('Quotations', "", IT_MODULE_FOLDER . 'quot_for_damage/index', 'ui-icon-notice');
 
            /* $crud->set_lang_string(
                 'update_success_message',
@@ -121,16 +124,18 @@ class Requisition_for_Damage extends MX_Controller {
         foreach($this->damagedItems as $damageId=>$code){$damageIds[]=$damageId;}
         $damageItemsDetails= $this->item_details($damageIds);
         return $this->get_html_for_items($damageItemsDetails);
-
     }
     function callback_edit_field_items($row, $key){
+        return $this->get_html_for_items($this->item_details_requisitionId($key));
+    }
+    function callback_read_field_items($row, $key){
         return $this->get_html_for_items($this->item_details_requisitionId($key));
     }
     function callback_after_insert_requisition($post, $key){
         $damageDetailIds= $post['damageDetailIds'];
         foreach($damageDetailIds as $damageDetailId){
             $this->db->insert(
-                TBL_DAMAGE_SOLD,
+                TBL_REQUISITIONS_DETAIL,
                 array(
                     'requisitionId' => $key,
                     'damageDetailId'=> $damageDetailId
@@ -142,7 +147,7 @@ class Requisition_for_Damage extends MX_Controller {
 
     /*********************************************************************************/
     function item_details($damIds=[]){
-        $this->db->select('dd.damageDetailId, sd.productCode, im.itemName, cat.categoryName, com.companyId');
+        $this->db->select('dd.damageDetailId, dd.damageQuantity, sd.productCode, im.itemName, cat.categoryName, com.companyId');
         $this->db->from(TBL_DAMAGE_DETAIL.' as dd ');
         $this->db->join(TBL_STOCK_DETAIL.' as sd ', 'sd.stockDetailId=dd.stockDetailId');
         $this->db->join(TBL_STOCK.' as s ', 's.stockId=sd.stockId');
@@ -158,15 +163,16 @@ class Requisition_for_Damage extends MX_Controller {
                 'code'      => $row->productCode,
                 'name'      => $row->itemName,
                 'category'  => $row->categoryName,
-                'companyId' => $row->companyId
+                'companyId' => $row->companyId,
+                'qty'       => $row->damageQuantity
             ];
         }
         return $array;
     }
     function item_details_requisitionId($reqId){
-        $this->db->select('dd.damageDetailId, sd.productCode, im.itemName, cat.categoryName, com.companyId');
+        $this->db->select('dd.damageDetailId, dd.damageQuantity, sd.productCode, im.itemName, cat.categoryName, com.companyId');
         $this->db->from(TBL_REQUISITIONS.' as r ');
-        $this->db->join(TBL_DAMAGE_SOLD.' as ds ', 'ds.requisitionId=r.requisitionId');
+        $this->db->join(TBL_REQUISITIONS_DETAIL.' as ds ', 'ds.requisitionId=r.requisitionId');
         $this->db->join(TBL_DAMAGE_DETAIL.' as dd ', 'dd.damageDetailId=ds.damageDetailId');
         $this->db->join(TBL_STOCK_DETAIL.' as sd ', 'sd.stockDetailId=dd.stockDetailId');
         $this->db->join(TBL_STOCK.' as s ', 's.stockId=sd.stockId');
@@ -183,7 +189,8 @@ class Requisition_for_Damage extends MX_Controller {
                 'code'      => $row->productCode,
                 'name'      => $row->itemName,
                 'category'  => $row->categoryName,
-                'companyId' => $row->companyId
+                'companyId' => $row->companyId,
+                'qty'       => $row->damageQuantity
             ];
         }
         return $array;
@@ -193,7 +200,7 @@ class Requisition_for_Damage extends MX_Controller {
         $html .= '<ul>';
         $html .= '<li>';
         $html .= '<ul class="items-table-header">';
-        $html .= '<li>Tracking No.</li><li>Item Name</li><li>Category</li>';
+        $html .= '<li>Tracking No.</li><li>Item Name</li><li>Category</li><li>Quantity</li>';
         $html .= '</ul>';
         $html .= '</li>';
 
@@ -202,6 +209,7 @@ class Requisition_for_Damage extends MX_Controller {
             $html .= '<li>' . $item['code'] . '</small></li>';
             $html .= '<li>' . $item['name'] . '</li>';
             $html .= '<li>' . $item['category'] . '</li>';
+            $html .= '<li>'.$item['qty'].'</li>';
             $html .= '<input type="hidden" name="damageDetailIds[]" value="' . $damageId . '"/>';
             $html .= '<input type="hidden" name="companyId['.$damageId.']" value="'.$item['companyId'].'"/>';
             $html .= '</ul></li>';

@@ -126,6 +126,8 @@ define("TBL_ADMIN_SETTINGS", DB_PREFIX."admin_settings");
 define("TBL_APPROVE_QUOTATION", DB_PREFIX."approve_quotation");
 
 define('TBL_DAMAGE_SOLD', DB_PREFIX.'damage_sold');
+define("TBL_ITEM_TRANSFER", DB_PREFIX.'item_transfer');
+define("TBL_ITEM_TRANSFER_DETAILS", DB_PREFIX.'item_transfer_details');
 
 /***************************************************************************************/
 define('ICONS', 'assets/images/icons/');

@@ -9,6 +9,7 @@
 <style type="text/css">
     #items_input_box ul{list-style: none;margin: 0;}
     #items_input_box ul li ul li{display: inline-block; width: 220px;}
+    /*#items_input_box ul li ul li:last-child{text-align: center;}*/
     #items_input_box ul li ul{border-bottom: 1px #a9dba9 solid;}
     #items_input_box ul li ul.items-table-header{background-color: #a9dba9;}
 </style>
