@@ -16,6 +16,7 @@
     #items_input_box ul ul li input[type="number"]{width: 73px; margin-top: 5px;}
     #items_input_box ul li ul.items-table-header{text-align: left; background-color: #9acc9a;}
     #items_input_box ul li span{border-bottom: 3px #356635 double; }
+    td span{display: inline-block!important;}
 </style>
 <div class="" style="width: auto; height: auto; border: 0px #999 solid; float: right">
     <div class="form-button-box">
@@ -36,7 +37,7 @@
         var numberbox= $('#items_input_box input[type="number"]');
         $(numberbox).numeric();
 
-        $('items-grand-total').val(total_price());
+        $('span#items-grand-total').html(total_price());
         numberbox.on('input', function(){
             $('span#items-grand-total').html(total_price());
         });

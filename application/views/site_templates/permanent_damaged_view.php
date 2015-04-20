@@ -27,9 +27,9 @@
         $("div.dataTables_wrapper").prepend('' +
         '<div class="damage-process-buttons">' +
 
-        '<a href="#" class="edit_button ui-button ui-widget ui-state-default ui-corner-all ui-button-text-icon-primary" role="button"> <span class="ui-button-icon-primary ui-icon ui-icon-circle-plus"></span><span class="ui-button-text">&nbsp;Damage Requisition(sell)</span> </a>' +
+        '<a href="#" id="damage-requisition" class="edit_button ui-button ui-widget ui-state-default ui-corner-all ui-button-text-icon-primary" role="button"> <span class="ui-button-icon-primary ui-icon ui-icon-circle-plus"></span><span class="ui-button-text">&nbsp;Damage Requisition(sell)</span> </a>' +
         '&nbsp; &nbsp;' +
-        '<a href="#" class="edit_button ui-button ui-widget ui-state-default ui-corner-all ui-button-text-icon-primary" role="button"> <span class="ui-button-icon-primary ui-icon ui-icon-circle-plus"></span><span class="ui-button-text">&nbsp;Add Damage Dump</span> </a>' +
+        '<a href="#" id="damage-dump" class="edit_button ui-button ui-widget ui-state-default ui-corner-all ui-button-text-icon-primary" role="button"> <span class="ui-button-icon-primary ui-icon ui-icon-circle-plus"></span><span class="ui-button-text">&nbsp;Add Damage Dump</span> </a>' +
         '</div>' +
         '');
         $('div.dataTables_wrapper').append(
@@ -39,7 +39,7 @@
             '<ul>' +
             '' +
             '</ul>' +
-            '<form method="post" action="<?php echo base_url(IT_MODULE_FOLDER.'requisition_for_damage/index/add');?>">' +
+            '<form method="post" action="#">' +
             '<input type="hidden" id="damagedItems" name="damagedItems" value=""/>' +
             '</form>' +
             '</div>'
@@ -51,11 +51,12 @@
            populate_container();
         });
 
-        $('.damage-process-buttons a').click(function(){
-            //console.log(items);
-            //console.log(JSON.stringify(items));
-            $('#damage-container form input#damagedItems').val(JSON.stringify(items));
-            $('#damage-container form').submit();
+        $('.damage-process-buttons a#damage-requisition').click(function(){
+            $('#damage-container form input#damagedItems')
+                .val(JSON.stringify(items))
+                .parent()
+                .attr('action', '<?php echo base_url(IT_MODULE_FOLDER.'requisition_for_damage/index/add');?>')
+                .submit();
         });
 
         function populate_container(){

@@ -129,6 +129,9 @@ define('TBL_DAMAGE_SOLD', DB_PREFIX.'damage_sold');
 define("TBL_ITEM_TRANSFER", DB_PREFIX.'item_transfer');
 define("TBL_ITEM_TRANSFER_DETAILS", DB_PREFIX.'item_transfer_details');
 
+define("TBL_DISPOSAL", DB_PREFIX."disposal");
+define("TBL_DISPOSAL_DETAILS", DB_PREFIX."disposal_details");
+
 /***************************************************************************************/
 define('ICONS', 'assets/images/icons/');
 

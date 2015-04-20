@@ -72,12 +72,11 @@ class Quot_For_Damage extends MX_Controller {
 
             $crud->add_fields('requisitionId', 'quotationTitle', 'quotationDescription', 'vendorsId', 'quotationDate', 'paymentType', 'quotationFile', 'items', 'creatorId', 'createDate');
             $crud->edit_fields('requisitionId', 'quotationTitle', 'quotationDescription', 'vendorsId', 'quotationDate', 'paymentType', 'quotationFile', 'items', 'editorId', 'editDate');
-            $crud->set_read_fields('requisitionId', 'quotationNumber', 'quotationTitle', 'quotationDescription', 'vendorsId', 'quotationDate', 'paymentType', 'quotationFile', 'items');
+            $crud->set_read_fields('requisitionId', 'quotationTitle', 'quotationDescription', 'vendorsId', 'quotationDate', 'paymentType', 'quotationFile', 'items');
             $crud->required_fields(array('requisitionId','quotationTitle', 'vendorsId', 'quotationDate'));
             $crud->unique_fields('quotationTitle');
             $crud->unset_texteditor('quotationDescription');
             $crud->set_field_upload('quotationFile','assets/uploads/files');
-            $crud->field_type('quotationNumber', 'readonly');
             $crud->field_type('items', 'readonly');
             $crud->field_type('requisitionId', 'hidden', $id);
             $crud->field_type('creatorId', 'hidden', $this->my_session->userId);
@@ -90,7 +89,9 @@ class Quot_For_Damage extends MX_Controller {
             $crud->callback_after_update(array($this, 'callback_after_update_quotation'));
 
             $this->approvedQuotationId= $this->get_approved_quotation_id($id);
-            $crud->add_action('Approve', '', '', 'ui-icon-check', array($this,'setApproveQuotationURL'));
+            if($this->approvedQuotationId) $crud->unset_add();
+
+            $crud->add_action('Sold', '', '', 'ui-icon-cart', array($this,'setApproveQuotationURL'));
            /* $crud->add_action('Receive', '', '', 'ui-icon-transferthick-e-w', array($this,'setReceiveURL'));*/
 
             $crud->set_lang_string(
@@ -98,7 +99,7 @@ class Quot_For_Damage extends MX_Controller {
                 'Data stored successfully.'
                 .'Please wait while you are redirecting to the list page.'
                 .'<script type="text/javascript">'
-                .'window.location = "'.base_url(IT_MODULE_FOLDER.'quotation/index/'.$id).'";'
+                .'window.location = "'.base_url(IT_MODULE_FOLDER.'quot_for_damage/index/'.$id).'";'
                 .'</script>'
                 .'<div style="display:none">'
             );
@@ -107,7 +108,7 @@ class Quot_For_Damage extends MX_Controller {
                 'Data updated successfully.'
                 .'Please wait while you are redirecting to the list page.'
                 .'<script type="text/javascript">'
-                .'window.location = "'.base_url(IT_MODULE_FOLDER.'quotation/index/'.$id).'";'
+                .'window.location = "'.base_url(IT_MODULE_FOLDER.'quot_for_damage/index/'.$id).'";'
                 .'</script>'
                 .'<div style="display:none">'
             );
@@ -118,7 +119,7 @@ class Quot_For_Damage extends MX_Controller {
             $output->css = "";
             $output->js = "";
             $output->requisitionId = $id;
-            $output->pageTitle = "Quotations";
+            $output->pageTitle = "Quotations On Damage Sell";
             $output->base_url = base_url();
             $output->backToRequisitionList=base_url().IT_MODULE_FOLDER.'requisition_for_damage';
 
@@ -136,10 +137,10 @@ class Quot_For_Damage extends MX_Controller {
     function setApproveQuotationURL($primary_key, $value){
         $approvedId= $this->get_approved_quotation_id($value->requisitionId);
         if($approvedId)
-            return base_url().IT_MODULE_FOLDER.'approve_quotation/index/'.$value->requisitionId.'/'.$primary_key.'/edit/'.$approvedId;
-        else return base_url().IT_MODULE_FOLDER.'approve_quotation/index/'.$value->requisitionId.'/'.$primary_key.'/add';
+            return base_url().IT_MODULE_FOLDER.'sell_damage/index/'.$value->requisitionId.'/'.$primary_key.'/edit/'.$approvedId;
+        else return base_url().IT_MODULE_FOLDER.'sell_damage/index/'.$value->requisitionId.'/'.$primary_key.'/add';
     }
-    function  setReceiveURL($primary_key, $value){
+    /*function  setReceiveURL($primary_key, $value){
         $this->db->select("quotationId")
             ->from(TBL_APPROVE_QUOTATION)
             ->where('approveQuotationId', $this->approvedQuotationId);
@@ -149,14 +150,14 @@ class Quot_For_Damage extends MX_Controller {
         if($row[0]->quotationId == $primary_key)
             return base_url(IT_MODULE_FOLDER.'receive/index').'/'.$primary_key;
         else return '#';
-    }
+    }*/
 
     function callback_column_approved($primary_key, $value){
         $approvedId= $this->get_approved_quotation_id($value->requisitionId);
         $approvedMsg=''
-            .'<span class="ui-button-icon-primary ui-icon ui-icon-circle-check"></span><span style="font-size: 14px">&nbsp; Approved</span>';
+            .'<span class="ui-button-icon-primary ui-icon ui-icon-circle-check"></span><span style="font-size: 14px">&nbsp; Sold</span>';
         $notApprovedMsg= ''
-            .'<span class="ui-button-icon-primary ui-icon ui-icon-circle-close"></span><span style="font-size: 14px">&nbsp; Not-approved</span>';
+            .'<span class="ui-button-icon-primary ui-icon ui-icon-circle-close"></span><span style="font-size: 14px">&nbsp; Unsold</span>';
 
         if(!$approvedId) return $notApprovedMsg;
         $this->db->select("quotationId")
@@ -169,95 +170,31 @@ class Quot_For_Damage extends MX_Controller {
     }
 
     function callback_after_insert_quotation($post, $key){
-        $this->db->select("c.companyCode")
-            ->from(TBL_REQUISITIONS.' as r ')
-            ->join(TBL_COMPANIES.' as c ', 'r.companyId=c.companyId')
-            ->where('requisitionId', $this->requisitionId);
-        $db = $this->db->get();
-        if(!$db->num_rows())$code='';
-        else{
-            $row = $db->result();
-            $code = $row[0]->companyCode;
-        }
-        $this->db->update(
-            TBL_QUOTATIONS,
-            array('quotationNumber' => '' . $code . '/QUO/' . mdate("%y", time()) . '/' . $key),
-            array('quotationId' => $key)
-        );
-
-        $items= $post['items'];
-        foreach($items as $item){
+        $itemIds= $post['damagedItemIds'];
+        foreach($itemIds as $itemId){
             $data= array(
-                'quotationId'       => $key,
-                'itemMasterId'      => $item,
-                'productBrand'      => $post['brand-item-'.$item],
-                'productOrigin'     => $post['origin-item-'.$item],
-                'productType'       => $post['type-item-'.$item],
-                'productWarranty'   => $post['warranty-item-'.$item],
-                'productRemarks'    => $post['remarks-item-'.$item],
-                'orderedQuantity'   => $post['quantity-item-'.$item],
-                'unitPrice'         => $post['unitprice-item-'.$item],
-                'quotationPrice'    => $post['totalprice-item-'.$item]
+                'quotationId'           => $key,
+                'requisitionDetailId'   => $itemId,
+                'quotationPrice'        => $post['totalPrice'][$itemId]
             );
             $this->db->insert(TBL_QUOTATIONS_DETAIL, $data);
         }
     }
     function callback_after_update_quotation($post, $key){
-        $items= $post['items'];
-        $this->db->select("itemMasterId")
-            ->from(TBL_REQUISITIONS_DETAIL)
-            ->where('requisitionId', $this->requisitionId);
-        $db = $this->db->get();
-        $orderedItems = array();
-        foreach($db->result() as $row):
-            $orderedItems[] = $row->itemMasterId;
-        endforeach;
-        foreach($orderedItems as $orderedItem){
-            if(!in_array($orderedItem, $items)){
-                $this->db->delete(TBL_QUOTATIONS_DETAIL, array('quotationId' => $key, 'itemMasterId'=>$orderedItem));
-            }
-        }
+        $items= $post['damagedItemIds'];
         foreach($items as $item){
-            $data= array(
-                //'quotationId'     => $key,
-                'productBrand'      => $post['brand-item-'.$item],
-                'productOrigin'     => $post['origin-item-'.$item],
-                'productType'       => $post['type-item-'.$item],
-                'productWarranty'   => $post['warranty-item-'.$item],
-                'productRemarks'    => $post['remarks-item-'.$item],
-                'orderedQuantity'   => $post['quantity-item-'.$item],
-                'unitPrice'         => $post['unitprice-item-'.$item],
-                'quotationPrice'    => $post['totalprice-item-'.$item]
+            $this->db->update(
+                TBL_QUOTATIONS_DETAIL,
+                array('quotationPrice'=> $post['totalPrice'][$item]),
+                array('quotationId'=>$key, 'requisitionDetailId'=>$item)
             );
-            $ql = $this->db->select('quotationId, itemMasterId')
-                ->from(TBL_QUOTATIONS_DETAIL)
-                ->where('quotationId',$key)->where('itemMasterId', $item)
-                ->get();
-            if( $ql->num_rows() > 0 ) {
-                $this->db->update(TBL_QUOTATIONS_DETAIL, $data, array('quotationId' => $key, 'itemMasterId'=>$item));
-            }
-            else {
-                $data= array(
-                    'quotationId'       => $key,
-                    'itemMasterId'      => $item,
-                    'productBrand'      => $post['brand-item-'.$item],
-                    'productOrigin'     => $post['origin-item-'.$item],
-                    'productType'       => $post['type-item-'.$item],
-                    'productWarranty'   => $post['warranty-item-'.$item],
-                    'productRemarks'    => $post['remarks-item-'.$item],
-                    'orderedQuantity'   => $post['quantity-item-'.$item],
-                    'unitPrice'         => $post['unitprice-item-'.$item],
-                    'quotationPrice'    => $post['totalprice-item-'.$item]
-                );
-                $this->db->insert(TBL_QUOTATIONS_DETAIL, $data);
-            }
         }
     }
 
     function callback_field_items($row, $key){
-        $orderedProducts= $this->get_requisition_items($this->requisitionId);
-
-        //$quotationDetails= $this->get_quotation_details($key);
+        $damagedItems= $this->get_requisition_items($this->requisitionId);
+        $flag= $key ? true : false;
+        $quotationPrice= $flag ? $this->get_quotation_details($key): null;
 
         $total=0.0;
         $html = '';
@@ -269,12 +206,14 @@ class Quot_For_Damage extends MX_Controller {
         $html .= '</ul>';
         $html .= '</li>';
 
-        foreach($orderedProducts as $id=>$item){
+        foreach($damagedItems as $id=>$item){
+            $price= $flag ? $quotationPrice[$item['reqDetailId']]:'';
             $html.='<li><ul>';
             $html.='<li>'.$item['name'].'</li>';
             $html.='<li>'.$item['code'].'</li>';
             $html.='<li>'.$item['qty'].'</li>';
-            $html.='<li><input type="number" placeholder="Price" name="totalPrice[]" value="" min="0"/></li>';
+            $html.='<li><input type="number" placeholder="Price" name="totalPrice['.$item['reqDetailId'].']" value="'.$price.'" min="0"/>';
+            $html.='<input type="hidden" name="damagedItemIds[]" value="'.$item['reqDetailId'].'"/></li>';
             $html.='</ul></li>';
         }
 
@@ -282,10 +221,10 @@ class Quot_For_Damage extends MX_Controller {
         return $html;
     }
     function callback_read_field_items($row, $key){
-        $items= $this->get_quotation_items($key);
+        $damagedItems= $this->get_requisition_items($this->requisitionId);
+        $quotationPrice= $this->get_quotation_details($key);
         $total= 0.0;
         $html='';
-
         $html .= '<ul class="read">';
 
         $html .= '<li>';
@@ -294,60 +233,57 @@ class Quot_For_Damage extends MX_Controller {
         $html .= '</ul>';
         $html .= '</li>';
 
-        foreach($items as $id=>$item):
-            $total += $item['totalPrice'];
+        foreach($damagedItems as $id=>$item):
+            $total += $quotationPrice[$item['reqDetailId']];
             $html .= '<li>';
             $html .= '<ul>';
-            $html .= '<li>'.$item['item'].'</li>';
-            $html .= '<li>'.$item['quantity'].'</li>';
-            $html .= '<li>'.$item['unitPrice'].'</li>';
-            $html .= '<li>'.$item['totalPrice'].'</li>';
+            $html .= '<li>'.$item['name'].'</li>';
+            $html .= '<li>'.$item['code'].'</li>';
+            $html .= '<li>'.$item['qty'].'</li>';
+            $html .= '<li>'.$quotationPrice[$item['reqDetailId']].'</li>';
             $html .= '</ul>';
             $html .= '</li>';
         endforeach;
 
-        $html .= '<li>Grand Total = <span id="items-grand-total">'.$total.'</span></li>';
+        $html .= '<li>Grand Total = <span>'.$total.'</span></li>';
         $html .= '</ul>';
 
         return $html;
     }
 
     function get_requisition_items($requisitionId){
-        $this->db->select('dd.damageDetailId, dd.damageQuantity, sd.productCode, im.itemName, cat.categoryName, com.companyId');
-        $this->db->from(TBL_REQUISITIONS.' as r ');
-        $this->db->join(TBL_DAMAGE_SOLD.' as ds ', 'ds.requisitionId=r.requisitionId');
-        $this->db->join(TBL_DAMAGE_DETAIL.' as dd ', 'dd.damageDetailId=ds.damageDetailId');
+        $this->db->select('rd.requisitionDetailId, dd.damageDetailId, dd.damageQuantity, sd.productCode, im.itemName, cat.categoryName, com.companyId');
+        $this->db->from(TBL_REQUISITIONS_DETAIL.' as rd ');
+        $this->db->join(TBL_DAMAGE_DETAIL.' as dd ', 'dd.damageDetailId=rd.damageDetailId');
         $this->db->join(TBL_STOCK_DETAIL.' as sd ', 'sd.stockDetailId=dd.stockDetailId');
         $this->db->join(TBL_STOCK.' as s ', 's.stockId=sd.stockId');
         $this->db->join(TBL_ITEMS_MASTER.' as im ', 'im.itemMasterId=s.itemMasterId');
         $this->db->join(TBL_CATEGORIES.' as cat ', 'cat.categoryId=im.categoryId');
         $this->db->join(TBL_COMPANIES.' as com ', 'com.companyId=s.companyId');
-        $this->db->where('r.requisitionId', $requisitionId);
-        $this->db->where('r.requisitionType', 'Damage-Sell');
+        $this->db->where('rd.requisitionId', $requisitionId);
         $db=$this->db->get();
         if(!$db->num_rows())return [];
         $array= [];
         foreach($db->result() as $row ){
             $array[$row->damageDetailId]= [
-                'code'      => $row->productCode,
-                'name'      => $row->itemName,
-                'category'  => $row->categoryName,
-                'companyId' => $row->companyId,
-                'qty'       => $row->damageQuantity
+                'reqDetailId'   => $row->requisitionDetailId,
+                'code'          => $row->productCode,
+                'name'          => $row->itemName,
+                'category'      => $row->categoryName,
+                'companyId'     => $row->companyId,
+                'qty'           => $row->damageQuantity
             ];
         }
         return $array;
     }
     function get_quotation_details($quotationId){
-        $this->db->select("damageDetailId, quotationPrice")
+        $this->db->select("requisitionDetailId, quotationPrice")
             ->from(TBL_QUOTATIONS_DETAIL)
             ->where('quotationId', $quotationId);
         $db = $this->db->get();
         $array = array();
         foreach($db->result() as $row):
-            $array[$row->damageDetailsId] = array(
-
-            );
+            $array[$row->requisitionDetailId] = $row->quotationPrice;
         endforeach;
         return $array;
     }
