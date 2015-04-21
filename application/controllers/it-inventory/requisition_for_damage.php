@@ -31,6 +31,7 @@ class Requisition_for_Damage extends MX_Controller {
             $this->load->library('grocery_CRUD');
             $crud = new grocery_CRUD($this);
             $crud->unset_jquery();
+
             if($crud->getState()==='add'){
                 if(!isset($_POST['damagedItems']) || !$_POST['damagedItems']){
                     redirect(base_url(IT_MODULE_FOLDER.'permanent_damaged'));
@@ -206,7 +207,7 @@ class Requisition_for_Damage extends MX_Controller {
 
         foreach ($itemDetails as $damageId => $item) {
             $html .= '<li><ul>';
-            $html .= '<li>' . $item['code'] . '</small></li>';
+            $html .= '<li>' . $item['code'] . '</li>';
             $html .= '<li>' . $item['name'] . '</li>';
             $html .= '<li>' . $item['category'] . '</li>';
             $html .= '<li>'.$item['qty'].'</li>';

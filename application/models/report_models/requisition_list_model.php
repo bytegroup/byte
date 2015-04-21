@@ -38,6 +38,8 @@ class Requisition_List_Model extends CI_Model {
 
         if($filters['company'])$this->db->where('c.companyId', $filters['company']);
 
+        $this->db->where('r.requisitionType', 'Buy');
+
         return $this->db->get();
     }
     private function _data_without_filter(){
@@ -48,6 +50,7 @@ class Requisition_List_Model extends CI_Model {
         $this->db->join(TBL_USERS.' as reqFor ', 'reqFor.userId=r.userId', 'left');
         $this->db->join(TBL_USERS.' as creator ', 'creator.userId=r.creatorId', 'left');
         $this->db->join(TBL_USERS.' as editor ', 'editor.userId=r.editorId', 'left');
+        $this->db->where('r.requisitionType', 'Buy');
         return $this->db->get();
     }
 

@@ -27,9 +27,9 @@
         $("div.dataTables_wrapper").prepend('' +
         '<div class="damage-process-buttons">' +
 
-        '<a href="#" id="damage-requisition" class="edit_button ui-button ui-widget ui-state-default ui-corner-all ui-button-text-icon-primary" role="button"> <span class="ui-button-icon-primary ui-icon ui-icon-circle-plus"></span><span class="ui-button-text">&nbsp;Damage Requisition(sell)</span> </a>' +
+        '<a id="damage-requisition" class="edit_button ui-button ui-widget ui-state-default ui-corner-all ui-button-text-icon-primary" role="button"> <span class="ui-button-icon-primary ui-icon ui-icon-circle-plus"></span><span class="ui-button-text">&nbsp;Damage Requisition(sell)</span> </a>' +
         '&nbsp; &nbsp;' +
-        '<a href="#" id="damage-dump" class="edit_button ui-button ui-widget ui-state-default ui-corner-all ui-button-text-icon-primary" role="button"> <span class="ui-button-icon-primary ui-icon ui-icon-circle-plus"></span><span class="ui-button-text">&nbsp;Add Damage Dump</span> </a>' +
+        '<a id="damage-dump" class="edit_button ui-button ui-widget ui-state-default ui-corner-all ui-button-text-icon-primary" role="button"> <span class="ui-button-icon-primary ui-icon ui-icon-circle-plus"></span><span class="ui-button-text">&nbsp;Add Damage Dump</span> </a>' +
         '</div>' +
         '');
         $('div.dataTables_wrapper').append(
@@ -52,11 +52,28 @@
         });
 
         $('.damage-process-buttons a#damage-requisition').click(function(){
-            $('#damage-container form input#damagedItems')
-                .val(JSON.stringify(items))
-                .parent()
-                .attr('action', '<?php echo base_url(IT_MODULE_FOLDER.'requisition_for_damage/index/add');?>')
-                .submit();
+            if($.isEmptyObject(items)) {
+                sweetAlert('Nop!', 'Please select at least one repair to add the repair bill.', 'warning');
+            }else{
+                $('#damage-container form input#damagedItems')
+                    .val(JSON.stringify(items))
+                    .parent()
+                    .attr('action', '<?php echo base_url(IT_MODULE_FOLDER.'requisition_for_damage/index/add');?>')
+                    .submit();
+            }
+        });
+
+        $('.damage-process-buttons a#damage-dump').click(function(){
+            if($.isEmptyObject(items)){
+                sweetAlert('Nop!', 'Please select at least one repair to add the repair bill.', 'warning');
+            }else {
+                $('#damage-container form input#damagedItems')
+                    .val(JSON.stringify(items))
+                    .parent()
+                    .attr('action', '<?php echo base_url(IT_MODULE_FOLDER.'damage_disposal/index/add');?>')
+                    .submit();
+            }
+
         });
 
         function populate_container(){
