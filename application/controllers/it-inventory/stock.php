@@ -44,6 +44,7 @@ class Stock extends MX_Controller {
             $crud->unset_add()->unset_edit()->unset_delete()->unset_read();
 
             $crud->add_action('Issue', "", IT_MODULE_FOLDER.'issue/index', 'ui-icon-person');
+            $crud->add_action('Transfer', '', IT_MODULE_FOLDER.'item_transfer/index', 'ui-icon-transferthick-e-w');
             $crud->add_action('Damage', "", IT_MODULE_FOLDER.'stock_damage/index', 'ui-icon-tag');
 
             $output = $crud->render();
